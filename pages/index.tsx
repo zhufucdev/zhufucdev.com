@@ -116,9 +116,10 @@ function RecentCards(props: { data: Recent[] }): JSX.Element {
           {data.map((e, i) =>
             i == 0 ? (
               <Grid item sx={{ flex: 1 }} key={i}>
-                <RecentCard data={e} key={i} />
+                <RecentCard data={e} />
               </Grid>
             ) : (
+              <>
               <Grid
                 item
                 sx={{flex: 1}}
@@ -133,12 +134,19 @@ function RecentCards(props: { data: Recent[] }): JSX.Element {
               >
                 <RecentCard data={e} />
               </Grid>
+              <Grid
+                item
+                sx={{flex: 1, display: more ? 'none' : {md: 'block', sm: 'none', xs: 'none'}}}
+                key={'on-large-' + i}>
+                  <RecentCard data={e} />
+                </Grid>
+              </>
             )
           )}
         </Grid>
         <Box
           sx={{
-            display: { sm: "none", xs: "flex" },
+            display: { md: "none", sm: "flex", xs: "flex" },
             flexDirection: "row-reverse",
             mt: 1,
           }}
