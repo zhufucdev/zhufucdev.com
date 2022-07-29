@@ -1,4 +1,4 @@
-import { db, dbClient } from "./database";
+import db from "./database";
 
 export interface Recent {
   title: string;
@@ -8,7 +8,5 @@ export interface Recent {
 }
 
 export async function getRecents(): Promise<Recent[]> {
-    const r = (await db.collection<Recent>('recents').find().toArray()).slice(-3).reverse();
-    dbClient.close();
-    return r;
+    return (await db.collection<Recent>('recents').find().toArray()).slice(-3).reverse();
 }
