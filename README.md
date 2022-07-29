@@ -35,7 +35,7 @@ $ npm run build
   - [ ] editor
 
 - [ ] Inspirations
-  - [ ] shelf
+  - [x] shelf
   - [ ] third-party raiser
     - [ ] account system
       - [ ] registeration

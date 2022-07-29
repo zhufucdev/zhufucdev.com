@@ -11,8 +11,10 @@ export function getHumanReadableTime(time: Date): string {
   }
 
   function fix(num: number): string {
-    if (num < 10) {
-      return '0' + num;
+    if (num == 0) {
+      return "00";
+    } else if (num < 10) {
+      return "0" + num;
     } else {
       return num.toString();
     }
@@ -32,10 +34,35 @@ export function getHumanReadableTime(time: Date): string {
         } ${clock}`;
       }
     } else {
-      return `${time.getMonth().toLocaleString('zh-CN')}月${time.getDate().toLocaleString('zh-CN')}日 ${clock}`
+      return `${time.getMonth().toLocaleString("zh-CN")}月${time
+        .getDate()
+        .toLocaleString("zh-CN")}日 ${clock}`;
     }
   } else {
     const yearElasped = now.getFullYear() - time.getFullYear();
-    return `${prefix(yearElasped) || time.getFullYear()}年${time.getMonth() + 1}月${time.getDate()}日 ${clock}`
+    return `${prefix(yearElasped) || time.getFullYear()}年${
+      time.getMonth() + 1
+    }月${time.getDate()}日 ${clock}`;
   }
+}
+
+const imageCache = new Map<string, boolean>();
+export async function cacheImage(src: string) {
+  if (src in imageCache) {
+    return;
+  }
+  const cache = new Image();
+  const promise = new Promise(
+    (resolve) =>
+      (cache.onload = () => {
+        imageCache.set(src, true);
+        resolve(true);
+      })
+  );
+  cache.src = src;
+  await promise;
+}
+
+export function getImageUri(id: string) {
+  return `/api/images/${id}`;
 }

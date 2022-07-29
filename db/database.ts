@@ -2,19 +2,28 @@ import { Db, MongoClient } from "mongodb";
 import fs from "fs/promises";
 import path from "path";
 
-let db: Db;
+let closed = false;
 
-if (!global.dbClient) {
-  const uri = await fs.readFile(path.join("db", "uri.txt"));
-  global.dbClient = new MongoClient(uri.toString());
+const uri = (await fs.readFile(path.join("db", "uri.txt"))).toString();
+let dbClient = new MongoClient(uri);
+let db = dbClient.db("web");
 
-  global.dbClient.on("close", () => {
-    console.warn("Database client closed unexpectedly. Reconnecting...");
-    global.dbClient = new MongoClient(uri.toString());
-    db = global.dbClient.db("web");
-  });
+function closeDb() {
+  if (closed) return;
+  dbClient.close();
 }
 
-db = global.dbClient.db("web");
+function renewDb(): Db {
+  if (!closed) return db;
 
-export default db;
+  dbClient = new MongoClient(uri);
+  db = dbClient.db("web");
+  closed = false;
+  return db;
+}
+
+function addCloseHandle() {
+  dbClient.on('close', () => closed = true);
+}
+
+export { db, closeDb, renewDb };
