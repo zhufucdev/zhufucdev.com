@@ -16,6 +16,6 @@ export default async function handler(
       .setHeader("Content-Type", "image/svg+xml")
       .send(await readFile(path.join('public', 'error.svg')));
   } else {
-    res.status(200).send(await image.read());
+    res.status(200).setHeader("Content-Type", "image/webp").send(await image.read());
   }
 }
