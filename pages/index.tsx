@@ -44,6 +44,10 @@ const ExpandMore = styled((props: ExpandMoreProps) => {
   }),
 }));
 
+function Subtitle(props: {children: React.ReactElement | string}) {
+  return <Typography mb={1} variant="subtitle2">{props.children}</Typography>
+}
+
 function RecentCard(props: { data: Recent }): JSX.Element {
   const { data } = props;
 
@@ -93,9 +97,7 @@ function RecentCards(props: { data: Recent[] }): JSX.Element {
   const { data } = props;
 
   const subtitle = (
-    <Typography variant="subtitle2" mb={2}>
-      近况
-    </Typography>
+    <Subtitle>近况</Subtitle>
   );
 
   const [more, setMore] = React.useState(false);
@@ -175,6 +177,14 @@ function RecentCards(props: { data: Recent[] }): JSX.Element {
       </>
     );
   }
+}
+
+function InspirationCards(): JSX.Element {
+  const subtitle = <Subtitle>灵感</Subtitle>
+  
+  return <>
+
+  </>
 }
 
 const Home: NextPage<PageProps> = ({ recents }) => {

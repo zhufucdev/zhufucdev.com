@@ -1,5 +1,5 @@
 import { Binary } from "mongodb";
-import db from "./database";
+import { db, dbClient} from "./database";
 
 interface AbstractImage {
   _id: string;
@@ -18,7 +18,7 @@ interface ImageStore extends AbstractImage {
 export async function findImage(id: string): Promise<Image | null> {
   async function find(): Promise<ImageStore | null> {
     const r = await db.collection<ImageStore>("images").findOne({ _id: id });
-    global.dbClient?.close();
+    dbClient.close();
     return r;
   }
   const data = await find();
