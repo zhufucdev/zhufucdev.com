@@ -3,7 +3,12 @@ import type { AppProps } from "next/app";
 
 import { useRouter } from "next/router";
 import { NextLinkComposed } from "../componenets/Link";
-import { motion } from "framer-motion";
+import {
+  AnimatePresence,
+  domAnimation,
+  LazyMotion,
+  motion,
+} from "framer-motion";
 import * as React from "react";
 
 import Box from "@mui/material/Box";
@@ -139,24 +144,25 @@ function MyApp({ Component, pageProps }: AppProps) {
             </Drawer>
           </Box>
 
-          <Box
-            component={motion.main}
-            variants={{
-              hidden: { opacity: 0 },
-              enter: { opacity: 1 }
-            }}
-            initial="hidden"
-            animate="enter"
-            transition={{ type: "linear" }}
-            sx={{
-              flexGrow: 1,
-              p: 3,
-              width: { sm: `calc(100% - ${drawerWidth}px)` },
-            }}
-          >
-            <Toolbar />
-            <Component {...pageProps} />
-          </Box>
+          <LazyMotion features={domAnimation}>
+            <AnimatePresence exitBeforeEnter>
+              <Box
+                component={motion.main}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ type: "linear", duration: 0.3 }}
+                sx={{
+                  flexGrow: 1,
+                  p: 3,
+                  width: { sm: `calc(100% - ${drawerWidth}px)` },
+                }}
+              >
+                <Toolbar />
+                <Component {...pageProps} />
+              </Box>
+            </AnimatePresence>
+          </LazyMotion>
         </Box>
       </ThemeProvider>
     </>

@@ -13,7 +13,7 @@ $ npm install
 
 Specify to your MongoDB server:
 ```bash
-$ echo "mongodb+srv://<user>:<password>@<cluster-url>?retryWrites=true&writeConcern=majority" > ./db/uri.txt
+$ export DB_URI="mongodb+srv://<user>:<password>@<cluster-url>?retryWrites=true&writeConcern=majority"
 ```
 
 To run a local debugging server:

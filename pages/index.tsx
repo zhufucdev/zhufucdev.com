@@ -342,17 +342,17 @@ export async function getServerSideProps(): Promise<{ props: PageProps }> {
   const recents = (await getRecents()).map((v) => {
     return { ...v, time: v.time.toISOString() };
   });
-  const inspirations = await (
-    await getInspirations()
+  const inspirations = (
+      await getInspirations()
   ).map((v) => {
     return {
       ...v,
       raiser: v.raiser
-        ? {
+          ? {
             ...v.raiser,
             registerTime: v.raiser.registerTime.toISOString(),
           }
-        : null,
+          : null,
     };
   });
   return {

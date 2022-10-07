@@ -33,4 +33,6 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
-db/uri.txt
+
+# IDE
+.idea

@@ -1,10 +1,9 @@
 import { Db, MongoClient } from "mongodb";
-import fs from "fs/promises";
-import path from "path";
 
 let closed = false;
 
-const uri = (await fs.readFile(path.join("db", "uri.txt"))).toString();
+
+const uri = process.env.DB_URI as string;
 let dbClient = new MongoClient(uri);
 let db = dbClient.db("web");
 
@@ -23,7 +22,7 @@ function renewDb(): Db {
 }
 
 function addCloseHandle() {
-  dbClient.on('close', () => closed = true);
+  dbClient.on("close", () => (closed = true));
 }
 
 export { db, closeDb, renewDb };
