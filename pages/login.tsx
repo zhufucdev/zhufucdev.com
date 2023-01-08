@@ -23,10 +23,12 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import styles from '../styles/Login.module.css';
 import {fetchApi} from "../lib/utility";
 import {useRouter} from "next/router";
+import {GoogleReCaptcha, GoogleReCaptchaProvider} from "react-google-recaptcha-v3";
 
-type HelperType = { id?: string, pwd?: string, nick?: string, repwd?: string }
-type InfoType = { id: string, pwd: string, nick?: string, repwd?: string }
-type Result = { success: boolean, respond?: string, msg?: string }
+type HelperType = { id?: string, pwd?: string, nick?: string, repwd?: string };
+type InfoType = { id: string, pwd: string, token: string, nick?: string, repwd?: string };
+type Result = { success: boolean, respond?: string, msg?: string };
+type LoginProps = { reCaptchaKey: string };
 
 async function login(info: InfoType): Promise<Result> {
     const res = await fetchApi('/api/login', info);
@@ -81,7 +83,7 @@ async function register(info: InfoType): Promise<Result> {
     }
 }
 
-const Login: NextPage = () => {
+const Login: NextPage<LoginProps> = ({reCaptchaKey}) => {
     const [showPwd, setShowPwd] = React.useState(false);
     const [loading, setLoading] = React.useState(false);
     const [registering, setRegistering] = React.useState(false);
@@ -90,6 +92,7 @@ const Login: NextPage = () => {
     } as InfoType);
     const [helpers, setHelpers] = React.useState(info as HelperType);
     const [snackbar, setSnackbar] = React.useState('');
+    const [verified, setVerified] = React.useState(false);
     const router = useRouter();
 
     const actionLogin = "登录", actionRegister = "注册";
@@ -136,6 +139,11 @@ const Login: NextPage = () => {
 
     function handleSnackbarClose() {
         setSnackbar('');
+    }
+
+    function handleReCaptcha(token: string) {
+        setInfo({...info, token});
+        setVerified(true);
     }
 
     async function handleContinue() {
@@ -211,7 +219,10 @@ const Login: NextPage = () => {
         }
     }
 
-    return <>
+    return <GoogleReCaptchaProvider
+                reCaptchaKey={reCaptchaKey}
+                language="zh-CN"
+                useRecaptchaNet={true}>
         <Typography variant="h5" sx={{marginBottom: 2}}>欢迎回来，我的朋友</Typography>
         <Card variant="outlined">
             <Fade in={loading} style={{transitionDelay: "800ms"}}>
@@ -279,7 +290,7 @@ const Login: NextPage = () => {
                     <Tooltip title={registering ? actionRegister : actionLogin}>
                         <IconButton
                             onClick={handleContinue}
-                            disabled={loading}>
+                            disabled={loading || !verified}>
                             <ArrowForwardIcon/>
                         </IconButton>
                     </Tooltip>
@@ -288,13 +299,22 @@ const Login: NextPage = () => {
         </Card>
         <Snackbar open={Boolean(snackbar)}
                   onClose={handleSnackbarClose}
-                  anchorOrigin={{vertical: "bottom", horizontal: "right"}}>
+                  anchorOrigin={{vertical: "bottom", horizontal: "center"}}>
             <Alert onClose={handleSnackbarClose} severity="error" sx={{width: '100%'}}>
                 {snackbar}
             </Alert>
         </Snackbar>
+        <GoogleReCaptcha onVerify={handleReCaptcha}/>
         <Copyright/>
-    </>
+    </GoogleReCaptchaProvider>
 };
 
 export default Login;
+
+export function getServerSideProps(): { props: LoginProps } {
+    return {
+        props: {
+            reCaptchaKey: process.env.RECAPTCHA_KEY_FRONTEND as string
+        }
+    }
+}

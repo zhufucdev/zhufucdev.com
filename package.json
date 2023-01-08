@@ -22,6 +22,7 @@
     "next": "^13.1.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-google-recaptcha-v3": "^1.10.1",
     "swr": "^2.0.0",
     "ts-node": "^10.9.1",
     "webp-converter": "^2.3.3"
