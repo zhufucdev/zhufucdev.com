@@ -8,11 +8,11 @@ async function fetcher(): Promise<string | undefined> {
 }
 
 export function useUser(redirect: boolean = false) {
-    const {data: user, mutate: mutateUser} = useSWR<string | undefined>('/api/user', fetcher);
+    const {data: user, mutate: mutateUser, isLoading} = useSWR<string | undefined>('/api/user', fetcher);
     const router = useRouter();
     useEffect(() => {
         if (!user && redirect)
             router.push('/');
     }, [redirect, router, user]);
-    return {user, mutateUser};
+    return {user, mutateUser, isLoading};
 }

@@ -32,7 +32,7 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 
 import {orange, green} from "@mui/material/colors";
 
-import {cacheImage, getHumanReadableTime, getImageUri} from "../lib/utility";
+import {cacheImage, fetchApi, getHumanReadableTime, getImageUri, remark} from "../lib/utility";
 import {getRecents, Recent} from "../lib/db/recent";
 import {getInspirations, Inspiration} from "../lib/db/inspiration";
 import LoginPopover from "../componenets/LoginPopover";
@@ -40,6 +40,7 @@ import styles from "../styles/Home.module.css";
 import {getUser} from "../lib/db/user";
 import {useUser} from "../lib/useUser";
 import {Copyright} from "../componenets/Copyright";
+import {useEffect, useMemo, useState} from "react";
 
 const Home: NextPage<PageProps> = ({recents, inspirations}) => {
     return (
@@ -96,11 +97,20 @@ function Subtitle(props: { children: React.ReactElement | string }) {
 
 function RecentCard(props: { data: LocalRecent }) {
     const {data} = props;
+    const {user, isLoading: isUserLoading} = useUser();
     const imageUri = getImageUri(data.cover);
 
     const [expanded, setExpanded] = React.useState(false);
     const [imageCached, setCached] = React.useState(false);
     const [anchorEle, setAnchor] = React.useState<HTMLElement | null>(null);
+
+    const [like, setLike] = useState(false);
+    const [dislike, setDislike] = useState(false);
+    useEffect(() => {
+        if (!user) return;
+        setLike(data.likes.includes(user));
+        setDislike(data.dislikes.includes(user));
+    }, [user, isUserLoading]);
 
     function handleExpansionClick() {
         setExpanded(!expanded);
@@ -110,12 +120,30 @@ function RecentCard(props: { data: LocalRecent }) {
         setAnchor(null);
     }
 
-    function handleLike(event: React.MouseEvent<HTMLElement>) {
-        setAnchor(event.currentTarget);
+    async function handleLike(event: React.MouseEvent<HTMLElement>) {
+        if (!user) {
+            setAnchor(event.currentTarget);
+        } else if (!like) {
+            await remark("recents", data._id, "like");
+            setLike(true);
+            setDislike(false);
+        } else {
+            await remark("recents", data._id, "none");
+            setLike(false);
+        }
     }
 
-    function handleDislike(event: React.MouseEvent<HTMLElement>) {
-        setAnchor(event.currentTarget);
+    async function handleDislike(event: React.MouseEvent<HTMLElement>) {
+        if (!user) {
+            setAnchor(event.currentTarget);
+        } else if (!dislike) {
+            await remark("recents", data._id, "dislike");
+            setDislike(true);
+            setLike(false);
+        } else {
+            await remark("recents", data._id, "none");
+            setDislike(false);
+        }
     }
 
     React.useEffect(() => {
@@ -145,15 +173,15 @@ function RecentCard(props: { data: LocalRecent }) {
                 </CardContent>
                 <CardActions disableSpacing className={styles.mWithoutTop}>
                     <Tooltip title="喜欢">
-                        <IconButton aria-label="like"
+                        <IconButton aria-label="like" disabled={isUserLoading}
                                     onClick={handleLike}>
-                            <LikeIcon/>
+                            <LikeIcon color={like ? 'primary' : 'inherit'}/>
                         </IconButton>
                     </Tooltip>
                     <Tooltip title="不喜欢">
-                        <IconButton aria-label="dislike"
+                        <IconButton aria-label="dislike" disabled={isUserLoading}
                                     onClick={handleDislike}>
-                            <DislikeIcon/>
+                            <DislikeIcon color={dislike ? 'primary' : 'inherit'}/>
                         </IconButton>
                     </Tooltip>
                     <ExpandMore
@@ -277,12 +305,17 @@ function RecentCards(props: { data: LocalRecent[] }): JSX.Element {
 
 function InspirationCard(props: { data: LocalInspiration }): JSX.Element {
     const {data} = props;
-    const {user} = useUser();
+    const {user, isLoading: isUserLoading} = useUser();
 
     const imageUri = data.raiser && data.raiser.avatar ? getImageUri(data.raiser.avatar) : null;
     const [loaded, setLoaded] = React.useState(false);
     const [anchor, setAnchor] = React.useState<HTMLElement | null>(null);
-    const [liked, setLiked] = React.useState(user && user in data.likes);
+    const [liked, setLiked] = React.useState(false);
+
+    useEffect(() => {
+        if (!user) return;
+        setLiked(data.likes.includes(user));
+    }, [user, isUserLoading]);
 
     function handlePopoverClose() {
         setAnchor(null);
@@ -292,7 +325,7 @@ function InspirationCard(props: { data: LocalInspiration }): JSX.Element {
         if (!user) {
             setAnchor(event.currentTarget);
         } else {
-            const mode = liked ? 'dislike' : 'like';
+            const mode = liked ? 'none' : 'like';
             const res = await fetch('/api/remark/inspirations/' + mode + '/' + data._id);
             const {success} = await res.json();
 
@@ -353,8 +386,8 @@ function InspirationCard(props: { data: LocalInspiration }): JSX.Element {
                                         </Tooltip>
                                     ) : null}
                                     <Tooltip title="喜欢">
-                                        <IconButton aria-label="like" onClick={handleLike}>
-                                            <FavoriteIcon/>
+                                        <IconButton aria-label="like" onClick={handleLike} disabled={isUserLoading}>
+                                            <FavoriteIcon color={liked ? 'error' : 'inherit'}/>
                                         </IconButton>
                                     </Tooltip>
                                 </Grid>
@@ -399,7 +432,7 @@ function InspirationCards(props: { data: LocalInspiration[] }): JSX.Element {
 
 export async function getServerSideProps(): Promise<{ props: PageProps }> {
     const recents = (await getRecents()).map((v) => {
-        return {...v, time: v.time.toISOString()};
+        return {...v, time: v.time.toISOString(), likes: v.likes ?? [], dislikes: v.dislikes ?? []};
     });
 
     const nullUser: LocalUser = {

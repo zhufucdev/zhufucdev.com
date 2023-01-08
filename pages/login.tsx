@@ -21,7 +21,6 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 
 import styles from '../styles/Login.module.css';
-import {info} from "next/dist/build/output/log";
 import {fetchApi} from "../lib/utility";
 import {useRouter} from "next/router";
 

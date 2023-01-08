@@ -1,3 +1,5 @@
+import {Remarkable, RemarkMode} from "./db/remark";
+
 export function getHumanReadableTime(time: Date): string {
     function prefix(units: number): string | undefined {
         switch (units) {
@@ -68,6 +70,10 @@ export function getImageUri(id: string) {
     return `/api/images/${id}`;
 }
 
-export function fetchApi(url: string, body: any): Promise<Response> {
+export async function fetchApi(url: string, body: any): Promise<Response> {
     return fetch(url, {method: 'POST', headers: {'content-type': 'application/json'}, body: JSON.stringify(body)});
+}
+
+export async function remark(type: Remarkable, id: any, mode: RemarkMode): Promise<Response> {
+    return await fetch(`/api/remark/${type}/${mode}/${id}`)
 }
