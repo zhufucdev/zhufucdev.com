@@ -311,6 +311,7 @@ function InspirationCard(props: { data: LocalInspiration }): JSX.Element {
     const [loaded, setLoaded] = React.useState(false);
     const [anchor, setAnchor] = React.useState<HTMLElement | null>(null);
     const [liked, setLiked] = React.useState(false);
+    const [likes, setLikes] = React.useState(data.likes.length);
 
     useEffect(() => {
         if (!user) return;
@@ -330,7 +331,12 @@ function InspirationCard(props: { data: LocalInspiration }): JSX.Element {
             const {success} = await res.json();
 
             if (success) {
-                setLiked(!liked)
+                if (!liked) {
+                    setLikes(likes + 1);
+                } else {
+                    setLikes(likes - 1);
+                }
+                setLiked(!liked);
             }
         }
     }
@@ -390,6 +396,9 @@ function InspirationCard(props: { data: LocalInspiration }): JSX.Element {
                                             <FavoriteIcon color={liked ? 'error' : 'inherit'}/>
                                         </IconButton>
                                     </Tooltip>
+                                    <Typography variant="caption" style={{marginRight: 12}}>
+                                        {likes}
+                                    </Typography>
                                 </Grid>
                             </Grid>
                         </CardActions>
