@@ -1,4 +1,4 @@
-import { db, closeDb, renewDb } from "./database";
+import { db, closeDb, requireDatabase } from "./database";
 
 export interface Recent {
   title: string;
@@ -8,7 +8,7 @@ export interface Recent {
 }
 
 export async function getRecents(): Promise<Recent[]> {
-  renewDb();
+  requireDatabase();
   const r = (await db.collection<Recent>("recents").find().toArray())
     .slice(-3)
     .reverse();

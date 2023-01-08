@@ -2,17 +2,16 @@ import { Db, MongoClient } from "mongodb";
 
 let closed = false;
 
-
 const uri = process.env.DB_URI as string;
 let dbClient = new MongoClient(uri);
 let db = dbClient.db("web");
 
-function closeDb() {
+async function closeDb() {
   if (closed) return;
-  dbClient.close();
+  await dbClient.close();
 }
 
-function renewDb(): Db {
+function requireDatabase(): Db {
   if (!closed) return db;
 
   dbClient = new MongoClient(uri);
@@ -25,4 +24,4 @@ function addCloseHandle() {
   dbClient.on("close", () => (closed = true));
 }
 
-export { db, closeDb, renewDb };
+export { db, closeDb, requireDatabase };

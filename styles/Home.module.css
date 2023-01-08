@@ -1,9 +1,5 @@
-.cardContentSpec {
-  display: flex;
-  padding-bottom: 12px !important;
-}
-
-.cardContentSpec span {
-  margin-top: auto;
-  margin-bottom: auto;
+.mWithoutTop {
+    margin-left: 10px;
+    margin-bottom: 10px;
+    margin-right: 10px;
 }

@@ -7,7 +7,7 @@ import {
   Box,
 } from "@mui/material";
 
-import { NextLinkComposed } from "./Link";
+import Link from "next/link";
 
 export default function LoginPopover(props: PopoverProps) {
   return (
@@ -18,8 +18,8 @@ export default function LoginPopover(props: PopoverProps) {
           <Grid item>
             <Button
               variant="outlined"
-              component={NextLinkComposed}
-              to={{ pathname: "/login" }}
+              component={Link}
+              href="/login"
             >
               登录
             </Button>

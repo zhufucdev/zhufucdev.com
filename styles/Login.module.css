@@ -1,0 +1,7 @@
+.pWithoutBottom {
+    padding: 16px 16px 0 16px !important;
+}
+
+.pWithoutTop {
+    padding: 0 16px 16px 16px !important;
+}
