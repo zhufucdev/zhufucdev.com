@@ -16,7 +16,7 @@ import {
     Skeleton,
     Avatar,
     Stack,
-    CardActions, Tooltip,
+    CardActions, Tooltip, useTheme,
 } from "@mui/material";
 import PlaceHolder from "../componenets/PlaceHolder";
 import {motion} from "framer-motion";
@@ -86,8 +86,9 @@ const ExpandMore = styled((props: ExpandMoreProps) => {
 }));
 
 function Subtitle(props: { children: React.ReactElement | string }) {
+    const theme = useTheme()
     return (
-        <Typography mb={1} variant="subtitle2">
+        <Typography mb={1} variant="subtitle2" color={theme.palette.primary.main}>
             {props.children}
         </Typography>
     );
