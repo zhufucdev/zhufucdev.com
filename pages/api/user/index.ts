@@ -2,7 +2,7 @@ import {NextApiRequest, NextApiResponse} from "next";
 import {withIronSessionApiRoute} from "iron-session/next";
 import {sessionOptions} from "../../../lib/session";
 import {getUser} from "../../../lib/db/user";
-import {valid} from "../../../lib/db/token";
+import {validToken} from "../../../lib/db/token";
 
 async function userRouter(req: NextApiRequest, res: NextApiResponse) {
     async function clearCookies() {
@@ -13,7 +13,7 @@ async function userRouter(req: NextApiRequest, res: NextApiResponse) {
 
     if (!req.session.userID
         || !req.session.accessToken
-        || !(await valid(req.session.accessToken, req.session.userID))) {
+        || !(await validToken(req.session.accessToken, req.session.userID))) {
         await clearCookies();
         res.send('undefined');
     } else {

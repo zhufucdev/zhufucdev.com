@@ -2,6 +2,7 @@ import {NextApiRequest, NextApiResponse} from "next";
 import {mergeWith, Remarkable, RemarkMode} from "../../../../../lib/db/remark";
 import {withIronSessionApiRoute} from "iron-session/next";
 import {sessionOptions} from "../../../../../lib/session";
+import {validToken, validUser} from "../../../../../lib/db/token";
 
 const invalidIDs = ['undefined', 'null', 'zhufucdev']
 
@@ -11,7 +12,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         res.status(400).send('bad request');
         return;
     }
-    if (!req.session.userID) {
+    if (!req.session.userID || !await validUser(req)) {
         res.status(401).send('not logged in');
         return;
     }

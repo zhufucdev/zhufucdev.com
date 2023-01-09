@@ -3,11 +3,24 @@ import {NextApiRequest, NextApiResponse} from "next";
 import {sessionOptions} from "../../lib/session";
 import {createUser, getUser} from "../../lib/db/user";
 import {setPassword} from "../../lib/db/password";
+import {verifyReCaptcha} from "../../lib/utility";
+import {validUser} from "../../lib/db/token";
 
 async function registerRoute(req: NextApiRequest, res: NextApiResponse) {
-    const {id, pwd, nick} = req.body;
+    if (await validUser(req)) {
+        res.send(req.session.userID);
+        return;
+    }
+
+    const {id, pwd, nick, token} = req.body;
     if (!id || !pwd || !nick) {
         res.status(400).send('bad request');
+        return;
+    }
+
+    const validCaptcha = await verifyReCaptcha(token);
+    if (!validCaptcha) {
+        res.status(400).send('invalid ReCaptcha');
         return;
     }
 

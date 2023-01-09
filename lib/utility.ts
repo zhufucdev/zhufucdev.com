@@ -77,3 +77,13 @@ export async function fetchApi(url: string, body: any): Promise<Response> {
 export async function remark(type: Remarkable, id: any, mode: RemarkMode): Promise<Response> {
     return await fetch(`/api/remark/${type}/${mode}/${id}`)
 }
+
+export async function verifyReCaptcha(token: string): Promise<boolean> {
+    const secret = process.env.RECAPTCHA_KEY_BACKEND;
+    const res = await fetch(
+        `https://www.google.com/recaptcha/api/siteverify?secret=${secret}&response=${token}`,
+        {method: 'POST'}
+    );
+    const json = await res.json();
+    return json.success;
+}

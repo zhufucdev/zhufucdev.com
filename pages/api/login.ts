@@ -1,21 +1,13 @@
 import {NextApiRequest, NextApiResponse} from "next";
 import {withIronSessionApiRoute} from "iron-session/next";
 import {sessionOptions} from "../../lib/session";
-import {generate, valid} from "../../lib/db/token";
+import {generate, validUser} from "../../lib/db/token";
 import {match} from "../../lib/db/password";
+import {verifyReCaptcha} from "../../lib/utility"
 
-async function verifyReCaptcha(token: string): Promise<boolean> {
-    const secret = process.env.RECAPTCHA_KEY_BACKEND;
-    const res = await fetch(
-        `https://www.google.com/recaptcha/api/siteverify?secret=${secret}&response=${token}`,
-        {method: 'POST'}
-    );
-    const json = await res.json();
-    return json.success;
-}
 
 async function loginRouter(req: NextApiRequest, res: NextApiResponse) {
-    if (req.session.userID && req.session.accessToken && await valid(req.session.accessToken, req.session.userID)) {
+    if (await validUser(req)) {
         res.send(req.session.userID);
     } else {
         const {id, pwd, token} = req.body;
