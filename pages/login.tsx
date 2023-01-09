@@ -1,16 +1,23 @@
-import React, {useCallback, useMemo} from "react";
+import React, {useCallback, useEffect, useState} from "react";
 import {
     Alert,
     Box,
     Button,
-    Card, CardActions,
-    CardContent, Collapse, Fade,
+    Card,
+    CardActions,
+    CardContent,
+    Collapse,
+    Fade,
     FilledInput,
-    FormControl, FormHelperText,
-    FormLabel, IconButton, InputLabel,
-    LinearProgress, Snackbar,
+    FormControl,
+    FormHelperText,
+    IconButton,
+    InputLabel,
+    LinearProgress,
+    Snackbar,
     Stack,
-    TextField, Tooltip,
+    TextField,
+    Tooltip,
     Typography
 } from "@mui/material";
 import type {NextPage} from "next";
@@ -23,14 +30,14 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import styles from '../styles/Login.module.css';
 import {fetchApi} from "../lib/utility";
 import {useRouter} from "next/router";
-import {GoogleReCaptcha, GoogleReCaptchaProvider} from "react-google-recaptcha-v3";
+import {GoogleReCaptchaProvider, useGoogleReCaptcha} from "react-google-recaptcha-v3";
 
-type HelperType = { id?: string, pwd?: string, nick?: string, repwd?: string };
-type InfoType = { id: string, pwd: string, token: string, nick?: string, repwd?: string };
+type Helper = { id?: string, pwd?: string, nick?: string, repwd?: string };
+type UserInfo = { id: string, pwd: string, token: string, nick?: string, repwd?: string };
 type Result = { success: boolean, respond?: string, msg?: string };
 type LoginProps = { reCaptchaKey: string };
 
-async function login(info: InfoType): Promise<Result> {
+async function login(info: UserInfo): Promise<Result> {
     const res = await fetchApi('/api/login', info);
     switch (res.status) {
         case 400:
@@ -56,7 +63,7 @@ async function login(info: InfoType): Promise<Result> {
     }
 }
 
-async function register(info: InfoType): Promise<Result> {
+async function register(info: UserInfo): Promise<Result> {
     delete info.repwd;
     const res = await fetchApi('/api/register', info);
     switch (res.status) {
@@ -83,21 +90,30 @@ async function register(info: InfoType): Promise<Result> {
     }
 }
 
-const Login: NextPage<LoginProps> = ({reCaptchaKey}) => {
+// Wrapping it as a separate component is because
+// the useGoogleReCaptcha hook requires special context
+function LoginUI() {
     const [showPwd, setShowPwd] = React.useState(false);
     const [loading, setLoading] = React.useState(false);
     const [registering, setRegistering] = React.useState(false);
-    const [info, setInfo] = React.useState({
-        id: '', pwd: '', repwd: ''
-    } as InfoType);
-    const [helpers, setHelpers] = React.useState(info as HelperType);
+    const [id, setId] = useState('');
+    const [pwd, setPwd] = useState('');
+    const [nick, setNick] = useState('');
+    const [repwd, setRepwd] = useState('');
+
+    const [helpers, setHelpers] = React.useState({id, pwd, nick, repwd} as Helper);
     const [snackbar, setSnackbar] = React.useState('');
-    const [verified, setVerified] = React.useState(false);
+    const {executeRecaptcha} = useGoogleReCaptcha();
     const router = useRouter();
 
     const actionLogin = "登录", actionRegister = "注册";
 
-    function updateHelpers(obj: HelperType) {
+    const handleRecaptchaVerify = useCallback(async () => {
+        if (!executeRecaptcha) return;
+        return await executeRecaptcha();
+    }, [executeRecaptcha]);
+
+    function updateHelpers(obj: Helper) {
         setHelpers({
             ...helpers,
             ...obj
@@ -126,7 +142,7 @@ const Login: NextPage<LoginProps> = ({reCaptchaKey}) => {
     }
 
     function testRepwd(repwd: string): boolean {
-        return info.pwd === repwd;
+        return pwd === repwd;
     }
 
     function handleVisibilityToggle() {
@@ -141,20 +157,18 @@ const Login: NextPage<LoginProps> = ({reCaptchaKey}) => {
         setSnackbar('');
     }
 
-    function handleReCaptcha(token: string) {
-        setInfo({...info, token});
-        setVerified(true);
-    }
-
     async function handleContinue() {
-        const snapshot = {...info};
+        setLoading(true);
+        const token = await handleRecaptchaVerify();
+
+        const snapshot = {id, nick, pwd, repwd, token} as UserInfo;
+        if (!snapshot.token) return;
         if (!testID(snapshot.id) || !testPwd(snapshot.pwd)) return;
         if (!snapshot.nick) snapshot.nick = snapshot.id;
         if (registering
             && (snapshot.repwd === undefined || !testRepwd(snapshot.repwd) || !testNick(snapshot.nick)))
             return;
 
-        setLoading(true);
         let res: Result;
         if (registering) {
             res = await register(snapshot);
@@ -177,19 +191,15 @@ const Login: NextPage<LoginProps> = ({reCaptchaKey}) => {
         }
     }
 
-    function handleUserIDChange(event: React.ChangeEvent<HTMLInputElement>) {
-        const id = event.currentTarget.value;
-        setInfo({...info, id});
+    useEffect(() => {
         if (registering && !testID(id)) {
             updateHelpers({id: "名称不可用"});
         } else {
             updateHelpers({id: ''});
         }
-    }
+    }, [id]);
 
-    function handlePwdChange(event: React.ChangeEvent<HTMLInputElement>) {
-        const pwd = event.currentTarget.value;
-        setInfo({...info, pwd});
+    useEffect(() => {
         if (registering && pwd.length < 4) {
             updateHelpers({pwd: "短密码不可用"})
         } else if (registering && !testPwd(pwd)) {
@@ -197,115 +207,119 @@ const Login: NextPage<LoginProps> = ({reCaptchaKey}) => {
         } else {
             updateHelpers({pwd: ''})
         }
-    }
+    }, [pwd]);
 
-    function handleNickChange(event: React.ChangeEvent<HTMLInputElement>) {
-        const nick = event.currentTarget.value
-        setInfo({...info, nick});
+    useEffect(() => {
         if (!testNick(nick)) {
             updateHelpers({nick: "名称不可用"})
         } else {
             updateHelpers({nick: ''})
         }
-    }
+    }, [nick])
 
-    function handleRepwdChange(event: React.ChangeEvent<HTMLInputElement>) {
-        const repwd = event.currentTarget.value;
-        setInfo({...info, repwd});
+    useEffect(() => {
         if (!testRepwd(repwd)) {
             updateHelpers({repwd: "重复密码不一致"})
         } else {
             updateHelpers({repwd: ''})
         }
-    }
+    }, [repwd]);
 
-    return <GoogleReCaptchaProvider
-                reCaptchaKey={reCaptchaKey}
-                language="zh-CN"
-                useRecaptchaNet={true}>
-        <Typography variant="h5" sx={{marginBottom: 2}}>欢迎回来，我的朋友</Typography>
-        <Card variant="outlined">
-            <Fade in={loading} style={{transitionDelay: "800ms"}}>
-                <LinearProgress variant="indeterminate"/>
-            </Fade>
-            <CardContent component={Stack} spacing={2} className={styles.pWithoutBottom}>
-                <TextField
-                    variant="filled"
-                    fullWidth
-                    error={Boolean(helpers.id)}
-                    label="用户名"
-                    helperText={helpers.id}
-                    onChange={handleUserIDChange}
-                    disabled={loading}/>
-
-                <Collapse in={registering}>
+    return (
+        <>
+            <Typography variant="h5" sx={{marginBottom: 2}}>欢迎回来，我的朋友</Typography>
+            <Card variant="outlined">
+                <Fade in={loading} style={{transitionDelay: "400ms"}}>
+                    <LinearProgress variant="indeterminate"/>
+                </Fade>
+                <CardContent component={Stack} spacing={2} className={styles.pWithoutBottom}>
                     <TextField
                         variant="filled"
                         fullWidth
-                        label="昵称"
-                        error={Boolean(helpers.nick)}
-                        helperText={info.nick ? helpers.nick : "将与用户名同步"}
-                        onChange={handleNickChange}
+                        value={id}
+                        onChange={(e) => setId(e.currentTarget.value)}
+                        error={Boolean(helpers.id)}
+                        label="用户名"
+                        helperText={helpers.id}
                         disabled={loading}/>
-                </Collapse>
 
-                <FormControl
-                    variant="filled"
-                    fullWidth
-                    error={Boolean(helpers.pwd)}
-                    disabled={loading}>
-                    <InputLabel htmlFor="input-pwd">密码</InputLabel>
-                    <FilledInput
-                        id="input-pwd"
-                        type={showPwd && !registering ? "text" : "password"}
-                        endAdornment={
-                            <Fade in={!registering}>
+                    <Collapse in={registering}>
+                        <TextField
+                            variant="filled"
+                            fullWidth
+                            value={nick}
+                            onChange={(e) => setNick(e.currentTarget.value)}
+                            label="昵称"
+                            error={Boolean(helpers.nick)}
+                            helperText={nick ? helpers.nick : "将与用户名同步"}
+                            disabled={loading}/>
+                    </Collapse>
+
+                    <FormControl
+                        variant="filled"
+                        fullWidth
+                        error={Boolean(helpers.pwd)}
+                        disabled={loading}>
+                        <InputLabel htmlFor="input-pwd">密码</InputLabel>
+                        <FilledInput
+                            id="input-pwd"
+                            type={showPwd && !registering ? "text" : "password"}
+                            value={pwd}
+                            onChange={(e) => setPwd(e.currentTarget.value)}
+                            endAdornment={<Fade in={!registering}>
                                 <IconButton onClick={handleVisibilityToggle}>
                                     {showPwd ? <VisibilityIcon/> : <VisibilityOffIcon/>}
                                 </IconButton>
-                            </Fade>
-                        }
-                        onChange={handlePwdChange}/>
-                    <FormHelperText>{helpers.pwd}</FormHelperText>
-                </FormControl>
+                            </Fade>}/>
+                        <FormHelperText>{helpers.pwd}</FormHelperText>
+                    </FormControl>
 
-                <Collapse in={registering}>
-                    <TextField
-                        variant="filled"
-                        fullWidth
-                        type="password"
-                        error={Boolean(helpers.repwd)}
-                        label="重复密码"
-                        disabled={loading}
-                        helperText={helpers.repwd}
-                        onChange={handleRepwdChange}/>
-                </Collapse>
-            </CardContent>
-            <CardActions className={styles.pWithoutTop}>
-                <Button onClick={handleSecondaryClick}
-                        disabled={loading}>
-                    {registering ? actionLogin : actionRegister}
-                </Button>
-                <Box sx={{marginLeft: 'auto'}}>
-                    <Tooltip title={registering ? actionRegister : actionLogin}>
-                        <IconButton
-                            onClick={handleContinue}
-                            disabled={loading || !verified}>
-                            <ArrowForwardIcon/>
-                        </IconButton>
-                    </Tooltip>
-                </Box>
-            </CardActions>
-        </Card>
-        <Snackbar open={Boolean(snackbar)}
-                  onClose={handleSnackbarClose}
-                  anchorOrigin={{vertical: "bottom", horizontal: "center"}}>
-            <Alert onClose={handleSnackbarClose} severity="error" sx={{width: '100%'}}>
-                {snackbar}
-            </Alert>
-        </Snackbar>
-        <GoogleReCaptcha onVerify={handleReCaptcha}/>
-        <Copyright/>
+                    <Collapse in={registering}>
+                        <TextField
+                            variant="filled"
+                            fullWidth
+                            type="password"
+                            value={repwd}
+                            onChange={(e) => setRepwd(e.currentTarget.value)}
+                            error={Boolean(helpers.repwd)}
+                            label="重复密码"
+                            disabled={loading}
+                            helperText={helpers.repwd}/>
+                    </Collapse>
+                </CardContent>
+                <CardActions className={styles.pWithoutTop}>
+                    <Button onClick={handleSecondaryClick}
+                            disabled={loading}>
+                        {registering ? actionLogin : actionRegister}
+                    </Button>
+                    <Box sx={{marginLeft: 'auto'}}>
+                        <Tooltip title={registering ? actionRegister : actionLogin}>
+                            <IconButton
+                                onClick={handleContinue}
+                                disabled={loading}>
+                                <ArrowForwardIcon/>
+                            </IconButton>
+                        </Tooltip>
+                    </Box>
+                </CardActions>
+            </Card>
+            <Snackbar open={Boolean(snackbar)}
+                      onClose={handleSnackbarClose}
+                      anchorOrigin={{vertical: "bottom", horizontal: "center"}}>
+                <Alert onClose={handleSnackbarClose} severity="error" sx={{width: '100%'}}>
+                    {snackbar}
+                </Alert>
+            </Snackbar>
+            <Copyright/>
+        </>)
+}
+
+const Login: NextPage<LoginProps> = ({reCaptchaKey}) => {
+    return <GoogleReCaptchaProvider
+        reCaptchaKey={reCaptchaKey}
+        language="zh-CN"
+        useRecaptchaNet={true}>
+        <LoginUI/>
     </GoogleReCaptchaProvider>
 };
 
