@@ -27,6 +27,7 @@ import Head from "next/head";
 import createEmotionCache from "../lib/emotionCache";
 import {CacheProvider, EmotionCache} from "@emotion/react";
 import Link from "next/link";
+import {SnackbarProvider} from "notistack";
 
 const drawerWidth = 240;
 
@@ -84,86 +85,88 @@ function MyApp({Component, pageProps, emotionCache = clientEmotionCache}: MyAppP
                 <title>zhufucdev</title>
             </Head>
             <ThemeProvider theme={theme}>
-                <Box sx={{display: "flex"}}>
-                    <CssBaseline/>
-                    <AppBar
-                        position="fixed"
-                        sx={{
-                            width: {sm: `calc(100% - ${drawerWidth}px)`},
-                            ml: `${drawerWidth}px`,
-                        }}
-                    >
-                        <Toolbar>
-                            <IconButton
-                                color="inherit"
-                                aria-label="open drawer"
-                                edge="start"
-                                onClick={handleDrawerToggle}
-                                sx={{mr: 2, display: {sm: "none"}}}
+                <SnackbarProvider>
+                    <Box sx={{display: "flex"}}>
+                        <CssBaseline/>
+                        <AppBar
+                            position="fixed"
+                            sx={{
+                                width: {sm: `calc(100% - ${drawerWidth}px)`},
+                                ml: `${drawerWidth}px`,
+                            }}
+                        >
+                            <Toolbar>
+                                <IconButton
+                                    color="inherit"
+                                    aria-label="open drawer"
+                                    edge="start"
+                                    onClick={handleDrawerToggle}
+                                    sx={{mr: 2, display: {sm: "none"}}}
+                                >
+                                    <MenuIcon/>
+                                </IconButton>
+                                <Typography variant="h6" noWrap component="div" sx={{flexGrow: 1}}>
+                                    {drawerRoutes.find((e) => e.path === router.pathname)?.title} -
+                                    zhufucdev
+                                </Typography>
+                            </Toolbar>
+                        </AppBar>
+
+                        <Box
+                            component="nav"
+                            sx={{width: {sm: drawerWidth}, flexShrink: {sm: 0}}}
+                            aria-label="drawer content"
+                        >
+                            <Drawer
+                                container={container}
+                                variant="temporary"
+                                open={mobileOpen}
+                                onClose={handleDrawerToggle}
+                                ModalProps={{
+                                    keepMounted: true, // Better open performance on mobile.
+                                }}
+                                sx={{
+                                    display: {xs: "block", sm: "none"},
+                                    "& .MuiDrawer-paper": {
+                                        boxSizing: "border-box",
+                                        width: drawerWidth,
+                                    },
+                                }}
                             >
-                                <MenuIcon/>
-                            </IconButton>
-                            <Typography variant="h6" noWrap component="div" sx={{flexGrow: 1}}>
-                                {drawerRoutes.find((e) => e.path === router.pathname)?.title} -
-                                zhufucdev
-                            </Typography>
-                        </Toolbar>
-                    </AppBar>
+                                {drawerContent}
+                            </Drawer>
+                            <Drawer
+                                variant="permanent"
+                                sx={{
+                                    display: {xs: "none", sm: "block"},
+                                    "& .MuiDrawer-paper": {
+                                        boxSizing: "border-box",
+                                        width: drawerWidth,
+                                    },
+                                }}
+                                open
+                            >
+                                {drawerContent}
+                            </Drawer>
+                        </Box>
 
-                    <Box
-                        component="nav"
-                        sx={{width: {sm: drawerWidth}, flexShrink: {sm: 0}}}
-                        aria-label="drawer content"
-                    >
-                        <Drawer
-                            container={container}
-                            variant="temporary"
-                            open={mobileOpen}
-                            onClose={handleDrawerToggle}
-                            ModalProps={{
-                                keepMounted: true, // Better open performance on mobile.
-                            }}
+                        <Box
+                            component={motion.main}
+                            initial={{opacity: 0}}
+                            animate={{opacity: 1}}
+                            exit={{opacity: 0}}
+                            transition={{type: "linear", duration: 0.3}}
                             sx={{
-                                display: {xs: "block", sm: "none"},
-                                "& .MuiDrawer-paper": {
-                                    boxSizing: "border-box",
-                                    width: drawerWidth,
-                                },
+                                flexGrow: 1,
+                                p: 3,
+                                width: {sm: `calc(100% - ${drawerWidth}px)`},
                             }}
                         >
-                            {drawerContent}
-                        </Drawer>
-                        <Drawer
-                            variant="permanent"
-                            sx={{
-                                display: {xs: "none", sm: "block"},
-                                "& .MuiDrawer-paper": {
-                                    boxSizing: "border-box",
-                                    width: drawerWidth,
-                                },
-                            }}
-                            open
-                        >
-                            {drawerContent}
-                        </Drawer>
+                            <Toolbar/>
+                            <Component {...pageProps} />
+                        </Box>
                     </Box>
-
-                    <Box
-                        component={motion.main}
-                        initial={{opacity: 0}}
-                        animate={{opacity: 1}}
-                        exit={{opacity: 0}}
-                        transition={{type: "linear", duration: 0.3}}
-                        sx={{
-                            flexGrow: 1,
-                            p: 3,
-                            width: {sm: `calc(100% - ${drawerWidth}px)`},
-                        }}
-                    >
-                        <Toolbar/>
-                        <Component {...pageProps} />
-                    </Box>
-                </Box>
+                </SnackbarProvider>
             </ThemeProvider>
         </CacheProvider>
     );

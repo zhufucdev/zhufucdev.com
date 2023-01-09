@@ -18,7 +18,7 @@ import {
     Stack,
     TextField,
     Tooltip,
-    Typography
+    Typography, useTheme
 } from "@mui/material";
 import type {NextPage} from "next";
 
@@ -31,6 +31,7 @@ import styles from '../styles/Login.module.css';
 import {fetchApi} from "../lib/utility";
 import {useRouter} from "next/router";
 import {GoogleReCaptchaProvider, useGoogleReCaptcha} from "react-google-recaptcha-v3";
+import {OptionsObject, useSnackbar} from "notistack";
 
 type Helper = { id?: string, pwd?: string, nick?: string, repwd?: string };
 type UserInfo = { id: string, pwd: string, token: string, nick?: string, repwd?: string };
@@ -102,8 +103,8 @@ function LoginUI() {
     const [repwd, setRepwd] = useState('');
 
     const [helpers, setHelpers] = React.useState({id, pwd, nick, repwd} as Helper);
-    const [snackbar, setSnackbar] = React.useState('');
     const {executeRecaptcha} = useGoogleReCaptcha();
+    const {enqueueSnackbar} = useSnackbar();
     const router = useRouter();
 
     const actionLogin = "登录", actionRegister = "注册";
@@ -153,10 +154,6 @@ function LoginUI() {
         setRegistering(!registering);
     }
 
-    function handleSnackbarClose() {
-        setSnackbar('');
-    }
-
     async function handleContinue() {
         setLoading(true);
         const token = await handleRecaptchaVerify();
@@ -176,14 +173,21 @@ function LoginUI() {
             res = await login(snapshot);
         }
         if (!res.success) {
+            const options: OptionsObject = {
+                variant: "error",
+                anchorOrigin: {
+                    vertical: "bottom",
+                    horizontal: "center"
+                }
+            }
             if (res.respond) {
                 if (res.msg) {
-                    setSnackbar(`${res.msg} (${res.respond})`);
+                    enqueueSnackbar(`${res.msg} (${res.respond})`, options);
                 } else {
-                    setSnackbar(res.msg as string);
+                    enqueueSnackbar(res.msg as string, options);
                 }
             } else {
-                setSnackbar("未知错误");
+                enqueueSnackbar("未知错误", options)
             }
             setLoading(false);
         } else {
@@ -303,13 +307,6 @@ function LoginUI() {
                     </Box>
                 </CardActions>
             </Card>
-            <Snackbar open={Boolean(snackbar)}
-                      onClose={handleSnackbarClose}
-                      anchorOrigin={{vertical: "bottom", horizontal: "center"}}>
-                <Alert onClose={handleSnackbarClose} severity="error" sx={{width: '100%'}}>
-                    {snackbar}
-                </Alert>
-            </Snackbar>
             <Copyright/>
         </>)
 }
@@ -318,7 +315,8 @@ const Login: NextPage<LoginProps> = ({reCaptchaKey}) => {
     return <GoogleReCaptchaProvider
         reCaptchaKey={reCaptchaKey}
         language="zh-CN"
-        useRecaptchaNet={true}>
+        useRecaptchaNet={true}
+        scriptProps={{appendTo: 'body'}}>
         <LoginUI/>
     </GoogleReCaptchaProvider>
 };
