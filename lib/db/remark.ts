@@ -1,4 +1,3 @@
-import {UserID} from "./user";
 import {db, requireDatabase} from "./database";
 
 export interface WithLikes {

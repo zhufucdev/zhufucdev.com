@@ -1,9 +1,6 @@
-import {db, closeDb, requireDatabase} from "./database";
-import {getUser, User, UserID} from "./user";
-import {mergeWith, WithDislikes, WithLikes} from "./remark";
+import {db, requireDatabase} from "./database";
+import {WithLikes} from "./remark";
 import {WithId} from "mongodb";
-
-export type InspirationID = string;
 
 export interface Inspiration extends WithLikes, WithId<InspirationID> {
     raiser: UserID;

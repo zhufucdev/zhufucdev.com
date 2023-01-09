@@ -2,7 +2,6 @@ import {db, requireDatabase} from "./database";
 import {WithDislikes, WithLikes} from "./remark";
 import {WithId} from "mongodb";
 
-export type RecentID = string
 
 export interface Recent extends WithLikes, WithDislikes, WithId<RecentID> {
     title: string;

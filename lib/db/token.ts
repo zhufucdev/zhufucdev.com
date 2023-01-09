@@ -1,9 +1,7 @@
 import {nanoid} from "nanoid";
-import {UserID} from "./user";
 import {db, requireDatabase} from "./database";
 import {NextApiRequest} from "next";
 
-export type TokenID = string;
 
 export interface Token {
     _id: TokenID;

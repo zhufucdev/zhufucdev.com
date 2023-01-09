@@ -66,8 +66,14 @@ export async function cacheImage(src: string) {
     await promise;
 }
 
-export function getImageUri(id: string) {
+export function getImageUri(id: ImageID) {
     return `/api/images/${id}`;
+}
+
+export async function lookupUser(id: UserID): Promise<User | undefined> {
+    const res = await fetch(`/api/user/${id}`);
+    if (!res.ok) return undefined;
+    return await res.json();
 }
 
 export async function fetchApi(url: string, body: any): Promise<Response> {

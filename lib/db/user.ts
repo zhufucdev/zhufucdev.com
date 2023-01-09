@@ -1,19 +1,5 @@
 import {db, requireDatabase} from "./database";
 
-export type UserID = string;
-
-export type PermissionID =
-    | "raise_inspiration"
-    | "raise_issue"
-    | "comment"
-    | "change_nick"
-    | "change_avatar"
-    | "change_biography"
-    | "permit"
-    | "modify"
-    | "*";
-
-
 const defaultPermissions: PermissionID[] = [
     "raise_issue",
     "raise_inspiration",
@@ -22,15 +8,6 @@ const defaultPermissions: PermissionID[] = [
     "change_avatar",
     "change_biography"
 ]
-
-export interface User {
-    permissions: PermissionID[];
-    _id: UserID;
-    nick: string;
-    avatar?: string;
-    biography?: string;
-    registerTime: Date;
-}
 
 /**
  * Normie knows how it works.

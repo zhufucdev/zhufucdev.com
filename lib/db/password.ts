@@ -1,4 +1,3 @@
-import {UserID} from "./user";
 import {Binary} from "mongodb";
 import {db, requireDatabase} from "./database";
 import {hash, compare} from 'bcrypt';

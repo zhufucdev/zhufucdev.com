@@ -1,22 +1,25 @@
 import type {NextPage} from "next";
 import * as React from "react";
+import {useEffect, useState} from "react";
 import Typography from "@mui/material/Typography";
 import {
+    Avatar,
+    Box,
     Button,
     Card,
+    CardActions,
     CardContent,
-    CardMedia,
-    Collapse,
+    CardMedia, Chip,
+    Collapse, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle,
     Divider,
     Grid,
     IconButton,
     IconButtonProps,
-    styled,
-    Box,
     Skeleton,
-    Avatar,
     Stack,
-    CardActions, Tooltip, useTheme,
+    styled, SwipeableDrawer, TextField,
+    Tooltip, useMediaQuery,
+    useTheme,
 } from "@mui/material";
 import PlaceHolder from "../componenets/PlaceHolder";
 import {motion} from "framer-motion";
@@ -29,10 +32,13 @@ import ImplementedIcon from "@mui/icons-material/DoneAllOutlined";
 import LikeIcon from '@mui/icons-material/ThumbUp';
 import DislikeIcon from '@mui/icons-material/ThumbDown';
 import FavoriteIcon from '@mui/icons-material/Favorite';
+import EditIcon from '@mui/icons-material/Edit';
+import MessageIcon from '@mui/icons-material/MailOutline';
+import IssueIcon from '@mui/icons-material/Report';
 
-import {orange, green} from "@mui/material/colors";
+import {green, grey, orange} from "@mui/material/colors";
 
-import {cacheImage, fetchApi, getHumanReadableTime, getImageUri, remark} from "../lib/utility";
+import {cacheImage, getHumanReadableTime, getImageUri, remark} from "../lib/utility";
 import {getRecents, Recent} from "../lib/db/recent";
 import {getInspirations, Inspiration} from "../lib/db/inspiration";
 import LoginPopover from "../componenets/LoginPopover";
@@ -40,15 +46,30 @@ import styles from "../styles/Home.module.css";
 import {getUser} from "../lib/db/user";
 import {useUser} from "../lib/useUser";
 import {Copyright} from "../componenets/Copyright";
-import {useEffect, useMemo, useState} from "react";
+import {Scaffold} from "../componenets/Scaffold";
+import {Global} from "@emotion/react";
+import {UserAvatar} from "../componenets/UserAvatar";
+import {useRouter} from "next/router";
 
 const Home: NextPage<PageProps> = ({recents, inspirations}) => {
+    const [draftOpen, setDraft] = useState(false);
+
     return (
         <>
-            <Stack spacing={2}>
+            <Scaffold
+                spacing={2}
+                fab={
+                    <>
+                        <EditIcon sx={{mr: 1}}/>
+                        草拟
+                    </>
+                }
+                onFabClick={() => setDraft(true)}
+            >
                 <RecentCards key="recents" data={recents}/>
                 <InspirationCards key="inspirations" data={inspirations}/>
-            </Stack>
+            </Scaffold>
+            <DraftDialog open={draftOpen} onClose={() => setDraft(false)}/>
             <Copyright/>
         </>
     );
@@ -59,7 +80,7 @@ type LocalRecent = Omit<Recent, "time"> & { time: string };
 interface LocalUser {
     _id: string;
     nick: string;
-    avatar?: string;
+    avatar?: ImageID;
 }
 
 type LocalInspiration = Omit<Inspiration, "raiser"> & {
@@ -86,7 +107,7 @@ const ExpandMore = styled((props: ExpandMoreProps) => {
     }),
 }));
 
-function Subtitle(props: { children: React.ReactElement | string }) {
+function Caption(props: { children: React.ReactElement | string }) {
     const theme = useTheme()
     return (
         <Typography mb={1} variant="subtitle2" color={theme.palette.primary.main}>
@@ -217,7 +238,7 @@ function RecentCard(props: { data: LocalRecent }) {
 function RecentCards(props: { data: LocalRecent[] }): JSX.Element {
     const {data} = props;
 
-    const subtitle = <Subtitle key="subtitle-recents">近况</Subtitle>;
+    const subtitle = <Caption key="subtitle-recents">近况</Caption>;
 
     const [more, setMore] = React.useState(false);
 
@@ -307,8 +328,6 @@ function InspirationCard(props: { data: LocalInspiration }): JSX.Element {
     const {data} = props;
     const {user, isLoading: isUserLoading} = useUser();
 
-    const imageUri = data.raiser && data.raiser.avatar ? getImageUri(data.raiser.avatar) : null;
-    const [loaded, setLoaded] = React.useState(false);
     const [anchor, setAnchor] = React.useState<HTMLElement | null>(null);
     const [liked, setLiked] = React.useState(false);
     const [likes, setLikes] = React.useState(data.likes.length);
@@ -341,38 +360,12 @@ function InspirationCard(props: { data: LocalInspiration }): JSX.Element {
         }
     }
 
-    React.useEffect(() => {
-        if (imageUri) cacheImage(imageUri).then(() => setLoaded(true));
-    });
-
     return (
         <>
             <Grid container>
                 <Grid item mr={1} ml={1}>
-                    {loaded ? (
-                        imageUri ? (
-                            <Avatar
-                                alt={"avatar of " + data.raiser!.nick}
-                                src={imageUri}
-                                style={{width: 56, height: 56}}
-                                key="avatar"
-                            />
-                        ) : (
-                            <Avatar
-                                sx={{bgcolor: orange[900], width: 56, height: 56}}
-                                key="avatar-null">
-                                <NoAccountsIcon/>
-                            </Avatar>
-                        )
-                    ) : (
-                        <Skeleton
-                            variant="circular"
-                            animation="wave"
-                            key="avatar-skeleton"
-                            width={56}
-                            height={56}
-                        />
-                    )}
+                    <UserAvatar
+                        image={data.raiser && data.raiser.avatar ? data.raiser.avatar : undefined}/>
                 </Grid>
 
                 <Grid item flexGrow={1} mt={1}>
@@ -418,7 +411,7 @@ function InspirationCard(props: { data: LocalInspiration }): JSX.Element {
 
 function InspirationCards(props: { data: LocalInspiration[] }): JSX.Element {
     const {data} = props;
-    const subtitle = <Subtitle key="subtitle-inspirations">灵感</Subtitle>;
+    const subtitle = <Caption key="subtitle-inspirations">灵感</Caption>;
 
     if (data.length > 0) {
         return (
@@ -436,6 +429,102 @@ function InspirationCards(props: { data: LocalInspiration[] }): JSX.Element {
                 <PlaceHolder icon={BulbIcon} title="未提供灵感"/>
             </Box>
         );
+    }
+}
+
+function DraftDialog(props: { open: boolean, onClose: () => void }): JSX.Element {
+    const theme = useTheme();
+    const router = useRouter();
+    const {user} = useUser();
+    const fullscreen = useMediaQuery(theme.breakpoints.down('md'));
+    type DraftType = 'inspiration' | 'pm' | 'issue'
+    const [type, setType] = useState<DraftType>('inspiration')
+
+    function DraftChip(props: { label: string, type: DraftType, icon: React.ReactElement }): JSX.Element {
+        return (
+            <Chip
+                label={props.label}
+                variant={type === props.type ? 'filled' : 'outlined'}
+                color={type === props.type ? 'primary' : 'default'}
+                onClick={() => setType(props.type)}
+                icon={props.icon}
+            />
+        )
+    }
+
+    const content =
+        <>
+            <DialogTitle>简单说些什么</DialogTitle>
+            <DialogContent>
+                <Stack spacing={2}>
+                    <Stack direction="row" spacing={1}>
+                        <DraftChip label="灵感" type="inspiration" icon={<BulbIcon fontSize="small"/>}/>
+                        <DraftChip label="私信" type="pm" icon={<MessageIcon fontSize="small"/>}/>
+                        <DraftChip label="提问" type="issue" icon={<IssueIcon fontSize="small"/>}/>
+                    </Stack>
+                    <Stack direction="row" spacing={2}>
+                        <UserAvatar user={user} size={48} sx={{mt: 0.2, ml: 0.2}}/>
+                        <TextField variant="outlined"
+                                   label={user ? "留言" : "得先登录才能留言"}
+                                   fullWidth
+                                   multiline
+                                   disabled={!user}
+                        />
+                    </Stack>
+                </Stack>
+            </DialogContent>
+            <DialogActions>
+                {user
+                    ? <Button>发布</Button>
+                    : <Button onClick={() => router.push("/login")}>登录</Button>
+                }
+            </DialogActions>
+        </>;
+
+    if (fullscreen) {
+        const puller =
+            <Box sx={{
+                width: 30,
+                height: 6,
+                backgroundColor: theme.palette.mode === 'light' ? grey[300] : grey[900],
+                borderRadius: 3,
+                position: 'absolute',
+                top: 8,
+                left: 'calc(50% - 15px)'
+            }}/>;
+        return (
+            <>
+                <Global
+                    styles={{
+                        '.MuiDrawer-root > .MuiPaper-root': {
+                            overflow: 'visible',
+                            borderTopLeftRadius: 8,
+                            borderTopRightRadius: 8
+                        },
+                    }}
+                />
+                <SwipeableDrawer
+                    open={props.open}
+                    onClose={props.onClose}
+                    onOpen={() => undefined}
+                    disableSwipeToOpen
+                    swipeAreaWidth={0}
+                    anchor="bottom"
+                    ModalProps={{keepMounted: true}}
+                >
+                    {puller}
+                    <Box sx={{marginTop: '10px'}}>
+                        {content}
+                    </Box>
+                </SwipeableDrawer>
+            </>
+        )
+    } else {
+        return (
+            <Dialog open={props.open} onClose={props.onClose}>
+                {content}
+            </Dialog>
+        )
     }
 }
 
