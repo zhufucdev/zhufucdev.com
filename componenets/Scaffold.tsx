@@ -13,10 +13,10 @@ type ScaffoldProps = {
 
 export function Scaffold(props: ScaffoldProps): JSX.Element {
     const [showFab, setFab] = useState(true);
-    const [recentScroll, setRecentScroll] = useState(0);
 
     useEffect(() => {
         if (props.hideFabOnScroll === false) return;
+        let recentScroll = 0;
 
         let timeout: NodeJS.Timeout;
         function timer(): NodeJS.Timeout {
@@ -29,7 +29,8 @@ export function Scaffold(props: ScaffoldProps): JSX.Element {
             }, 5000)
             return captured;
         }
-        const scrollHandler = () => {
+        const scrollHandler = (event: Event) => {
+            if (event.currentTarget !== window) return;
             const current = window.scrollY;
             if (current > recentScroll) {
                 // scrolling down
@@ -39,7 +40,7 @@ export function Scaffold(props: ScaffoldProps): JSX.Element {
                 setFab(true);
             }
 
-            setRecentScroll(current);
+            recentScroll = current;
         }
         window.removeEventListener('scroll', scrollHandler);
         window.addEventListener('scroll', scrollHandler);
