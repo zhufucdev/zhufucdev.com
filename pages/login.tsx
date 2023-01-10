@@ -31,13 +31,13 @@ import {useRouter} from "next/router";
 import {GoogleReCaptchaProvider, useGoogleReCaptcha} from "react-google-recaptcha-v3";
 import {OptionsObject, useSnackbar} from "notistack";
 import {userContract} from "../lib/contract";
+import {useRequestResult} from "../lib/useRequestResult";
 
 type Helper = { id?: string, pwd?: string, nick?: string, repwd?: string };
 type UserInfo = { id: string, pwd: string, token: string, nick?: string, repwd?: string };
-type Result = { success: boolean, respond?: string, msg?: string };
 type LoginProps = { reCaptchaKey: string };
 
-async function login(info: UserInfo): Promise<Result> {
+async function login(info: UserInfo): Promise<RequestResult> {
     const res = await fetchApi('/api/login', info);
     switch (res.status) {
         case 400:
@@ -63,7 +63,7 @@ async function login(info: UserInfo): Promise<Result> {
     }
 }
 
-async function register(info: UserInfo): Promise<Result> {
+async function register(info: UserInfo): Promise<RequestResult> {
     delete info.repwd;
     const res = await fetchApi('/api/register', info);
     switch (res.status) {
@@ -103,7 +103,10 @@ function LoginUI() {
 
     const [helpers, setHelpers] = React.useState({id, pwd, nick, repwd} as Helper);
     const {executeRecaptcha} = useGoogleReCaptcha();
-    const {enqueueSnackbar} = useSnackbar();
+    const handleResult = useRequestResult(
+        () => router.push('/'),
+        () => setLoading(false)
+    );
     const router = useRouter();
 
     const actionLogin = "登录", actionRegister = "注册";
@@ -144,33 +147,13 @@ function LoginUI() {
             && (snapshot.repwd === undefined || !testRepwd(snapshot.repwd) || !userContract.testNick(snapshot.nick)))
             return;
 
-        let res: Result;
+        let res: RequestResult;
         if (registering) {
             res = await register(snapshot);
         } else {
             res = await login(snapshot);
         }
-        if (!res.success) {
-            const options: OptionsObject = {
-                variant: "error",
-                anchorOrigin: {
-                    vertical: "bottom",
-                    horizontal: "center"
-                }
-            }
-            if (res.respond) {
-                if (res.msg) {
-                    enqueueSnackbar(`${res.msg} (${res.respond})`, options);
-                } else {
-                    enqueueSnackbar(res.msg as string, options);
-                }
-            } else {
-                enqueueSnackbar("未知错误", options)
-            }
-            setLoading(false);
-        } else {
-            await router.push('/');
-        }
+        handleResult(res);
     }
 
     useEffect(() => {

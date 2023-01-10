@@ -51,6 +51,7 @@ import {useRouter} from "next/router";
 import {maxUserMessageLength} from "../lib/contract";
 import {ProgressSlider} from "../componenets/PrograssSlider";
 import {useSnackbar} from "notistack";
+import {useRequestResult} from "../lib/useRequestResult";
 
 const Home: NextPage<PageProps> = ({recents, inspirations}) => {
     const [draftOpen, setDraft] = useState(false);
@@ -427,7 +428,14 @@ function DraftDialog(props: { open: boolean, onClose: () => void }): JSX.Element
     const theme = useTheme();
     const router = useRouter();
     const {user} = useUser();
-    const {enqueueSnackbar} = useSnackbar();
+    const handleResult = useRequestResult(
+        () => {
+            setPosted(true);
+            localStorage.setItem(storageKey, '');
+            setDraft('');
+        },
+        () => setFailed(true)
+    )
     const fullscreen = useMediaQuery(theme.breakpoints.down('md'));
     const storageKey = "messageDraft";
 
@@ -464,17 +472,41 @@ function DraftDialog(props: { open: boolean, onClose: () => void }): JSX.Element
     async function handlePost() {
         setPosting(true);
         const res = await postMessage(type, draft);
+        let result: RequestResult;
         if (res.ok) {
-            setPosted(true);
-            localStorage.setItem(storageKey, '');
-            setDraft('');
+            result = {success: true}
         } else {
-            setFailed(true);
-            enqueueSnackbar(await res.text(), {
-                variant: 'error',
-                anchorOrigin: {horizontal: "center", vertical: "bottom"}
-            });
+            switch (res.status) {
+                case 401:
+                    result = {
+                        success: false,
+                        respond: await res.text(),
+                        msg: "一个bug导致你未登录"
+                    }
+                    break;
+                case 400:
+                    result = {
+                        success: false,
+                        respond: await res.text(),
+                        msg: "bug"
+                    }
+                    break;
+                case 500:
+                    result = {
+                        success: false,
+                        respond: await res.text(),
+                        msg: "一个bug导致数据库未响应"
+                    }
+                    break;
+                default:
+                    result = {
+                        success: false,
+                        respond: await res.text(),
+                        msg: "咋回事？"
+                    }
+            }
         }
+        handleResult(result);
         setTimeout(() => {
             props.onClose();
             reset();
