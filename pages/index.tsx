@@ -3,14 +3,13 @@ import * as React from "react";
 import {useEffect, useState} from "react";
 import Typography from "@mui/material/Typography";
 import {
-    Avatar,
     Box,
     Button,
     Card,
     CardActions,
     CardContent,
     CardMedia, Chip,
-    Collapse, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle,
+    Collapse, Dialog, DialogActions, DialogContent, DialogTitle,
     Divider,
     Grid,
     IconButton,
@@ -27,7 +26,6 @@ import {motion} from "framer-motion";
 import NoRecentsIcon from "@mui/icons-material/WifiTetheringOffOutlined";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMoreOutlined";
 import BulbIcon from "@mui/icons-material/LightbulbOutlined";
-import NoAccountsIcon from "@mui/icons-material/NoAccountsOutlined";
 import ImplementedIcon from "@mui/icons-material/DoneAllOutlined";
 import LikeIcon from '@mui/icons-material/ThumbUp';
 import DislikeIcon from '@mui/icons-material/ThumbDown';
@@ -36,7 +34,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import MessageIcon from '@mui/icons-material/MailOutline';
 import IssueIcon from '@mui/icons-material/Report';
 
-import {green, grey, orange} from "@mui/material/colors";
+import {green, grey} from "@mui/material/colors";
 
 import {cacheImage, getHumanReadableTime, getImageUri, remark} from "../lib/utility";
 import {getRecents, Recent} from "../lib/db/recent";
@@ -50,6 +48,7 @@ import {Scaffold} from "../componenets/Scaffold";
 import {Global} from "@emotion/react";
 import {UserAvatar} from "../componenets/UserAvatar";
 import {useRouter} from "next/router";
+import {maxUserMessageLength} from "../lib/contract";
 
 const Home: NextPage<PageProps> = ({recents, inspirations}) => {
     const [draftOpen, setDraft] = useState(false);
@@ -437,8 +436,28 @@ function DraftDialog(props: { open: boolean, onClose: () => void }): JSX.Element
     const router = useRouter();
     const {user} = useUser();
     const fullscreen = useMediaQuery(theme.breakpoints.down('md'));
+
     type DraftType = 'inspiration' | 'pm' | 'issue'
-    const [type, setType] = useState<DraftType>('inspiration')
+    const [type, setType] = useState<DraftType>('inspiration');
+    const [draft, setDraft] = useState('');
+
+    useEffect(() => {
+        if (!user) return;
+        const stored = localStorage.getItem("messageDraft");
+        if (stored) setDraft(stored);
+    });
+
+    function handleDraftChange(event: React.ChangeEvent<HTMLInputElement>) {
+        const value = event.currentTarget.value;
+        let draft: string
+        if (value.length > maxUserMessageLength) {
+            draft = value.substring(0, maxUserMessageLength);
+        } else {
+            draft = value;
+        }
+        setDraft(draft);
+        localStorage.setItem("messageDraft", draft);
+    }
 
     function DraftChip(props: { label: string, type: DraftType, icon: React.ReactElement }): JSX.Element {
         return (
@@ -466,9 +485,13 @@ function DraftDialog(props: { open: boolean, onClose: () => void }): JSX.Element
                         <UserAvatar user={user} size={48} sx={{mt: 0.2, ml: 0.2}}/>
                         <TextField variant="outlined"
                                    label={user ? "留言" : "得先登录才能留言"}
+                                   value={user ? draft : ''}
+                                   onChange={handleDraftChange}
                                    fullWidth
                                    multiline
                                    disabled={!user}
+                                   helperText={`${draft.length} / ${maxUserMessageLength}`}
+                                   error={draft.length >= maxUserMessageLength}
                         />
                     </Stack>
                 </Stack>
