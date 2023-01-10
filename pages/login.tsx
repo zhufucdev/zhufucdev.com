@@ -32,6 +32,7 @@ import {fetchApi} from "../lib/utility";
 import {useRouter} from "next/router";
 import {GoogleReCaptchaProvider, useGoogleReCaptcha} from "react-google-recaptcha-v3";
 import {OptionsObject, useSnackbar} from "notistack";
+import {userContract} from "../lib/contract";
 
 type Helper = { id?: string, pwd?: string, nick?: string, repwd?: string };
 type UserInfo = { id: string, pwd: string, token: string, nick?: string, repwd?: string };
@@ -121,27 +122,6 @@ function LoginUI() {
         });
     }
 
-    function testID(id: string): boolean {
-        if (id === 'undefined') return false
-        const idScheme = /^[a-zA-Z0-9_-]{3,15}$/;
-        return idScheme.test(id);
-    }
-
-    function testPwd(pwd: string): boolean {
-        const pwdScheme = /([a-zA-Z]+)|([0-9]+)/g;
-        const matches = pwd.matchAll(pwdScheme);
-        let count = 0;
-        while (!matches.next().done) {
-            count++;
-        }
-        return count >= 2;
-    }
-
-    function testNick(nick: string): boolean {
-        const illegal = /[*·$()（）「」【】/|\\@《》<>]/;
-        return !illegal.test(nick);
-    }
-
     function testRepwd(repwd: string): boolean {
         return pwd === repwd;
     }
@@ -160,10 +140,10 @@ function LoginUI() {
 
         const snapshot = {id, nick, pwd, repwd, token} as UserInfo;
         if (!snapshot.token) return;
-        if (!testID(snapshot.id) || !testPwd(snapshot.pwd)) return;
+        if (!userContract.testID(snapshot.id) || !userContract.testPwd(snapshot.pwd)) return;
         if (!snapshot.nick) snapshot.nick = snapshot.id;
         if (registering
-            && (snapshot.repwd === undefined || !testRepwd(snapshot.repwd) || !testNick(snapshot.nick)))
+            && (snapshot.repwd === undefined || !testRepwd(snapshot.repwd) || !userContract.testNick(snapshot.nick)))
             return;
 
         let res: Result;
@@ -196,7 +176,7 @@ function LoginUI() {
     }
 
     useEffect(() => {
-        if (registering && !testID(id)) {
+        if (registering && !userContract.testID(id)) {
             updateHelpers({id: "名称不可用"});
         } else {
             updateHelpers({id: ''});
@@ -206,7 +186,7 @@ function LoginUI() {
     useEffect(() => {
         if (registering && pwd.length < 4) {
             updateHelpers({pwd: "短密码不可用"})
-        } else if (registering && !testPwd(pwd)) {
+        } else if (registering && !userContract.testPwd(pwd)) {
             updateHelpers({pwd: "需要数字和字母组合的密码"})
         } else {
             updateHelpers({pwd: ''})
@@ -214,7 +194,7 @@ function LoginUI() {
     }, [pwd]);
 
     useEffect(() => {
-        if (!testNick(nick)) {
+        if (!userContract.testNick(nick)) {
             updateHelpers({nick: "名称不可用"})
         } else {
             updateHelpers({nick: ''})

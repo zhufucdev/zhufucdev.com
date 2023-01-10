@@ -4,7 +4,8 @@ import {sessionOptions} from "../../lib/session";
 import {createUser, getUser} from "../../lib/db/user";
 import {setPassword} from "../../lib/db/password";
 import {verifyReCaptcha} from "../../lib/utility";
-import {validUser} from "../../lib/db/token";
+import {generate, validUser} from "../../lib/db/token";
+import {userContract} from "../../lib/contract";
 
 async function registerRoute(req: NextApiRequest, res: NextApiResponse) {
     if (await validUser(req)) {
@@ -13,7 +14,7 @@ async function registerRoute(req: NextApiRequest, res: NextApiResponse) {
     }
 
     const {id, pwd, nick, token} = req.body;
-    if (!id || !pwd || !nick) {
+    if (!id || !pwd || !nick || !userContract.testID(id) || !userContract.testPwd(pwd) || !userContract.testNick(nick)) {
         res.status(400).send('bad request');
         return;
     }
@@ -30,8 +31,11 @@ async function registerRoute(req: NextApiRequest, res: NextApiResponse) {
         return;
     }
 
-    createUser(id, nick);
-    await setPassword(id, pwd);
+    setPassword(id, pwd);
+    await createUser(id, nick);
+    req.session.userID = id;
+    req.session.accessToken = await generate(id);
+    await req.session.save();
     res.send('success');
 }
 
