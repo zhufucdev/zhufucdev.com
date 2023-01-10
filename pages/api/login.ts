@@ -15,7 +15,7 @@ async function loginRouter(req: NextApiRequest, res: NextApiResponse) {
         }
         const reCaptchaValid = await verifyReCaptcha(token);
         if (!reCaptchaValid) {
-            res.status(400).send('invalid ReCaptcha');
+            res.status(400).send('invalid reCaptcha');
             return
         }
         const pwdMatch = await match(id, pwd);

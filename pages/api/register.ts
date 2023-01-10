@@ -20,7 +20,7 @@ async function registerRoute(req: NextApiRequest, res: NextApiResponse) {
 
     const validCaptcha = await verifyReCaptcha(token);
     if (!validCaptcha) {
-        res.status(400).send('invalid ReCaptcha');
+        res.status(400).send('invalid reCaptcha');
         return;
     }
 
