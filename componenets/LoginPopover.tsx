@@ -13,7 +13,7 @@ export default function LoginPopover(props: PopoverProps) {
   return (
     <Popover {...props}>
       <Box sx={{ p: 2 }}>
-        <Typography variant="h5">登录以继续</Typography>
+        <Typography variant="h6">登录以继续</Typography>
         <Grid container flexDirection="row-reverse" mt={1}>
           <Grid item>
             <Button
