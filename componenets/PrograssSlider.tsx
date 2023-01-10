@@ -1,6 +1,8 @@
 import React from "react";
-import {Box, CircularProgress, Fade, Slide, SxProps, Theme, useTheme, Zoom} from "@mui/material";
-import {CheckCircle, Circle, Error} from "@mui/icons-material";
+import {Box, CircularProgress, Fade, Slide, Zoom} from "@mui/material";
+import CheckCircle from "@mui/icons-material/CheckCircle";
+import Circle from "@mui/icons-material/Circle";
+import Error from "@mui/icons-material/Error";
 import {Simulate} from "react-dom/test-utils";
 import error = Simulate.error;
 
@@ -41,7 +43,7 @@ export function ProgressSlider(props: ProgressSliderProps): JSX.Element {
                                 height: 24,
                             }}/>
                     </Fade>
-                    <Zoom in={done || error}>
+                    <Zoom in={done || error} appear={false}>
                         {done ?
                             <CheckCircle
                                 sx={finalStyle}
