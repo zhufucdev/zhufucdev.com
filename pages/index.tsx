@@ -77,7 +77,7 @@ const Home: NextPage<PageProps> = ({recents, inspirations}) => {
 type LocalRecent = Omit<Recent, "time"> & { time: string };
 
 interface LocalUser {
-    _id: string;
+    _id: UserID;
     nick: string;
     avatar?: ImageID;
 }
