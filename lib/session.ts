@@ -1,4 +1,6 @@
 import {IronSessionOptions} from "iron-session";
+import {withIronSessionApiRoute} from "iron-session/next/index";
+import {NextApiHandler} from "next";
 
 export const sessionOptions: IronSessionOptions = {
     password: process.env.SECRET_COOKIE_PASSWORD as string,
@@ -15,4 +17,8 @@ declare module 'iron-session' {
         userID?: UserID,
         accessToken?: TokenID
     }
+}
+
+export function routeWithIronSession(handler: NextApiHandler) {
+    return withIronSessionApiRoute(handler, sessionOptions);
 }

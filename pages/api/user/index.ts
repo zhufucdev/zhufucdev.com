@@ -1,6 +1,5 @@
 import {NextApiRequest, NextApiResponse} from "next";
-import {withIronSessionApiRoute} from "iron-session/next";
-import {sessionOptions} from "../../../lib/session";
+import {routeWithIronSession} from "../../../lib/session";
 import {getUser} from "../../../lib/db/user";
 import {validToken} from "../../../lib/db/token";
 
@@ -27,4 +26,4 @@ async function userRouter(req: NextApiRequest, res: NextApiResponse) {
     }
 }
 
-export default withIronSessionApiRoute(userRouter, sessionOptions);
+export default routeWithIronSession(userRouter);

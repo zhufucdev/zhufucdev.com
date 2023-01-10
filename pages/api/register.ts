@@ -1,6 +1,5 @@
-import {withIronSessionApiRoute} from "iron-session/next";
 import {NextApiRequest, NextApiResponse} from "next";
-import {sessionOptions} from "../../lib/session";
+import {routeWithIronSession} from "../../lib/session";
 import {createUser, getUser} from "../../lib/db/user";
 import {setPassword} from "../../lib/db/password";
 import {verifyReCaptcha} from "../../lib/utility";
@@ -39,4 +38,4 @@ async function registerRoute(req: NextApiRequest, res: NextApiResponse) {
     res.send('success');
 }
 
-export default withIronSessionApiRoute(registerRoute, sessionOptions);
+export default routeWithIronSession(registerRoute);
