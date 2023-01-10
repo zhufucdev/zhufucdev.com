@@ -12,7 +12,7 @@ export interface Recent extends WithLikes, WithDislikes, WithId<RecentID> {
 
 export async function getRecents(): Promise<Recent[]> {
     requireDatabase();
-    const r = (await db.collection<Recent>("recents").find().toArray())
+    return (await db.collection<Recent>("recents").find().toArray())
         .slice(-3)
         .reverse()
         .map(
@@ -24,5 +24,4 @@ export async function getRecents(): Promise<Recent[]> {
                 }
             }
         );
-    return r;
 }
