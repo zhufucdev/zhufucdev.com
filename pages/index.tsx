@@ -367,7 +367,7 @@ function InspirationCard(props: { data: Inspiration }): JSX.Element {
 
                 <Grid item flexGrow={1} mt={1}>
                     <Card sx={data.implemented ? {backgroundColor: green[600]} : {}}>
-                        <CardContent sx={{paddingBottom: 0}}>{data.body}</CardContent>
+                        <CardContent sx={{paddingBottom: 0, overflowWrap: 'anywhere'}}>{data.body}</CardContent>
                         <CardActions>
                             <Grid container ml={1}>
                                 <Grid item flexGrow={1}>
