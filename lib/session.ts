@@ -1,6 +1,4 @@
 import {IronSessionOptions} from "iron-session";
-import {UserID} from "./db/user";
-import {TokenID} from "./db/token";
 
 export const sessionOptions: IronSessionOptions = {
     password: process.env.SECRET_COOKIE_PASSWORD as string,
