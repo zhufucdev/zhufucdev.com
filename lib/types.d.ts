@@ -3,6 +3,7 @@ type TokenID = string;
 type RecentID = string;
 type InspirationID = string;
 type ImageID = string;
+type PrivateMessageID = string
 
 type MessageType = 'inspiration' | 'pm' | 'issue';
 type PermissionID =
@@ -16,11 +17,4 @@ type PermissionID =
     | "modify"
     | "*";
 
-type User = {
-    permissions: PermissionID[],
-    _id: UserID,
-    nick: string,
-    avatar?: string,
-    biography?: string,
-    registerTime: Date,
-}
+type RequestResult = { success: boolean, respond?: string, msg?: string };

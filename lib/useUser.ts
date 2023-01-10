@@ -2,6 +2,7 @@ import useSWR from "swr";
 import {useEffect, useState} from "react";
 import {useRouter} from "next/router";
 import {lookupUser} from "./utility";
+import {User} from "./db/user";
 
 async function fetcher(): Promise<string | undefined> {
     const id = await (await fetch("/api/user")).text();

@@ -9,6 +9,15 @@ const defaultPermissions: PermissionID[] = [
     "change_biography"
 ]
 
+export type User = {
+    permissions: PermissionID[],
+    _id: UserID,
+    nick: string,
+    avatar?: string,
+    biography?: string,
+    registerTime: Date,
+}
+
 /**
  * Normie knows how it works.
  */

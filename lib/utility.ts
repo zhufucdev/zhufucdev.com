@@ -1,5 +1,5 @@
 import {Remarkable, RemarkMode} from "./db/remark";
-import exp from "constants";
+import {User} from "./db/user";
 
 export function getHumanReadableTime(time: Date): string {
     function prefix(units: number): string | undefined {
