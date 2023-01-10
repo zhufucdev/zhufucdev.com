@@ -29,9 +29,9 @@ import styles from '../styles/Login.module.css';
 import {fetchApi} from "../lib/utility";
 import {useRouter} from "next/router";
 import {GoogleReCaptchaProvider, useGoogleReCaptcha} from "react-google-recaptcha-v3";
-import {OptionsObject, useSnackbar} from "notistack";
 import {userContract} from "../lib/contract";
 import {useRequestResult} from "../lib/useRequestResult";
+import {ReCaptchaPolicy} from "../componenets/ReCaptchaPolicy";
 
 type Helper = { id?: string, pwd?: string, nick?: string, repwd?: string };
 type UserInfo = { id: string, pwd: string, token: string, nick?: string, repwd?: string };
@@ -268,6 +268,7 @@ function LoginUI() {
                     </Box>
                 </CardActions>
             </Card>
+            <ReCaptchaPolicy variant="body2" sx={{textAlign: 'center'}}/>
             <Copyright/>
         </>)
 }

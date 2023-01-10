@@ -2,7 +2,6 @@ import "../styles/globals.sass";
 import type {AppProps} from "next/app";
 
 import {useRouter} from "next/router";
-import {motion} from "framer-motion";
 import * as React from "react";
 
 import Box from "@mui/material/Box";
@@ -28,6 +27,7 @@ import createEmotionCache from "../lib/emotionCache";
 import {CacheProvider, EmotionCache} from "@emotion/react";
 import Link from "next/link";
 import {SnackbarProvider} from "notistack";
+import {GoogleReCaptchaProvider} from "react-google-recaptcha-v3";
 
 const drawerWidth = 240;
 
@@ -35,7 +35,7 @@ const clientEmotionCache = createEmotionCache();
 
 interface MyAppProps extends AppProps {
     emotionCache?: EmotionCache,
-    pageProps: { window: () => Window }
+    pageProps: { window: () => Window, recaptchaKey: string }
 }
 
 function MyApp({Component, pageProps, emotionCache = clientEmotionCache}: MyAppProps) {
@@ -151,11 +151,6 @@ function MyApp({Component, pageProps, emotionCache = clientEmotionCache}: MyAppP
                         </Box>
 
                         <Box
-                            component={motion.main}
-                            initial={{opacity: 0}}
-                            animate={{opacity: 1}}
-                            exit={{opacity: 0}}
-                            transition={{type: "linear", duration: 0.3}}
                             sx={{
                                 flexGrow: 1,
                                 p: 3,
@@ -212,5 +207,13 @@ const drawerRoutes = [
         hidden: true,
     },
 ];
+
+export async function getServerSideProps() {
+    return {
+        props: {
+            recaptchaKey: process.env.RECAPTCHA_KEY_FRONTEND as string
+        }
+    }
+}
 
 export default MyApp;

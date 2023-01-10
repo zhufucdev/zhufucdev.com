@@ -1,7 +1,6 @@
 import type {NextPage} from "next";
 import * as React from "react";
 import {useEffect, useState} from "react";
-import Typography from "@mui/material/Typography";
 import {
     Box,
     Button,
@@ -17,7 +16,7 @@ import {
     Skeleton,
     Stack,
     styled,
-    Tooltip,
+    Tooltip, Typography,
     useTheme,
 } from "@mui/material";
 import PlaceHolder from "../componenets/PlaceHolder";
@@ -45,7 +44,7 @@ import {Scaffold} from "../componenets/Scaffold";
 import {UserAvatar} from "../componenets/UserAvatar";
 import {DraftDialog} from "../componenets/DraftDialog";
 
-const Home: NextPage<PageProps> = ({recents, inspirations}) => {
+const Home: NextPage<PageProps> = ({recents, inspirations, recaptchaKey}) => {
     const [draftOpen, setDraft] = useState(false);
 
     return (
@@ -66,6 +65,7 @@ const Home: NextPage<PageProps> = ({recents, inspirations}) => {
             <DraftDialog
                 open={draftOpen}
                 onClose={() => setDraft(false)}
+                recaptchaKey={recaptchaKey}
                 onPosted={
                     (type, id, raiser, content) => {
                         switch (type) {
@@ -88,11 +88,6 @@ const Home: NextPage<PageProps> = ({recents, inspirations}) => {
 };
 
 type LocalRecent = Omit<Recent, "time"> & { time: string };
-
-type PageProps = {
-    recents: LocalRecent[];
-    inspirations: Inspiration[];
-};
 
 interface ExpandMoreProps extends IconButtonProps {
     expand: boolean;
@@ -434,6 +429,12 @@ function InspirationCards(props: { data: Inspiration[] }): JSX.Element {
     }
 }
 
+type PageProps = {
+    recents: LocalRecent[];
+    inspirations: Inspiration[];
+    recaptchaKey: string;
+};
+
 export async function getServerSideProps(): Promise<{ props: PageProps }> {
     const recents = (await getRecents()).map((v) => {
         return {...v, time: v.time.toISOString(), likes: v.likes ?? [], dislikes: v.dislikes ?? []};
@@ -444,6 +445,7 @@ export async function getServerSideProps(): Promise<{ props: PageProps }> {
         props: {
             recents,
             inspirations,
+            recaptchaKey: process.env.RECAPTCHA_KEY_FRONTEND as string
         },
     };
 }

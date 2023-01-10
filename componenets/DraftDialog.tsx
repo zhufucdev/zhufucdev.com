@@ -16,7 +16,7 @@ import {useRouter} from "next/router";
 import {useUser} from "../lib/useUser";
 import {useRequestResult} from "../lib/useRequestResult";
 import * as React from "react";
-import {useEffect, useState} from "react";
+import {useCallback, useEffect, useState} from "react";
 import {maxUserMessageLength} from "../lib/contract";
 import {postMessage} from "../lib/utility";
 import {ProgressSlider} from "./PrograssSlider";
@@ -25,17 +25,21 @@ import MessageIcon from "@mui/icons-material/MailOutline";
 import IssueIcon from "@mui/icons-material/Report";
 import {grey} from "@mui/material/colors";
 import {UserAvatar} from "./UserAvatar";
+import {GoogleReCaptchaProvider, useGoogleReCaptcha} from "react-google-recaptcha-v3";
+import {ReCaptchaPolicy} from "./ReCaptchaPolicy";
 
 type DraftDialogProps = {
     open: boolean,
     onClose: () => void,
+    recaptchaKey: string,
     onPosted: (type: MessageType, id: any, raiser: UserID, content: string) => void
 };
 
-export function DraftDialog(props: DraftDialogProps): JSX.Element {
+function RenderContent(props: DraftDialogProps): JSX.Element {
     const theme = useTheme();
     const router = useRouter();
     const {user} = useUser();
+    const {executeRecaptcha} = useGoogleReCaptcha();
     const handleResult = useRequestResult(
         () => {
             setPosted(true);
@@ -78,8 +82,10 @@ export function DraftDialog(props: DraftDialogProps): JSX.Element {
     }
 
     async function handlePost() {
+        if (!executeRecaptcha) return;
         setPosting(true);
-        const res = await postMessage(type, draft);
+        const token = await executeRecaptcha();
+        const res = await postMessage(type, draft, token);
         let result: RequestResult;
         if (res.ok) {
             result = {success: true, respond: await res.text()}
@@ -158,6 +164,7 @@ export function DraftDialog(props: DraftDialogProps): JSX.Element {
                         />
                     </Stack>
                 </Stack>
+                <ReCaptchaPolicy variant="body2"/>
             </DialogContent>
             <DialogActions>
                 {user
@@ -202,4 +209,15 @@ export function DraftDialog(props: DraftDialogProps): JSX.Element {
             </Dialog>
         )
     }
+}
+
+export function DraftDialog(props: DraftDialogProps): JSX.Element {
+    return <>
+        <GoogleReCaptchaProvider
+            reCaptchaKey={props.recaptchaKey}
+            language="zh-CN"
+        >
+            <RenderContent {...props}/>
+        </GoogleReCaptchaProvider>
+    </>
 }

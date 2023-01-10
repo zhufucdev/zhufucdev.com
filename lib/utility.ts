@@ -85,14 +85,10 @@ export async function remark(type: Remarkable, id: any, mode: RemarkMode): Promi
     return fetch(`/api/remark/${type}/${mode}/${id}`)
 }
 
-export async function postMessage(type: MessageType, body: string): Promise<Response> {
-    return fetch(
+export async function postMessage(type: MessageType, body: string, token: string): Promise<Response> {
+    return fetchApi(
         `/api/message/${type}`,
-        {
-            method: 'POST',
-            headers: {'content-type': 'text/plain'},
-            body
-        }
+        {body, token}
     )
 }
 

@@ -2,6 +2,7 @@ import {routeWithIronSession} from "../../../lib/session";
 import {NextApiRequest, NextApiResponse} from "next";
 import {validUser} from "../../../lib/db/token";
 import {addInspiration} from "../../../lib/db/inspiration";
+import {verifyReCaptcha} from "../../../lib/utility";
 
 async function messageRoute(req: NextApiRequest, res: NextApiResponse) {
     if (!await validUser(req)) {
@@ -10,15 +11,21 @@ async function messageRoute(req: NextApiRequest, res: NextApiResponse) {
     }
 
     const {type} = req.query as {type: MessageType};
-    const content = req.body;
-    if (!type || typeof content !== 'string') {
+    const {body, token} = req.body;
+    if (!type || typeof body !== 'string' || !token) {
         res.status(400).send('bad request');
+        return;
+    }
+
+    const reCaptchaValid = await verifyReCaptcha(token);
+    if (!reCaptchaValid) {
+        res.status(400).send('invalid reCaptcha');
         return;
     }
 
     switch (type) {
         case "inspiration":
-            const id = await addInspiration(req.session.userID as string, content);
+            const id = await addInspiration(req.session.userID as string, body);
             if (id)
                 res.send(id);
             else
