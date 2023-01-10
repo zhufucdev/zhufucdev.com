@@ -37,6 +37,11 @@ export function UserAvatar(props: { user?: UserID, image?: ImageID, size?: numbe
         }
     }, [image, user])
 
+    const iconStyle: SxProps<Theme> = {
+        color: theme.palette.primary.contrastText,
+        width: size * 0.618, height: size * 0.618
+    }
+
     return loaded ? (
         imageUri ? (
             <Avatar
@@ -50,8 +55,8 @@ export function UserAvatar(props: { user?: UserID, image?: ImageID, size?: numbe
                 alt="空头像"
             >
                 {user ?
-                    <AccountIcon sx={{color: theme.palette.primary.contrastText}}/>
-                    : <NoAccountsIcon sx={{color: theme.palette.primary.contrastText}}/>}
+                    <AccountIcon sx={iconStyle}/>
+                    : <NoAccountsIcon sx={iconStyle}/>}
             </Avatar>
         )
     ) : (

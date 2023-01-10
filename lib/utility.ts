@@ -1,4 +1,5 @@
 import {Remarkable, RemarkMode} from "./db/remark";
+import exp from "constants";
 
 export function getHumanReadableTime(time: Date): string {
     function prefix(units: number): string | undefined {
@@ -81,7 +82,18 @@ export async function fetchApi(url: string, body: any): Promise<Response> {
 }
 
 export async function remark(type: Remarkable, id: any, mode: RemarkMode): Promise<Response> {
-    return await fetch(`/api/remark/${type}/${mode}/${id}`)
+    return fetch(`/api/remark/${type}/${mode}/${id}`)
+}
+
+export async function postMessage(type: MessageType, body: string): Promise<Response> {
+    return fetch(
+        `/api/message/${type}`,
+        {
+            method: 'POST',
+            headers: {'content-type': 'text/plain'},
+            body
+        }
+    )
 }
 
 export async function verifyReCaptcha(token: string): Promise<boolean> {

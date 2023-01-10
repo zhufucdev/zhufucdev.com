@@ -4,7 +4,6 @@ import {generate, validUser} from "../../lib/db/token";
 import {match} from "../../lib/db/password";
 import {verifyReCaptcha} from "../../lib/utility"
 
-
 async function loginRouter(req: NextApiRequest, res: NextApiResponse) {
     if (await validUser(req)) {
         res.send(req.session.userID);

@@ -3,7 +3,8 @@ import {WithDislikes, WithLikes} from "./remark";
 import {WithId} from "mongodb";
 
 
-export interface Recent extends WithLikes, WithDislikes, WithId<RecentID> {
+export interface Recent extends WithLikes, WithDislikes {
+    _id: RecentID;
     title: string;
     body: string;
     time: Date;

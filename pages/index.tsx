@@ -36,19 +36,21 @@ import IssueIcon from '@mui/icons-material/Report';
 
 import {green, grey} from "@mui/material/colors";
 
-import {cacheImage, getHumanReadableTime, getImageUri, remark} from "../lib/utility";
+import {cacheImage, getHumanReadableTime, getImageUri, postMessage, remark} from "../lib/utility";
 import {getRecents, Recent} from "../lib/db/recent";
 import {getInspirations, Inspiration} from "../lib/db/inspiration";
 import LoginPopover from "../componenets/LoginPopover";
 import styles from "../styles/Home.module.css";
 import {getUser} from "../lib/db/user";
-import {useUser} from "../lib/useUser";
+import {useProfile, useUser} from "../lib/useUser";
 import {Copyright} from "../componenets/Copyright";
 import {Scaffold} from "../componenets/Scaffold";
 import {Global} from "@emotion/react";
 import {UserAvatar} from "../componenets/UserAvatar";
 import {useRouter} from "next/router";
 import {maxUserMessageLength} from "../lib/contract";
+import {ProgressSlider} from "../componenets/PrograssSlider";
+import {useSnackbar} from "notistack";
 
 const Home: NextPage<PageProps> = ({recents, inspirations}) => {
     const [draftOpen, setDraft] = useState(false);
@@ -76,19 +78,9 @@ const Home: NextPage<PageProps> = ({recents, inspirations}) => {
 
 type LocalRecent = Omit<Recent, "time"> & { time: string };
 
-interface LocalUser {
-    _id: UserID;
-    nick: string;
-    avatar?: ImageID;
-}
-
-type LocalInspiration = Omit<Inspiration, "raiser"> & {
-    raiser: LocalUser | null;
-};
-
 type PageProps = {
     recents: LocalRecent[];
-    inspirations: LocalInspiration[];
+    inspirations: Inspiration[];
 };
 
 interface ExpandMoreProps extends IconButtonProps {
@@ -323,9 +315,10 @@ function RecentCards(props: { data: LocalRecent[] }): JSX.Element {
     }
 }
 
-function InspirationCard(props: { data: LocalInspiration }): JSX.Element {
+function InspirationCard(props: { data: Inspiration }): JSX.Element {
     const {data} = props;
     const {user, isLoading: isUserLoading} = useUser();
+    const raiser = useProfile(data.raiser);
 
     const [anchor, setAnchor] = React.useState<HTMLElement | null>(null);
     const [liked, setLiked] = React.useState(false);
@@ -363,8 +356,7 @@ function InspirationCard(props: { data: LocalInspiration }): JSX.Element {
         <>
             <Grid container>
                 <Grid item mr={1} ml={1}>
-                    <UserAvatar
-                        image={data.raiser && data.raiser.avatar ? data.raiser.avatar : undefined}/>
+                    <UserAvatar user={data.raiser}/>
                 </Grid>
 
                 <Grid item flexGrow={1} mt={1}>
@@ -374,7 +366,7 @@ function InspirationCard(props: { data: LocalInspiration }): JSX.Element {
                             <Grid container ml={1}>
                                 <Grid item flexGrow={1}>
                                     <Typography variant="body2" color="text.secondary">
-                                        {data.raiser?.nick}
+                                        {raiser ? raiser.nick : data.raiser}
                                     </Typography>
                                 </Grid>
                                 <Grid item alignItems="center" sx={{display: "flex"}}>
@@ -408,7 +400,7 @@ function InspirationCard(props: { data: LocalInspiration }): JSX.Element {
     );
 }
 
-function InspirationCards(props: { data: LocalInspiration[] }): JSX.Element {
+function InspirationCards(props: { data: Inspiration[] }): JSX.Element {
     const {data} = props;
     const subtitle = <Caption key="subtitle-inspirations">灵感</Caption>;
 
@@ -435,15 +427,19 @@ function DraftDialog(props: { open: boolean, onClose: () => void }): JSX.Element
     const theme = useTheme();
     const router = useRouter();
     const {user} = useUser();
+    const {enqueueSnackbar} = useSnackbar();
     const fullscreen = useMediaQuery(theme.breakpoints.down('md'));
+    const storageKey = "messageDraft";
 
-    type DraftType = 'inspiration' | 'pm' | 'issue'
-    const [type, setType] = useState<DraftType>('inspiration');
+    const [posting, setPosting] = useState(false);
+    const [posted, setPosted] = useState(false);
+    const [failed, setFailed] = useState(false);
+    const [type, setType] = useState<MessageType>('inspiration');
     const [draft, setDraft] = useState('');
 
     useEffect(() => {
         if (!user) return;
-        const stored = localStorage.getItem("messageDraft");
+        const stored = localStorage.getItem(storageKey);
         if (stored) setDraft(stored);
     });
 
@@ -456,10 +452,36 @@ function DraftDialog(props: { open: boolean, onClose: () => void }): JSX.Element
             draft = value;
         }
         setDraft(draft);
-        localStorage.setItem("messageDraft", draft);
+        localStorage.setItem(storageKey, draft);
     }
 
-    function DraftChip(props: { label: string, type: DraftType, icon: React.ReactElement }): JSX.Element {
+    function reset() {
+        setPosting(false);
+        setPosted(false);
+        setFailed(false);
+    }
+
+    async function handlePost() {
+        setPosting(true);
+        const res = await postMessage(type, draft);
+        if (res.ok) {
+            setPosted(true);
+            localStorage.setItem(storageKey, '');
+            setDraft('');
+        } else {
+            setFailed(true);
+            enqueueSnackbar(await res.text(), {
+                variant: 'error',
+                anchorOrigin: {horizontal: "center", vertical: "bottom"}
+            });
+        }
+        setTimeout(() => {
+            props.onClose();
+            reset();
+        }, 2000);
+    }
+
+    function DraftChip(props: { label: string, type: MessageType, icon: React.ReactElement }): JSX.Element {
         return (
             <Chip
                 label={props.label}
@@ -472,7 +494,7 @@ function DraftDialog(props: { open: boolean, onClose: () => void }): JSX.Element
     }
 
     const content =
-        <>
+        <ProgressSlider loading={posting} done={posted} error={failed}>
             <DialogTitle>简单说些什么</DialogTitle>
             <DialogContent>
                 <Stack spacing={2}>
@@ -498,11 +520,11 @@ function DraftDialog(props: { open: boolean, onClose: () => void }): JSX.Element
             </DialogContent>
             <DialogActions>
                 {user
-                    ? <Button>发布</Button>
+                    ? <Button onClick={handlePost}>发布</Button>
                     : <Button onClick={() => router.push("/login")}>登录</Button>
                 }
             </DialogActions>
-        </>;
+        </ProgressSlider>;
 
     if (fullscreen) {
         const puller =
@@ -534,6 +556,7 @@ function DraftDialog(props: { open: boolean, onClose: () => void }): JSX.Element
                     swipeAreaWidth={0}
                     anchor="bottom"
                     ModalProps={{keepMounted: true}}
+                    keepMounted={false}
                 >
                     {puller}
                     <Box sx={{marginTop: '10px'}}>
@@ -544,7 +567,7 @@ function DraftDialog(props: { open: boolean, onClose: () => void }): JSX.Element
         )
     } else {
         return (
-            <Dialog open={props.open} onClose={props.onClose}>
+            <Dialog open={props.open} onClose={props.onClose} keepMounted={false}>
                 {content}
             </Dialog>
         )
@@ -555,24 +578,7 @@ export async function getServerSideProps(): Promise<{ props: PageProps }> {
     const recents = (await getRecents()).map((v) => {
         return {...v, time: v.time.toISOString(), likes: v.likes ?? [], dislikes: v.dislikes ?? []};
     });
-
-    const nullUser: LocalUser = {
-        nick: "null",
-        _id: "null",
-        avatar: undefined
-    }
-    const inspirations: LocalInspiration[] = [];
-    for (let i of await getInspirations()) {
-        const raiser = await getUser(i.raiser);
-        inspirations.push({
-            ...i,
-            raiser: raiser ? {
-                nick: raiser.nick,
-                _id: raiser._id,
-                avatar: raiser.avatar
-            } : nullUser
-        });
-    }
+    const inspirations = await getInspirations();
 
     return {
         props: {
