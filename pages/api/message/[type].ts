@@ -11,8 +11,9 @@ async function messageRoute(req: NextApiRequest, res: NextApiResponse) {
     }
 
     const {type} = req.query as {type: MessageType};
-    const {body, token} = req.body;
-    if (!type || typeof body !== 'string' || !token) {
+    const {token} = req.body;
+    const body = req.body.body.trim();
+    if (!type || typeof body !== 'string' || !body || !token) {
         res.status(400).send('bad request');
         return;
     }

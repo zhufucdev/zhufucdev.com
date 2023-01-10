@@ -86,6 +86,7 @@ export async function remark(type: Remarkable, id: any, mode: RemarkMode): Promi
 }
 
 export async function postMessage(type: MessageType, body: string, token: string): Promise<Response> {
+    body = body.trim();
     return fetchApi(
         `/api/message/${type}`,
         {body, token}

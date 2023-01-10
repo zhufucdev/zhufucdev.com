@@ -55,12 +55,17 @@ function RenderContent(props: DraftDialogProps): JSX.Element {
     const [failed, setFailed] = useState(false);
     const [type, setType] = useState<MessageType>('inspiration');
     const [draft, setDraft] = useState('');
+    const [wordCount, setWordCount] = useState(0);
 
     useEffect(() => {
         if (!user) return;
         const stored = localStorage.getItem(storageKey);
         if (stored) setDraft(stored);
     });
+
+    useEffect(() => {
+        setWordCount(draft.trim().length);
+    }, [draft]);
 
     function handleDraftChange(event: React.ChangeEvent<HTMLInputElement>) {
         const value = event.currentTarget.value;
@@ -159,7 +164,7 @@ function RenderContent(props: DraftDialogProps): JSX.Element {
                                    fullWidth
                                    multiline
                                    disabled={!user}
-                                   helperText={`${draft.length} / ${maxUserMessageLength}`}
+                                   helperText={`${wordCount} / ${maxUserMessageLength}`}
                                    error={draft.length >= maxUserMessageLength}
                         />
                     </Stack>
@@ -168,7 +173,7 @@ function RenderContent(props: DraftDialogProps): JSX.Element {
             </DialogContent>
             <DialogActions>
                 {user
-                    ? <Button onClick={handlePost}>发布</Button>
+                    ? <Button onClick={handlePost} disabled={wordCount <= 0}>发布</Button>
                     : <Button onClick={() => router.push("/login")}>登录</Button>
                 }
             </DialogActions>
