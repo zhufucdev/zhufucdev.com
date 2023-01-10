@@ -1,6 +1,5 @@
 import {db, requireDatabase} from "./database";
 import {WithLikes} from "./remark";
-import {ObjectId, WithId} from "mongodb";
 import {nanoid} from "nanoid";
 
 export interface Inspiration extends WithLikes {
@@ -27,7 +26,11 @@ export async function getInspirations(): Promise<Inspiration[]> {
     })
 }
 
-export async function addInspiration(raiser: UserID, body: string): Promise<boolean> {
+export async function getInspiration(id: InspirationID): Promise<Inspiration | null> {
+    return await db.collection<Inspiration>(collectionID).findOne({_id: id});
+}
+
+export async function addInspiration(raiser: UserID, body: string): Promise<string | undefined> {
     requireDatabase();
     const value = {
         _id: nanoid(),
@@ -35,5 +38,5 @@ export async function addInspiration(raiser: UserID, body: string): Promise<bool
         implemented: false
     } as Inspiration;
     const insert = await db.collection<Inspiration>(collectionID).insertOne(value);
-    return insert.acknowledged;
+    return insert.acknowledged ? value._id : undefined;
 }

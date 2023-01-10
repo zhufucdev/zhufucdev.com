@@ -18,9 +18,9 @@ async function messageRoute(req: NextApiRequest, res: NextApiResponse) {
 
     switch (type) {
         case "inspiration":
-            const acknowledged = await addInspiration(req.session.userID as string, content);
-            if (acknowledged)
-                res.send('success');
+            const id = await addInspiration(req.session.userID as string, content);
+            if (id)
+                res.send(id);
             else
                 res.status(500).send('database not acknowledging');
             break;
