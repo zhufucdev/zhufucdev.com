@@ -2,6 +2,7 @@ import * as React from "react";
 import {cacheImage, getImageUri, lookupUser} from "../lib/utility";
 import {Avatar, Skeleton, SxProps, Theme, useTheme} from "@mui/material";
 import NoAccountsIcon from "@mui/icons-material/NoAccountsOutlined";
+import AccountIcon from "@mui/icons-material/AccountCircleOutlined";
 
 export function UserAvatar(props: { user?: UserID, image?: ImageID, size?: number, sx?: SxProps<Theme> }): JSX.Element {
     const {user, image, sx} = props;
@@ -28,6 +29,8 @@ export function UserAvatar(props: { user?: UserID, image?: ImageID, size?: numbe
                 .then(id => {
                     const uri = getImageUri(id);
                     setImageUri(uri);
+                }, () => {
+                    setLoaded(true);
                 });
         } else {
             setLoaded(true);
@@ -46,7 +49,9 @@ export function UserAvatar(props: { user?: UserID, image?: ImageID, size?: numbe
                 sx={{bgcolor: theme.palette.primary.main, width: size, height: size, ...sx}}
                 alt="空头像"
             >
-                <NoAccountsIcon sx={{color: theme.palette.primary.contrastText}}/>
+                {user ?
+                    <AccountIcon sx={{color: theme.palette.primary.contrastText}}/>
+                    : <NoAccountsIcon sx={{color: theme.palette.primary.contrastText}}/>}
             </Avatar>
         )
     ) : (
