@@ -1,8 +1,12 @@
 import {Typography} from "@mui/material";
 
-export function Copyright() {
+type CopyrightProps = {
+    marginTop?: number
+}
+
+export function Copyright(props: CopyrightProps) {
     return (
-        <Typography variant="body1" color="text.disabled" sx={{textAlign: 'center', marginTop: 2}}>
+        <Typography variant="body2" color="text.disabled" sx={{textAlign: 'center', marginTop: props.marginTop ?? 2}}>
             Copyright zhufucdev {new Date().getFullYear()}
         </Typography>
     )

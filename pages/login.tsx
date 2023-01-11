@@ -269,7 +269,7 @@ function LoginUI() {
                 </CardActions>
             </Card>
             <ReCaptchaPolicy variant="body2" sx={{textAlign: 'center'}}/>
-            <Copyright/>
+            <Copyright marginTop={1}/>
         </>)
 }
 
