@@ -221,6 +221,7 @@ export function DraftDialog(props: DraftDialogProps): JSX.Element {
         <GoogleReCaptchaProvider
             reCaptchaKey={props.recaptchaKey}
             language="zh-CN"
+            useRecaptchaNet={true}
         >
             <RenderContent {...props}/>
         </GoogleReCaptchaProvider>
