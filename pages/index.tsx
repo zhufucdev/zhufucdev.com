@@ -1,7 +1,7 @@
 import type {NextPage} from "next";
 import * as React from "react";
 import {useState} from "react";
-import {Box, Button, Grid, Stack, Typography, useTheme} from "@mui/material";
+import {Box, Button, Grid, Stack, Typography, useMediaQuery, useTheme} from "@mui/material";
 import PlaceHolder from "../componenets/PlaceHolder";
 import {motion} from "framer-motion";
 
@@ -72,6 +72,8 @@ function Caption(props: { children: React.ReactElement | string }) {
 
 function RecentCards(props: { data: LocalRecent[] }): JSX.Element {
     const {data} = props;
+    const theme = useTheme();
+    const onLargeScreen = useMediaQuery(theme.breakpoints.up('md'));
 
     const subtitle = <Caption key="subtitle-recents">近况</Caption>;
 
@@ -95,8 +97,15 @@ function RecentCards(props: { data: LocalRecent[] }): JSX.Element {
                                 <RecentCard data={e}/>
                             </Grid>
                         ) : (
-                            <>
+                            onLargeScreen ?
                                 <Grid
+                                    item
+                                    sx={{flex: 1}}
+                                    key={e._id}
+                                >
+                                    <RecentCard data={e}/>
+                                </Grid>
+                                : <Grid
                                     item
                                     sx={{flex: 1}}
                                     component={motion.div}
@@ -110,19 +119,6 @@ function RecentCards(props: { data: LocalRecent[] }): JSX.Element {
                                 >
                                     <RecentCard data={e}/>
                                 </Grid>
-                                <Grid
-                                    item
-                                    sx={{
-                                        flex: 1,
-                                        display: more
-                                            ? "none"
-                                            : {md: "block", sm: "none", xs: "none"},
-                                    }}
-                                    key={"on-large-" + i}
-                                >
-                                    <RecentCard data={e}/>
-                                </Grid>
-                            </>
                         )
                     )}
                 </Grid>
