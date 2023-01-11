@@ -28,7 +28,7 @@ export async function mergeWith(collectionID: Remarkable, itemID: any,
         requireRemoval("dislikes");
         if (Array.isArray(origin.likes)) {
             if (origin.likes.includes(user)) {
-                return false;
+                return true;
             }
             origin.likes.push(user);
         } else {
@@ -38,7 +38,7 @@ export async function mergeWith(collectionID: Remarkable, itemID: any,
         requireRemoval("likes");
         if (Array.isArray(origin.dislikes)) {
             if (origin.dislikes.includes(user)) {
-                return false;
+                return true;
             }
             origin.dislikes.push(user);
         } else {
@@ -49,7 +49,6 @@ export async function mergeWith(collectionID: Remarkable, itemID: any,
         requireRemoval("dislikes");
     }
 
-    await db.collection(collectionID)
-        .findOneAndReplace(filter, origin);
-    return true;
+    const {ok} = await db.collection(collectionID).findOneAndReplace(filter, origin);
+    return ok == 1;
 }

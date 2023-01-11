@@ -1,6 +1,6 @@
-/**
+/* !********************************************
  * Something both frontend and backend agrees to
- */
+ **********************************************/
 
 export const maxUserMessageLength = 500;
 
@@ -22,5 +22,44 @@ export const userContract = {
     testNick: (nick: string) => {
         const illegal = /[*·$()（）「」【】/|\\@《》<>]/;
         return !illegal.test(nick);
+    }
+}
+
+export async function getResponseRemark(res: Response): Promise<RequestResult> {
+    if (res.ok) {
+        return {success: true};
+    } else {
+        switch (res.status) {
+            case 400:
+                return {
+                    success: false,
+                    respond: await res.text(),
+                    msg: "bug"
+                }
+            case 401:
+                return {
+                    success: false,
+                    respond: await res.text(),
+                    msg: "一个bug导致了你未登录"
+                }
+            case 403:
+                return {
+                    success: false,
+                    respond: await res.text(),
+                    msg: "没有权限"
+                }
+            case 500:
+                return {
+                    success: false,
+                    respond: await res.text(),
+                    msg: "一个bug导致数据库未响应"
+                }
+            default:
+                return {
+                    success: false,
+                    respond: await res.text(),
+                    msg: "咋回事？"
+                }
+        }
     }
 }

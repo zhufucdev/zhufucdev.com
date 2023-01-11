@@ -17,7 +17,7 @@ import {useUser} from "../lib/useUser";
 import {useRequestResult} from "../lib/useRequestResult";
 import * as React from "react";
 import {useCallback, useEffect, useState} from "react";
-import {maxUserMessageLength} from "../lib/contract";
+import {getResponseRemark, maxUserMessageLength} from "../lib/contract";
 import {postMessage} from "../lib/utility";
 import {ProgressSlider} from "./PrograssSlider";
 import BulbIcon from "@mui/icons-material/LightbulbOutlined";
@@ -95,35 +95,7 @@ function RenderContent(props: DraftDialogProps): JSX.Element {
         if (res.ok) {
             result = {success: true, respond: await res.text()}
         } else {
-            switch (res.status) {
-                case 401:
-                    result = {
-                        success: false,
-                        respond: await res.text(),
-                        msg: "一个bug导致你未登录"
-                    }
-                    break;
-                case 400:
-                    result = {
-                        success: false,
-                        respond: await res.text(),
-                        msg: "bug"
-                    }
-                    break;
-                case 500:
-                    result = {
-                        success: false,
-                        respond: await res.text(),
-                        msg: "一个bug导致数据库未响应"
-                    }
-                    break;
-                default:
-                    result = {
-                        success: false,
-                        respond: await res.text(),
-                        msg: "咋回事？"
-                    }
-            }
+            result = await getResponseRemark(res);
         }
         handleResult(result);
         setTimeout(() => {

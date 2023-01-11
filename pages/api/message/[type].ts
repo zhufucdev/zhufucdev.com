@@ -3,9 +3,10 @@ import {NextApiRequest, NextApiResponse} from "next";
 import {validUser} from "../../../lib/db/token";
 import {addInspiration} from "../../../lib/db/inspiration";
 import {verifyReCaptcha} from "../../../lib/utility";
+import {getAndCheckUserPermission} from "../../../lib/db/user";
 
 async function messageRoute(req: NextApiRequest, res: NextApiResponse) {
-    if (!await validUser(req)) {
+    if (!req.session.userID || !await validUser(req)) {
         res.status(401).send('unauthorized');
         return;
     }
@@ -26,7 +27,10 @@ async function messageRoute(req: NextApiRequest, res: NextApiResponse) {
 
     switch (type) {
         case "inspiration":
-            const id = await addInspiration(req.session.userID as string, body);
+            if (!await getAndCheckUserPermission(req.session.userID, "raise_inspiration")) {
+                return;
+            }
+            const id = await addInspiration(req.session.userID, body);
             if (id)
                 res.send(id);
             else

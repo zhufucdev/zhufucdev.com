@@ -2,6 +2,7 @@ import {NextApiRequest, NextApiResponse} from "next";
 import {mergeWith, Remarkable, RemarkMode} from "../../../../../lib/db/remark";
 import {routeWithIronSession} from "../../../../../lib/session";
 import {validUser} from "../../../../../lib/db/token";
+import {getAndCheckUserPermission} from "../../../../../lib/db/user";
 
 const invalidIDs = ['undefined', 'null', 'zhufucdev']
 
@@ -16,8 +17,17 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         return;
     }
 
+    if (!await getAndCheckUserPermission(req.session.userID, "remark")) {
+        res.status(403).send('not permitted to remark');
+        return;
+    }
+
     const success = await mergeWith(type as Remarkable, id as string, req.session.userID, mode as RemarkMode);
-    res.json({success});
+    if (success) {
+        res.send('success');
+    } else {
+        res.status(500).send('database not acknowledging');
+    }
 }
 
 export default routeWithIronSession(handler);

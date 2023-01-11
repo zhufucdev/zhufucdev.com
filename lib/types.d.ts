@@ -10,11 +10,14 @@ type PermissionID =
     | "raise_inspiration"
     | "raise_issue"
     | "comment"
+    | "remark"
+    | "edit_own_post"
     | "change_nick"
     | "change_avatar"
     | "change_biography"
     | "permit"
     | "modify"
+    | "default"
     | "*";
 
 type RequestResult = { success: boolean, respond?: string, msg?: string };

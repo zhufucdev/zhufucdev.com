@@ -3,8 +3,6 @@ import {Box, CircularProgress, Fade, Slide, Zoom} from "@mui/material";
 import CheckCircle from "@mui/icons-material/CheckCircle";
 import Circle from "@mui/icons-material/Circle";
 import Error from "@mui/icons-material/Error";
-import {Simulate} from "react-dom/test-utils";
-import error = Simulate.error;
 
 type ProgressSliderProps = {
     children: React.ReactNode,
