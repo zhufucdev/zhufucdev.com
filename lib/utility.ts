@@ -32,9 +32,12 @@ export function getHumanReadableTime(time: Date): string {
                 return clock;
             } else {
                 const dateElasped = now.getDate() - time.getDate();
-                return `${
-                    prefix(dateElasped) + "天" || time.getDate() + "日"
-                } ${clock}`;
+                const pre = prefix(dateElasped);
+                if (pre) {
+                    return `${pre}天`
+                } else {
+                    return `${dateElasped}天前`
+                }
             }
         } else {
             return `${time.getMonth().toLocaleString("zh-CN")}月${time
