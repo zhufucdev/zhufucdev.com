@@ -4,7 +4,11 @@ let closed = false;
 
 const uri = process.env.DB_URI as string;
 let dbClient = new MongoClient(uri);
-let db = dbClient.db("web");
+let db: Db = globalThis.db;
+if (!globalThis.db) {
+  db = dbClient.db("web");
+  globalThis.db = db;
+}
 
 async function closeDb() {
   if (closed) return;
@@ -16,6 +20,7 @@ function requireDatabase(): Db {
 
   dbClient = new MongoClient(uri);
   db = dbClient.db("web");
+  addCloseHandle();
   closed = false;
   return db;
 }
@@ -25,3 +30,7 @@ function addCloseHandle() {
 }
 
 export { db, closeDb, requireDatabase };
+
+declare global {
+  var db: Db;
+}
