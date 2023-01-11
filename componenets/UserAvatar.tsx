@@ -1,12 +1,16 @@
 import * as React from "react";
-import {cacheImage, getImageUri, lookupUser} from "../lib/utility";
+import {cacheImage, getImageUri} from "../lib/utility";
 import {Avatar, Skeleton, SxProps, Theme, useTheme} from "@mui/material";
 import NoAccountsIcon from "@mui/icons-material/NoAccountsOutlined";
 import AccountIcon from "@mui/icons-material/AccountCircleOutlined";
+import {lookupUser} from "../lib/useUser";
+import {User} from "../lib/db/user";
 
-export function UserAvatar(props: { user?: UserID, image?: ImageID, size?: number, sx?: SxProps<Theme> }): JSX.Element {
-    const {user, image, sx} = props;
+type UserAvatarProps = { userId?: UserID, user?: User, image?: ImageID, size?: number, sx?: SxProps<Theme> };
+
+export function UserAvatar(props: UserAvatarProps): JSX.Element {
     const theme = useTheme();
+    const {userId, user, image, sx} = props;
     const size = props.size ?? 56;
 
     const [loaded, setLoaded] = React.useState(false);
@@ -19,23 +23,29 @@ export function UserAvatar(props: { user?: UserID, image?: ImageID, size?: numbe
     React.useEffect(() => {
         if (image) {
             setImageUri(getImageUri(image));
-        } else if (user) {
-            lookupUser(user)
+        } else if (userId) {
+            lookupUser(userId)
                 .then(v => {
                     const id = v?.avatar;
-                    if (!id) throw 'avatar not found'
+                    if (!id) throw new Error()
                     return id
                 })
-                .then(id => {
-                    const uri = getImageUri(id);
-                    setImageUri(uri);
-                }, () => {
-                    setLoaded(true);
-                });
+                .then(
+                    (id) => {
+                        const uri = getImageUri(id);
+                        setImageUri(uri);
+                    },
+                    () => {
+                        setLoaded(true);
+                    }
+                );
+        } else if (user && user.avatar) {
+            setImageUri(getImageUri(user.avatar));
         } else {
+            setImageUri('');
             setLoaded(true);
         }
-    }, [image, user])
+    }, [image, userId, user])
 
     const iconStyle: SxProps<Theme> = {
         color: theme.palette.primary.contrastText,
@@ -48,21 +58,24 @@ export function UserAvatar(props: { user?: UserID, image?: ImageID, size?: numbe
                 src={imageUri}
                 sx={{width: size, height: size, ...sx}}
                 alt="头像"
+                key="real"
             />
         ) : (
             <Avatar
                 sx={{bgcolor: theme.palette.primary.main, width: size, height: size, ...sx}}
                 alt="空头像"
+                key="empty"
             >
-                {user ?
-                    <AccountIcon sx={iconStyle}/>
-                    : <NoAccountsIcon sx={iconStyle}/>}
+                {userId || user ?
+                    <AccountIcon key="empty" sx={iconStyle}/>
+                    : <NoAccountsIcon key="disabled" sx={iconStyle}/>}
             </Avatar>
         )
     ) : (
         <Skeleton
             variant="circular"
             animation="wave"
+            key="skeleton"
             width={size}
             height={size}
         />
