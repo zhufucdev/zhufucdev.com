@@ -16,7 +16,7 @@ import {useRouter} from "next/router";
 import {useUser} from "../lib/useUser";
 import {useRequestResult} from "../lib/useRequestResult";
 import * as React from "react";
-import {useCallback, useEffect, useState} from "react";
+import {useEffect, useState} from "react";
 import {getResponseRemark, maxUserMessageLength} from "../lib/contract";
 import {postMessage} from "../lib/utility";
 import {ProgressSlider} from "./PrograssSlider";
@@ -101,7 +101,7 @@ function RenderContent(props: DraftDialogProps): JSX.Element {
         setTimeout(() => {
             props.onClose();
             if (result.success) props.onPosted(type, result.respond, user as string, draft);
-            reset();
+            setTimeout(reset, 1000);
         }, 2000);
     }
 
@@ -172,6 +172,12 @@ function RenderContent(props: DraftDialogProps): JSX.Element {
                 anchor="bottom"
                 ModalProps={{keepMounted: true}}
                 keepMounted={false}
+                sx={{
+                    "& .MuiPaper-root": {
+                        borderTopRightRadius: 8,
+                        borderTopLeftRadius: 8
+                    }
+                }}
             >
                 {puller}
                 <Box sx={{marginTop: '10px'}}>
