@@ -13,20 +13,22 @@ import {
     useTheme
 } from "@mui/material";
 import {useRouter} from "next/router";
-import {useUser} from "../lib/useUser";
+import {useProfile} from "../lib/useUser";
 import {useRequestResult} from "../lib/useRequestResult";
 import * as React from "react";
 import {useEffect, useState} from "react";
-import {getResponseRemark, maxUserMessageLength} from "../lib/contract";
+import {getResponseRemark, hasPermission, maxUserMessageLength} from "../lib/contract";
 import {postMessage} from "../lib/utility";
 import {ProgressSlider} from "./PrograssSlider";
-import BulbIcon from "@mui/icons-material/LightbulbOutlined";
-import MessageIcon from "@mui/icons-material/MailOutline";
-import IssueIcon from "@mui/icons-material/Report";
-import {grey} from "@mui/material/colors";
 import {UserAvatar} from "./UserAvatar";
 import {GoogleReCaptchaProvider, useGoogleReCaptcha} from "react-google-recaptcha-v3";
 import {ReCaptchaPolicy} from "./ReCaptchaPolicy";
+
+import BulbIcon from "@mui/icons-material/LightbulbOutlined";
+import MessageIcon from "@mui/icons-material/MailOutline";
+import IssueIcon from "@mui/icons-material/Report";
+import RecentIcon from "@mui/icons-material/Podcasts";
+import {grey} from "@mui/material/colors";
 
 type DraftDialogProps = {
     open: boolean,
@@ -38,7 +40,7 @@ type DraftDialogProps = {
 function RenderContent(props: DraftDialogProps): JSX.Element {
     const theme = useTheme();
     const router = useRouter();
-    const {user} = useUser();
+    const {user} = useProfile();
     const {executeRecaptcha} = useGoogleReCaptcha();
     const handleResult = useRequestResult(
         () => {
@@ -61,7 +63,7 @@ function RenderContent(props: DraftDialogProps): JSX.Element {
         if (!user) return;
         const stored = localStorage.getItem(storageKey);
         if (stored) setDraft(stored);
-    });
+    }, [user]);
 
     useEffect(() => {
         setWordCount(draft.trim().length);
@@ -100,12 +102,16 @@ function RenderContent(props: DraftDialogProps): JSX.Element {
         handleResult(result);
         setTimeout(() => {
             props.onClose();
-            if (result.success) props.onPosted(type, result.respond, user as string, draft);
+            if (result.success) props.onPosted(type, result.respond, user!._id, draft);
             setTimeout(reset, 1000);
         }, 2000);
     }
 
-    function DraftChip(props: { label: string, type: MessageType, icon: React.ReactElement }): JSX.Element {
+    function DraftChip(props: { label: string, type: MessageType, permit: PermissionID, icon: React.ReactElement, hide?: boolean }): JSX.Element {
+        const permitted = user && hasPermission(user, props.permit);
+        if (props.hide && !permitted) {
+            return <></>;
+        }
         return (
             <Chip
                 label={props.label}
@@ -113,6 +119,8 @@ function RenderContent(props: DraftDialogProps): JSX.Element {
                 color={type === props.type ? 'primary' : 'default'}
                 onClick={() => setType(props.type)}
                 icon={props.icon}
+                key={type}
+                disabled={!permitted}
             />
         )
     }
@@ -123,9 +131,27 @@ function RenderContent(props: DraftDialogProps): JSX.Element {
             <DialogContent>
                 <Stack spacing={2}>
                     <Stack direction="row" spacing={1}>
-                        <DraftChip label="灵感" type="inspiration" icon={<BulbIcon fontSize="small"/>}/>
-                        <DraftChip label="私信" type="pm" icon={<MessageIcon fontSize="small"/>}/>
-                        <DraftChip label="提问" type="issue" icon={<IssueIcon fontSize="small"/>}/>
+                        <DraftChip label="近况"
+                                   type="recent"
+                                   permit="raise_recent"
+                                   icon={<RecentIcon fontSize="small"/>}
+                                   hide
+                        />
+                        <DraftChip label="灵感"
+                                   type="inspiration"
+                                   permit="raise_inspiration"
+                                   icon={<BulbIcon fontSize="small"/>}
+                        />
+                        <DraftChip label="私信"
+                                   type="pm"
+                                   permit="send_pm"
+                                   icon={<MessageIcon fontSize="small"/>}
+                        />
+                        <DraftChip label="提问"
+                                   type="issue"
+                                   permit="raise_issue"
+                                   icon={<IssueIcon fontSize="small"/>}
+                        />
                     </Stack>
                     <Stack direction="row" spacing={2}>
                         <UserAvatar user={user} size={48} sx={{mt: 0.2, ml: 0.2}}/>

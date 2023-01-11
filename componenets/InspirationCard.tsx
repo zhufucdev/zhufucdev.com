@@ -1,5 +1,5 @@
 import {Inspiration} from "../lib/db/inspiration";
-import {useProfile, useUser} from "../lib/useUser";
+import {useProfileOf, useUser} from "../lib/useUser";
 import * as React from "react";
 import {useEffect} from "react";
 import {useRequestResult} from "../lib/useRequestResult";
@@ -15,7 +15,7 @@ import {getResponseRemark} from "../lib/contract";
 export function InspirationCard(props: { data: Inspiration }): JSX.Element {
     const {data} = props;
     const {user, isLoading: isUserLoading} = useUser();
-    const raiser = useProfile(data.raiser);
+    const {user: raiser} = useProfileOf(data.raiser);
 
     const [anchor, setAnchor] = React.useState<HTMLElement | null>(null);
     const [liked, setLiked] = React.useState(false);
@@ -54,7 +54,7 @@ export function InspirationCard(props: { data: Inspiration }): JSX.Element {
         <>
             <Grid container>
                 <Grid item mr={1} ml={1}>
-                    <UserAvatar user={data.raiser}/>
+                    <UserAvatar userId={data.raiser}/>
                 </Grid>
 
                 <Grid item flexGrow={1} mt={1}>

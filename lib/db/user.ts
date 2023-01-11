@@ -1,15 +1,5 @@
 import {db, requireDatabase} from "./database";
-
-const defaultPermissions: PermissionID[] = [
-    "raise_issue",
-    "raise_inspiration",
-    "remark",
-    "comment",
-    "edit_own_post",
-    "change_nick",
-    "change_avatar",
-    "change_biography"
-]
+import {hasPermission} from "../contract";
 
 export type User = {
     permissions: PermissionID[],
@@ -44,16 +34,6 @@ export async function createUser(id: string, nick: string): Promise<User | null>
     };
     await db.collection<User>("users").insertOne(result);
     return result;
-}
-
-export function hasPermission(user: User, permit: PermissionID): boolean {
-    if (user.permissions.includes("default")) {
-        return defaultPermissions.includes(permit);
-    } else if (user.permissions.includes("*")) {
-        return true;
-    } else {
-        return user.permissions.includes(permit);
-    }
 }
 
 export async function getAndCheckUserPermission(id: UserID, permit: PermissionID): Promise<boolean> {

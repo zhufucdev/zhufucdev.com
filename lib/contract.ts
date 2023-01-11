@@ -2,6 +2,8 @@
  * Something both frontend and backend agrees to
  **********************************************/
 
+import {User} from "./db/user";
+
 export const maxUserMessageLength = 500;
 
 export const userContract = {
@@ -61,5 +63,26 @@ export async function getResponseRemark(res: Response): Promise<RequestResult> {
                     msg: "咋回事？"
                 }
         }
+    }
+}
+
+export function hasPermission(user: User, permit: PermissionID): boolean {
+    if (user.permissions.includes("default")) {
+        const defaultPermissions: PermissionID[] = [
+            "raise_issue",
+            "raise_inspiration",
+            "send_pm",
+            "comment",
+            "remark",
+            "edit_own_post",
+            "change_nick",
+            "change_avatar",
+            "change_biography"
+        ]
+        return defaultPermissions.includes(permit);
+    } else if (user.permissions.includes("*")) {
+        return true;
+    } else {
+        return user.permissions.includes(permit);
     }
 }

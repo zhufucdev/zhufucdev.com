@@ -1,5 +1,4 @@
 import {Remarkable, RemarkMode} from "./db/remark";
-import {User} from "./db/user";
 
 export function getHumanReadableTime(time: Date): string {
     function prefix(units: number): string | undefined {
@@ -72,12 +71,6 @@ export async function cacheImage(src: string) {
 
 export function getImageUri(id: ImageID) {
     return `/api/images/${id}`;
-}
-
-export async function lookupUser(id: UserID): Promise<User | undefined> {
-    const res = await fetch(`/api/user/${id}`);
-    if (!res.ok) return undefined;
-    return await res.json();
 }
 
 export async function fetchApi(url: string, body: any): Promise<Response> {
