@@ -82,9 +82,8 @@ export async function remark(type: Remarkable, id: any, mode: RemarkMode): Promi
     return fetch(`/api/remark/${type}/${mode}/${id}`)
 }
 
-type Message = { body: string, title?: string, image?: ImageID };
 
-export async function postMessage(type: MessageType, message: Message, token: string): Promise<Response> {
+export async function postMessage(type: MessageType, message: MessageContent, token: string): Promise<Response> {
     const body = message.body.trim();
     return fetchApi(
         `/api/message/${type}`,

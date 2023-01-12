@@ -40,7 +40,7 @@ type DraftDialogProps = {
     open: boolean,
     onClose: () => void,
     recaptchaKey: string,
-    onPosted: (type: MessageType, id: any, raiser: UserID, content: string) => void
+    onPosted: (type: MessageType, id: any, raiser: UserID, content: MessageContent) => void
 };
 
 function RenderContent(props: DraftDialogProps): JSX.Element {
@@ -49,10 +49,7 @@ function RenderContent(props: DraftDialogProps): JSX.Element {
     const {user} = useProfile();
     const {executeRecaptcha} = useGoogleReCaptcha();
     const handleResult = useRequestResult(
-        () => {
-            setPosted(true);
-            localStorage.setItem(bodyStorageKey, '');
-        },
+        () => setPosted(true),
         () => setFailed(true)
     )
     const fullscreen = useMediaQuery(theme.breakpoints.down('md'));
@@ -107,26 +104,36 @@ function RenderContent(props: DraftDialogProps): JSX.Element {
         setFailed(false);
         if (draftIncluded) {
             setDraft('');
+            localStorage.setItem(bodyStorageKey, '');
             setTitle('');
+            localStorage.setItem(titleStorageKey, '');
         }
     }
 
-    async function makePostRequest(token: string): Promise<Response> {
+    async function makePostRequest(token: string): Promise<{ response: Response, content?: MessageContent }> {
         if (type === 'recent') {
             let imageId: ImageID;
             if (titleImage === 'upload') {
                 if (!titleUpload) throw new Error('no uploading candidate');
                 const res = await uploadImage(titleUpload);
                 if (!res.ok) {
-                    return res;
+                    return {response: res};
                 }
                 imageId = await res.text();
             } else {
                 imageId = titleImage!;
             }
-            return postMessage(type, {body: draft, title: title, image: imageId}, token);
+            const content = {body: draft, title: title, image: imageId};
+            return {
+                response: await postMessage(type, content, token),
+                content
+            }
         } else {
-            return postMessage(type, {body: draft}, token);
+            const content = {body: draft};
+            return {
+                response: await postMessage(type, content, token),
+                content
+            }
         }
     }
 
@@ -134,7 +141,7 @@ function RenderContent(props: DraftDialogProps): JSX.Element {
         if (!executeRecaptcha) return;
         setPosting(true);
         const token = await executeRecaptcha();
-        const res = await makePostRequest(token);
+        const {response: res, content} = await makePostRequest(token);
         let result: RequestResult;
         if (res.ok) {
             result = {success: true, respond: await res.text()}
@@ -145,7 +152,7 @@ function RenderContent(props: DraftDialogProps): JSX.Element {
         setTimeout(() => {
             props.onClose();
             if (result.success) {
-                props.onPosted(type, result.respond, user!._id, draft);
+                props.onPosted(type, result.respond, user!._id, content!);
             }
             setTimeout(() => reset(result.success), 1000);
         }, 2000);
@@ -313,18 +320,6 @@ function RenderContent(props: DraftDialogProps): JSX.Element {
     }
 }
 
-export function DraftDialog(props: DraftDialogProps): JSX.Element {
-    return <>
-        <GoogleReCaptchaProvider
-            reCaptchaKey={props.recaptchaKey}
-            language="zh-CN"
-            useRecaptchaNet={true}
-        >
-            <RenderContent {...props}/>
-        </GoogleReCaptchaProvider>
-    </>
-}
-
 type ImagesPopoverProps = PopoverProps & {
     selected: ImageID | undefined,
     onSelectImage?: (image: ImageID) => void,
@@ -462,7 +457,7 @@ function ImagesPopover(props: ImagesPopoverProps): JSX.Element {
                     borderRadius: 1
                 }}>
                 <input accept="image/*" type="file" hidden onChange={handleChange} onClick={handleClick}/>
-                <UploadIcon color="primary"/>
+                {!upload && <UploadIcon color="primary"/>}
                 {upload
                     ? <>
                         <LazyImage
@@ -511,3 +506,15 @@ function ImagesPopover(props: ImagesPopoverProps): JSX.Element {
         </Popover>
     )
 }
+
+export function DraftDialog(props: DraftDialogProps): JSX.Element {
+    return <>
+        <GoogleReCaptchaProvider
+            reCaptchaKey={props.recaptchaKey}
+            language="zh-CN"
+            useRecaptchaNet={true}
+        >
+            <RenderContent {...props}/>
+        </GoogleReCaptchaProvider>
+    </>
+    }

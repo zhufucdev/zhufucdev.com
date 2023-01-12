@@ -7,6 +7,7 @@ declare global {
     type PrivateMessageID = string
 
     type MessageType = 'inspiration' | 'recent' | 'pm' | 'issue';
+    type MessageContent = { body: string, title?: string, image?: ImageID };
     type PermissionID =
         | "raise_inspiration"
         | "raise_issue"

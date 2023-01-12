@@ -4,6 +4,7 @@ import {validUser} from "../../../lib/db/token";
 import {addInspiration} from "../../../lib/db/inspiration";
 import {verifyReCaptcha} from "../../../lib/utility";
 import {getAndCheckUserPermission} from "../../../lib/db/user";
+import {addRecent} from "../../../lib/db/recent";
 
 async function messageRoute(req: NextApiRequest, res: NextApiResponse) {
     if (!req.session.userID || !await validUser(req)) {
@@ -25,19 +26,37 @@ async function messageRoute(req: NextApiRequest, res: NextApiResponse) {
         return;
     }
 
+    async function permitted(permit: PermissionID): Promise<boolean> {
+        const r = await getAndCheckUserPermission(req.session.userID!, permit);
+        if (!r) {
+            res.status(403).send(`not permitted to ${permit.replace("_", " ")}`);
+        }
+        return r;
+    }
+    let id: string | undefined;
     switch (type) {
         case "inspiration":
-            if (!await getAndCheckUserPermission(req.session.userID, "raise_inspiration")) {
+            if (!await permitted("raise_inspiration")) return;
+            id = await addInspiration(req.session.userID, body);
+            break;
+        case "recent":
+            const {title, image} = req.body;
+            if (!title || !image) {
+                res.status(400).send('bad request');
                 return;
             }
-            const id = await addInspiration(req.session.userID, body);
-            if (id)
-                res.send(id);
-            else
-                res.status(500).send('database not acknowledging');
+            if (!await permitted("raise_recent")) return;
+            id = await addRecent(title, body, image);
             break;
         default:
             res.status(501).send(`messaging as ${type} not supported`);
+            return;
+    }
+
+    if (id) {
+        res.send(id);
+    } else {
+        res.status(500).send('database not acknowledging');
     }
 }
 

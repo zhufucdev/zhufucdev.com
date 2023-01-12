@@ -27,7 +27,6 @@ import createEmotionCache from "../lib/emotionCache";
 import {CacheProvider, EmotionCache} from "@emotion/react";
 import Link from "next/link";
 import {SnackbarProvider} from "notistack";
-import {GoogleReCaptchaProvider} from "react-google-recaptcha-v3";
 
 const drawerWidth = 240;
 
@@ -106,8 +105,7 @@ function MyApp({Component, pageProps, emotionCache = clientEmotionCache}: MyAppP
                                     <MenuIcon/>
                                 </IconButton>
                                 <Typography variant="h6" noWrap component="div" sx={{flexGrow: 1}}>
-                                    {drawerRoutes.find((e) => e.path === router.pathname)?.title} -
-                                    zhufucdev
+                                    {drawerRoutes.find((e) => e.path === router.pathname)?.title ?? "zhufucdev"}
                                 </Typography>
                             </Toolbar>
                         </AppBar>

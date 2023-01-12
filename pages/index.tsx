@@ -19,6 +19,31 @@ import {RecentCard} from "../componenets/RecentCard";
 const Home: NextPage<PageProps> = ({recents, inspirations, recaptchaKey}) => {
     const [draftOpen, setDraft] = useState(false);
 
+    function handleNewPost(type: MessageType, id: string, raiser: UserID, content: MessageContent) {
+        switch (type) {
+            case "inspiration":
+                inspirations.unshift({
+                    _id: id,
+                    raiser,
+                    body: content.body,
+                    likes: [],
+                    implemented: false
+                });
+                break;
+            case "recent":
+                recents.pop();
+                recents.unshift({
+                    _id: id,
+                    body: content.body,
+                    title: content.title!,
+                    cover: content.image!,
+                    time: new Date().toISOString(),
+                    likes: [],
+                    dislikes: []
+                });
+        }
+    }
+
     return (
         <>
             <Scaffold
@@ -38,21 +63,7 @@ const Home: NextPage<PageProps> = ({recents, inspirations, recaptchaKey}) => {
                 open={draftOpen}
                 onClose={() => setDraft(false)}
                 recaptchaKey={recaptchaKey}
-                onPosted={
-                    (type, id, raiser, content) => {
-                        switch (type) {
-                            case "inspiration":
-                                inspirations.unshift({
-                                    _id: id,
-                                    raiser,
-                                    body: content,
-                                    likes: [],
-                                    implemented: false
-                                });
-                                break;
-                        }
-                    }
-                }
+                onPosted={handleNewPost}
             />
             <Copyright/>
         </>
