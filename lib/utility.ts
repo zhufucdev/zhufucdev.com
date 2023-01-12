@@ -93,12 +93,16 @@ export async function postMessage(type: MessageType, message: MessageContent, to
 
 export async function verifyReCaptcha(token: string): Promise<boolean> {
     const secret = process.env.RECAPTCHA_KEY_BACKEND;
-    const res = await fetch(
-        `https://www.google.com/recaptcha/api/siteverify?secret=${secret}&response=${token}`,
-        {method: 'POST'}
-    );
+    try {
+        const res = await fetch(
+            `https://www.google.com/recaptcha/api/siteverify?secret=${secret}&response=${token}`,
+            {method: 'POST'}
+        );
     const json = await res.json();
-    return json.success;
+        return json.success;
+    } catch (e) {
+        return false;
+    }
 }
 
 export async function uploadImage(file: File): Promise<Response> {
