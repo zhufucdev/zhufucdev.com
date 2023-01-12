@@ -1,3 +1,4 @@
+import stream from "stream";
 import {Remarkable, RemarkMode} from "./db/remark";
 
 export function getHumanReadableTime(time: Date): string {
@@ -81,11 +82,13 @@ export async function remark(type: Remarkable, id: any, mode: RemarkMode): Promi
     return fetch(`/api/remark/${type}/${mode}/${id}`)
 }
 
-export async function postMessage(type: MessageType, body: string, token: string): Promise<Response> {
-    body = body.trim();
+type Message = { body: string, title?: string, image?: ImageID };
+
+export async function postMessage(type: MessageType, message: Message, token: string): Promise<Response> {
+    const body = message.body.trim();
     return fetchApi(
         `/api/message/${type}`,
-        {body, token}
+        type === 'recent' ? {...message, body, token} : {body, token}
     )
 }
 
@@ -97,4 +100,28 @@ export async function verifyReCaptcha(token: string): Promise<boolean> {
     );
     const json = await res.json();
     return json.success;
+}
+
+export async function uploadImage(file: File): Promise<Response> {
+    const form = new FormData();
+    form.set("file", file);
+
+    return await fetch(
+        '/api/images',
+        {
+            method: 'POST',
+            body: form
+        }
+    );
+}
+
+export async function readAll(stream: stream.Readable): Promise<Buffer> {
+    return new Promise<Buffer>((resolve, reject) => {
+        const chunks = new Array<Uint8Array>();
+        stream.on('data', chunk => {
+            chunks.push(chunk);
+        })
+        stream.on('error', reject);
+        stream.on('close', () => resolve(Buffer.concat(chunks)));
+    });
 }

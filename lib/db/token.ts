@@ -15,6 +15,10 @@ export async function validToken(token: string, user: UserID): Promise<boolean> 
     return !(!find || find.user !== user);
 }
 
+/**
+ * Verify {@link accessToken} with {@link userID}
+ * @param req where this pair comes from
+ */
 export async function validUser(req: NextApiRequest): Promise<boolean> {
     if (!req.session.accessToken || !req.session.userID) return false;
     return validToken(req.session.accessToken, req.session.userID);

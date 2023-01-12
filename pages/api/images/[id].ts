@@ -12,10 +12,10 @@ export default async function handler(
     const image = await findImage(id as string);
     if (!image) {
         res
-            .status(200)
+            .status(404)
             .setHeader("Content-Type", "image/svg+xml")
             .send(await readFile(path.join('public', 'error.svg')));
     } else {
-        res.status(200).setHeader("Content-Type", "image/webp").send(await image.read());
+        res.status(200).setHeader("Content-Type", "image/webp").send(image.stream());
     }
 }
