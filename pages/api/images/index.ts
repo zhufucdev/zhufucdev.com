@@ -23,12 +23,15 @@ async function imageRoute(req: NextApiRequest, res: NextApiResponse) {
         const boundary = ct.substring(ct.indexOf("boundary=") + 9);
         const form = multipart.parse(await readAll(req), boundary);
         const file = form[0];
-        const image = await addImage(file.filename!, req.session.userID, file.data);
-
-        if (image) {
-            res.send(image._id);
-        } else {
-            res.status(500).send('database not acknowledging');
+        try {
+            const image = await addImage(file.filename!, req.session.userID, file.data);
+            if (image) {
+                res.send(image._id);
+            } else {
+                res.status(500).send('database not acknowledging');
+            }
+        } catch (e) {
+            res.status(500).send(e);
         }
     }
 }

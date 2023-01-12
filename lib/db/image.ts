@@ -87,10 +87,15 @@ export async function addImage(name: string, uploader: UserID, content: Buffer):
     const stream = bucket.openUploadStreamWithId(ref, name);
     sharp(content).webp({quality: 80}).pipe(stream, {end: true});
 
-    const image: ImageStore = {...info, ref};
-    const {acknowledged} = await db.collection<ImageStore>(collectionId).insertOne(image);
-    if (acknowledged) return info;
-    return undefined;
+    return new Promise((resolve, reject) => {
+        stream.on('error', reject);
+        stream.on('finish', () => {
+            const image: ImageStore = {...info, ref};
+            db.collection<ImageStore>(collectionId).insertOne(image).then(({acknowledged}) => {
+                if (acknowledged) resolve(info);
+            })
+        });
+    })
 }
 
 declare global {
