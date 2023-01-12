@@ -196,9 +196,7 @@ type PageProps = {
 };
 
 export async function getServerSideProps(): Promise<{ props: PageProps }> {
-    const recents = (await getRecents()).map((v) => {
-        return {...v, time: v.time.toISOString(), likes: v.likes ?? [], dislikes: v.dislikes ?? []};
-    });
+    const recents = (await getRecents()).map((v) => ({...v, time: v.time.toISOString()}));
     const inspirations = await getInspirations();
 
     return {

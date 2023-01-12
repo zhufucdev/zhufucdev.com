@@ -15,6 +15,7 @@
     "@mui/icons-material": "^5.8.4",
     "@mui/material": "^5.9.2",
     "@types/bcrypt": "^5.0.0",
+    "@vercel/analytics": "^0.1.6",
     "bcrypt": "^5.1.0",
     "framer-motion": "^7.5.3",
     "iron-session": "^6.2.1",

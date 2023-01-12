@@ -27,6 +27,7 @@ import createEmotionCache from "../lib/emotionCache";
 import {CacheProvider, EmotionCache} from "@emotion/react";
 import Link from "next/link";
 import {SnackbarProvider} from "notistack";
+import {Analytics} from "@mui/icons-material";
 
 const drawerWidth = 240;
 
@@ -159,6 +160,7 @@ function MyApp({Component, pageProps, emotionCache = clientEmotionCache}: MyAppP
                             <Component {...pageProps} />
                         </Box>
                     </Box>
+                    <Analytics/>
                 </SnackbarProvider>
             </ThemeProvider>
         </CacheProvider>
