@@ -1,4 +1,5 @@
 import "../styles/globals.sass";
+import CssBaseline from "@mui/material/CssBaseline";
 import type {AppProps} from "next/app";
 
 import {useRouter} from "next/router";
@@ -6,7 +7,6 @@ import * as React from "react";
 
 import Box from "@mui/material/Box";
 import Drawer from "@mui/material/Drawer";
-import CssBaseline from "@mui/material/CssBaseline";
 import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
 import List from "@mui/material/List";
@@ -16,18 +16,17 @@ import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
-import {IconButton, ThemeOptions, useMediaQuery} from "@mui/material";
-
-import {createTheme, ThemeProvider} from "@mui/material/styles";
-
 import HomeIcon from "@mui/icons-material/Home";
 import MenuIcon from "@mui/icons-material/Menu";
+
+import {IconButton, ThemeOptions, useMediaQuery} from "@mui/material";
+import {createTheme, ThemeProvider} from "@mui/material/styles";
+import { Analytics } from "@vercel/analytics/react";
 import Head from "next/head";
 import createEmotionCache from "../lib/emotionCache";
 import {CacheProvider, EmotionCache} from "@emotion/react";
 import Link from "next/link";
 import {SnackbarProvider} from "notistack";
-import {Analytics} from "@mui/icons-material";
 
 const drawerWidth = 240;
 
