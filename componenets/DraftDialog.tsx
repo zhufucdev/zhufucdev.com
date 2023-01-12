@@ -237,7 +237,7 @@ function RenderContent(props: DraftDialogProps): JSX.Element {
         </Stack>
     );
 
-    const canPost = wordCount > 0 && (type === 'recent' && titleImage && title) || type !== 'recent';
+    const canPost = wordCount > 0 && ((type === 'recent' && titleImage && title) || type !== 'recent');
     const content = <>
         <ProgressSlider loading={posting} done={posted} error={failed}>
             <DialogTitle>简单说些什么</DialogTitle>
