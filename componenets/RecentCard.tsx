@@ -72,9 +72,13 @@ export function RecentCard(props: { data: LocalRecent }) {
 
     const [anchorEle, setAnchor] = React.useState<HTMLElement | null>(null);
     useEffect(() => {
-        if (!user) return;
-        setLike(data.likes.includes(user));
-        setDislike(data.dislikes.includes(user));
+        if (!user) {
+            setLike(false);
+            setDislike(false);
+        } else {
+            setLike(data.likes.includes(user));
+            setDislike(data.dislikes.includes(user));
+        }
     }, [user, isUserLoading]);
 
     function handleExpansionClick() {

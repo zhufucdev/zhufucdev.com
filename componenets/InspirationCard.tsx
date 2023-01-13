@@ -32,8 +32,11 @@ export function InspirationCard(props: { data: Inspiration }): JSX.Element {
     )
 
     useEffect(() => {
-        if (!user) return;
-        setLiked(data.likes.includes(user));
+        if (!user) {
+            setLiked(false);
+        } else {
+            setLiked(data.likes.includes(user));
+        }
     }, [user, isUserLoading]);
 
     function handlePopoverClose() {
