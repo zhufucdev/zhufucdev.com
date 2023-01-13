@@ -138,16 +138,20 @@ export function RecentCard(props: { data: LocalRecent }) {
                 </CardContent>
                 <CardActions disableSpacing className={styles.mWithoutTop}>
                     <Tooltip title="喜欢">
+                        <span>
                         <IconButton aria-label="like" disabled={isUserLoading}
                                     onClick={handleLike}>
                             <LikeIcon color={like ? 'primary' : 'inherit'}/>
                         </IconButton>
+                        </span>
                     </Tooltip>
                     <Tooltip title="不喜欢">
+                        <span>
                         <IconButton aria-label="dislike" disabled={isUserLoading}
                                     onClick={handleDislike}>
                             <DislikeIcon color={dislike ? 'primary' : 'inherit'}/>
                         </IconButton>
+                        </span>
                     </Tooltip>
                     <ExpandMore
                         onClick={handleExpansionClick}

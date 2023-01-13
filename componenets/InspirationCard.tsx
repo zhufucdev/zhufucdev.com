@@ -74,9 +74,11 @@ export function InspirationCard(props: { data: Inspiration }): JSX.Element {
                                         </Tooltip>
                                     ) : null}
                                     <Tooltip title="喜欢">
+                                        <span>
                                         <IconButton aria-label="like" onClick={handleLike} disabled={isUserLoading}>
                                             <FavoriteIcon color={liked ? 'error' : 'inherit'}/>
                                         </IconButton>
+                                        </span>
                                     </Tooltip>
                                     <Typography variant="caption" style={{marginRight: 12}}>
                                         {likes}
