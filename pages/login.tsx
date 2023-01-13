@@ -285,7 +285,7 @@ const Login: NextPage<LoginProps> = ({reCaptchaKey}) => {
 
 export default Login;
 
-export function getServerSideProps(): { props: LoginProps } {
+export function getStaticProps(): { props: LoginProps } {
     return {
         props: {
             reCaptchaKey: process.env.RECAPTCHA_KEY_FRONTEND as string

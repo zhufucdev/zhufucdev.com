@@ -1,4 +1,4 @@
-import type {NextPage} from "next";
+import type {GetStaticPaths, NextPage} from "next";
 import * as React from "react";
 import {useState} from "react";
 import {Box, Button, Grid, Stack, Typography, useMediaQuery, useTheme} from "@mui/material";
@@ -195,7 +195,12 @@ type PageProps = {
     recaptchaKey: string;
 };
 
-export async function getServerSideProps(): Promise<{ props: PageProps }> {
+type StaticProps = {
+    props: PageProps,
+    revalidate: number | boolean
+}
+
+export async function getStaticProps(): Promise<StaticProps> {
     const recents = (await getRecents()).map((v) => ({...v, time: v.time.toISOString()}));
     const inspirations = await getInspirations();
 
@@ -205,6 +210,7 @@ export async function getServerSideProps(): Promise<{ props: PageProps }> {
             inspirations,
             recaptchaKey: process.env.RECAPTCHA_KEY_FRONTEND as string
         },
+        revalidate: false
     };
 }
 

@@ -24,6 +24,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
     const success = await mergeWith(type as Remarkable, id as string, req.session.userID, mode as RemarkMode);
     if (success) {
+        await res.revalidate('/');
         res.send('success');
     } else {
         res.status(500).send('database not acknowledging');
