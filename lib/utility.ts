@@ -34,9 +34,9 @@ export function getHumanReadableTime(time: Date): string {
                 const dateElasped = now.getDate() - time.getDate();
                 const pre = prefix(dateElasped);
                 if (pre) {
-                    return `${pre}天`
+                    return `${pre}天${clock}`
                 } else {
-                    return `${dateElasped}天前`
+                    return `${dateElasped}天前 ${clock}`
                 }
             }
         } else {
