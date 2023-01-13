@@ -8,11 +8,18 @@ export interface Token {
     user: UserID;
 }
 
+const collectionId = "tokens";
 
 export async function validToken(token: string, user: UserID): Promise<boolean> {
     requireDatabase();
-    const find = await db.collection<Token>("tokens").findOne({_id: token})
-    return !(!find || find.user !== user);
+    const find = await db.collection<Token>(collectionId).findOne({_id: token})
+    return find !== null && find.user === user;
+}
+
+export async function invalidToken(token: string): Promise<boolean> {
+    requireDatabase();
+    const removal = await db.collection<Token>(collectionId).deleteOne({_id: token});
+    return removal && removal.acknowledged;
 }
 
 /**
