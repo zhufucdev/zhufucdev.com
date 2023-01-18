@@ -24,7 +24,7 @@ const MePage: NextPage = () => {
     return <>
         <MeHeader user={user}/>
         <Stack m={onLargeScreen ? 6 : 3.5}>
-            <Typography variant="h4">Q&A</Typography>
+            <Typography variant="h4" ml={1}>Q&A</Typography>
             <QnA question="你是什么人" answer="我是个坏人，因为我从来不清理自己的代码"/>
             <Divider/>
             <QnA question="你的代码很酷，我怎么才能找到你" answer="你可以来我家找我，但要付钱，通常要付很多"/>
@@ -34,7 +34,9 @@ const MePage: NextPage = () => {
             <QnA question="还会做什么"
                  answer="我会做视频，比如整一些文案、动画，简单的调色、调音，还会3D建模，虽然不怎么会。此外，我还会使用Arch Linux"/>
             <Divider/>
-            <QnA question="怎么评价XX事件？" answer="我不在乎"/>
+            <QnA question="怎么评价你自己" answer="没啥好说的，就是牛逼"/>
+            <Divider/>
+            <QnA question="怎么评价XX事件" answer="我不在乎"/>
         </Stack>
     </>
 }
