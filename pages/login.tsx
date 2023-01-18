@@ -32,6 +32,7 @@ import {GoogleReCaptchaProvider, useGoogleReCaptcha} from "react-google-recaptch
 import {userContract} from "../lib/contract";
 import {useRequestResult} from "../lib/useRequestResult";
 import {ReCaptchaPolicy} from "../componenets/ReCaptchaPolicy";
+import {useTitle} from "../lib/useTitle";
 
 type Helper = { id?: string, pwd?: string, nick?: string, repwd?: string };
 type UserInfo = { id: string, pwd: string, token: string, nick?: string, repwd?: string };
@@ -274,6 +275,7 @@ function LoginUI() {
 }
 
 const Login: NextPage<LoginProps> = ({reCaptchaKey}) => {
+    useTitle('登录')
     return <GoogleReCaptchaProvider
         reCaptchaKey={reCaptchaKey}
         language="zh-CN"

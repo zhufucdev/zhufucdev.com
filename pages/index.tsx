@@ -1,24 +1,25 @@
-import type {GetStaticPaths, NextPage} from "next";
+import type {NextPage} from "next";
 import * as React from "react";
 import {useState} from "react";
 import {Box, Button, Grid, Stack, Typography, useMediaQuery, useTheme} from "@mui/material";
-import PlaceHolder from "../componenets/PlaceHolder";
 import {motion} from "framer-motion";
-
 import NoRecentsIcon from "@mui/icons-material/WifiTetheringOffOutlined";
 import BulbIcon from "@mui/icons-material/LightbulbOutlined";
 import EditIcon from '@mui/icons-material/Edit';
+
 import {getRecents, Recent} from "../lib/db/recent";
 import {getInspirations, Inspiration} from "../lib/db/inspiration";
+import PlaceHolder from "../componenets/PlaceHolder";
 import {Copyright} from "../componenets/Copyright";
 import {Scaffold} from "../componenets/Scaffold";
 import {DraftDialog} from "../componenets/DraftDialog";
 import {InspirationCard} from "../componenets/InspirationCard";
 import {RecentCard} from "../componenets/RecentCard";
+import {useTitle} from "../lib/useTitle";
 
 const Home: NextPage<PageProps> = ({recents, inspirations, recaptchaKey}) => {
     const [draftOpen, setDraft] = useState(false);
-
+    useTitle('主页');
     function handleNewPost(type: MessageType, id: string, raiser: UserID, content: MessageContent) {
         switch (type) {
             case "inspiration":

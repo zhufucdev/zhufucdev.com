@@ -7,6 +7,7 @@ export type User = {
     nick: string,
     avatar?: string,
     biography?: string,
+    cover?: ImageID,
     registerTime: Date,
 }
 

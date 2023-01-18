@@ -14,8 +14,12 @@ export default async function handler(
         res
             .status(404)
             .setHeader("Content-Type", "image/svg+xml")
+            .setHeader("Cache-Control", "no-cache")
             .send(await readFile(path.join('public', 'error.svg')));
     } else {
-        res.status(200).setHeader("Content-Type", "image/webp").send(image.stream());
+        res.status(200)
+            .setHeader("Content-Type", "image/webp")
+            .setHeader("Cache-Control", "public, max-age=684800, immutable")
+            .send(image.stream());
     }
 }
