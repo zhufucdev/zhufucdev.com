@@ -23,7 +23,7 @@ const MePage: NextPage = () => {
     }, []);
     return <>
         <MeHeader user={user}/>
-        <Stack m={onLargeScreen ? 6 : 3.5}>
+        <Stack sx={{width: '90%', ml: 'auto', mr: 'auto', mt: 4}}>
             <Typography variant="h4" ml={1}>Q&A</Typography>
             <QnA question="你是什么人" answer="我是个坏人，因为我从来不清理自己的代码"/>
             <Divider/>
