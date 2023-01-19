@@ -5,6 +5,8 @@ import {MeTabs, NoUserHint} from "./[section]";
 import {useRouter} from "next/router";
 import {getInspirations, Inspiration} from "../../../lib/db/inspiration";
 import {getUser} from "../../../lib/db/user";
+import {useTitle} from "../../../lib/useTitle";
+import {isMe} from "../../../lib/useUser";
 
 type PageProps = {
     owner?: SafeUser,
@@ -14,9 +16,16 @@ type PageProps = {
 const DefaultMePage : NextPage<PageProps> = (props) => {
     const router = useRouter();
     const {id} = router.query;
+    const [, setTitle] = useTitle();
 
     if (props.owner) {
         const user = fromSafeUser(props.owner);
+        if (isMe(user)) {
+            setTitle("关于我");
+        } else {
+            setTitle(`关于${user.nick}`);
+        }
+
         return <>
             <MeHeader user={user}/>
             <MeTabs owner={props.owner} inspirations={props.inspirations}/>

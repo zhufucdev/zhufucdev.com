@@ -14,10 +14,12 @@ import QuestionIcon from "@mui/icons-material/HelpOutline";
 import AnswerIcon from "@mui/icons-material/QuestionAnswerOutlined";
 import ErrorIcon from "@mui/icons-material/ErrorOutline";
 import NoInspirationIcon from "@mui/icons-material/LightbulbOutlined";
+import NotImplementedIcon from "@mui/icons-material/HandymanOutlined";
 import Link from "next/link";
 import {isMe} from "../../../lib/useUser";
+import {useTitle} from "../../../lib/useTitle";
 
-export function InspirationsTab(props: { data: Inspiration[] }): JSX.Element {
+function InspirationsTab(props: { data: Inspiration[] }): JSX.Element {
     const {data} = props;
     if (data.length > 0) {
         return <Stack>
@@ -44,6 +46,10 @@ function QnA(props: { question: ReactNode, answer: ReactNode }) {
             {props.answer}
         </Stack>
     </>
+}
+
+function IssuesTab(): JSX.Element {
+    return <PlaceHolder icon={NotImplementedIcon} title="提问暂未实现"/>
 }
 
 export function QnaTab(): JSX.Element {
@@ -89,6 +95,9 @@ export function MeTabs(props: TabProps): JSX.Element {
         case 'inspirations':
             content = <InspirationsTab data={props.inspirations!}/>
             break;
+        case 'issues':
+            content = <IssuesTab/>
+            break;
     }
 
     return (
@@ -113,13 +122,20 @@ export function NoUserHint(props: { id: UserID }): JSX.Element {
 const TabbedMePage: NextPage<PageProps> = (props) => {
     const router = useRouter();
     const {id, section} = router.query;
-    if (props.owner)
+    const [, setTitle] = useTitle();
+    if (props.owner) {
+        if (isMe(props.owner._id)) {
+            setTitle("关于我")
+        } else {
+            setTitle(`关于${props.owner.nick}`);
+        }
         return <>
             <MeHeader user={fromSafeUser(props.owner)}/>
             <MeTabs section={section as TraceType} {...props}/>
         </>
-    else
+    } else {
         return <NoUserHint id={id as string}/>
+    }
 };
 
 type PageProps = {
