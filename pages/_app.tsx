@@ -45,7 +45,7 @@ import {UserAvatar} from "../componenets/UserAvatar";
 import {fetchApi} from "../lib/utility";
 import {getResponseRemark} from "../lib/contract";
 import {useRequestResult} from "../lib/useRequestResult";
-import {TitleProvider, useTitle} from "../lib/useTitle";
+import {TitleConsumer, TitleProvider, useTitle} from "../lib/useTitle";
 
 export const drawerWidth = 240;
 
@@ -62,7 +62,6 @@ type MyAppBarProps = {
 
 function MyAppBar(props: MyAppBarProps): JSX.Element {
     const {user, mutateUser, isLoading: isUserLoading} = useUser();
-    const theme = useTheme();
     const handleResult = useRequestResult();
     const [title] = useTitle();
     const [userMenuAnchor, setUserMenuAnchor] = React.useState<HTMLElement>();
@@ -74,6 +73,7 @@ function MyAppBar(props: MyAppBarProps): JSX.Element {
         await mutateUser(undefined);
         setUserMenuAnchor(undefined);
     };
+    const dismissHandler = () => setUserMenuAnchor(undefined);
 
     const trigger = useScrollTrigger({disableHysteresis: true, threshold: 0});
 
@@ -130,11 +130,17 @@ function MyAppBar(props: MyAppBarProps): JSX.Element {
                 >
                     {
                         user
-                            ? <MenuItem onClick={handleLogout}>
-                                <ListItemIcon><LogoutIcon fontSize="small"/></ListItemIcon>
-                                <ListItemText>退出账号</ListItemText>
-                            </MenuItem>
-                            : <MenuItem component={Link} href="/login" onClick={() => setUserMenuAnchor(undefined)}>
+                            ? <>
+                                <MenuItem component={Link} href={`/me/${user}`} onClick={dismissHandler}>
+                                    <ListItemIcon><AccountIcon fontSize="small"/></ListItemIcon>
+                                    <ListItemText>我的主页</ListItemText>
+                                </MenuItem>
+                                <MenuItem onClick={handleLogout}>
+                                    <ListItemIcon><LogoutIcon fontSize="small"/></ListItemIcon>
+                                    <ListItemText>退出账号</ListItemText>
+                                </MenuItem>
+                            </>
+                            : <MenuItem component={Link} href="/login" onClick={dismissHandler}>
                                 <ListItemIcon><LoginIcon fontSize="small"/></ListItemIcon>
                                 <ListItemText>登录</ListItemText>
                             </MenuItem>
@@ -143,6 +149,11 @@ function MyAppBar(props: MyAppBarProps): JSX.Element {
             </Toolbar>
         </AppBar>
     )
+}
+
+function MyHead() {
+    const [title] = useTitle();
+    return <Head><title>{title}</title></Head>
 }
 
 function MyApp({Component, pageProps, emotionCache = clientEmotionCache}: MyAppProps) {
@@ -185,11 +196,9 @@ function MyApp({Component, pageProps, emotionCache = clientEmotionCache}: MyAppP
 
     return (
         <CacheProvider value={emotionCache}>
-            <Head>
-                <title>zhufucdev</title>
-            </Head>
             <ThemeProvider theme={theme}>
                 <TitleProvider title={routes.find(e => e.route === router.pathname)?.title}>
+                    <MyHead/>
                     <SnackbarProvider>
                         <Box sx={{display: "flex"}}>
                             <CssBaseline/>
@@ -293,7 +302,7 @@ const routes = [
     {
         title: "关于我",
         route: "/me",
-        icon: <AboutIcon />,
+        icon: <AboutIcon/>,
         name: "about_me",
     }
 ];
