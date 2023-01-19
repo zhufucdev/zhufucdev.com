@@ -16,7 +16,7 @@ function PlaceHolder(props: { icon: typeof SvgIcon, title: string }) {
             color: "disabled"
           })
         }
-        <Typography variant="h5" color="text.disabled">{title}</Typography>
+        <Typography variant="h5" color="text.disabled" mt={2}>{title}</Typography>
       </div>
     </Grid>
   );

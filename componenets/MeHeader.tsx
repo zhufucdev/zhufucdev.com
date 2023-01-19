@@ -11,6 +11,8 @@ type HeaderProps = {
     user: User | undefined
 }
 
+const defaultBiograph = "你好世界";
+
 export function MeHeader(props: HeaderProps) {
     const {user} = props;
     const theme = useTheme();
@@ -55,7 +57,7 @@ export function MeHeader(props: HeaderProps) {
             <CardContent>
                 {
                     user ?
-                        <Typography variant="subtitle1">{user?.biography}</Typography>
+                        <Typography variant="subtitle1">{user?.biography ?? <i>{defaultBiograph}</i>}</Typography>
                         : <Skeleton variant="text" animation="wave"/>
                 }
             </CardContent>

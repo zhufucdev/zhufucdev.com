@@ -12,7 +12,7 @@ import LoginPopover from "./LoginPopover";
 import {getResponseRemark} from "../lib/contract";
 
 
-export function InspirationCard(props: { data: Inspiration }): JSX.Element {
+export function InspirationCardRoot(props: {data: Inspiration}): JSX.Element {
     const {data} = props;
     const {user, isLoading: isUserLoading} = useUser();
     const {user: raiser} = useProfileOf(data.raiser);
@@ -53,52 +53,60 @@ export function InspirationCard(props: { data: Inspiration }): JSX.Element {
         }
     }
 
-    return (
-        <>
-            <Grid container>
-                <Grid item mr={1} ml={1}>
-                    <UserAvatar userId={data.raiser}/>
+    return <>
+        <CardContent sx={{paddingBottom: 0, overflowWrap: 'anywhere'}}>{data.body}</CardContent>
+        <CardActions>
+            <Grid container ml={1}>
+                <Grid item flexGrow={1}>
+                    <Typography variant="body2" color="text.secondary">
+                        {raiser ? raiser.nick : data.raiser}
+                    </Typography>
                 </Grid>
-
-                <Grid item flexGrow={1} mt={1}>
-                    <Card sx={data.implemented ? {backgroundColor: green[600]} : {}}>
-                        <CardContent sx={{paddingBottom: 0, overflowWrap: 'anywhere'}}>{data.body}</CardContent>
-                        <CardActions>
-                            <Grid container ml={1}>
-                                <Grid item flexGrow={1}>
-                                    <Typography variant="body2" color="text.secondary">
-                                        {raiser ? raiser.nick : data.raiser}
-                                    </Typography>
-                                </Grid>
-                                <Grid item alignItems="center" sx={{display: "flex"}}>
-                                    {data.implemented ? (
-                                        <Tooltip title="已实现">
-                                            <ImplementedIcon aria-label="implemented"/>
-                                        </Tooltip>
-                                    ) : null}
-                                    <Tooltip title="喜欢">
+                <Grid item alignItems="center" sx={{display: "flex"}}>
+                    {data.implemented ? (
+                        <Tooltip title="已实现">
+                            <ImplementedIcon aria-label="implemented"/>
+                        </Tooltip>
+                    ) : null}
+                    <Tooltip title="喜欢">
                                         <span>
                                         <IconButton aria-label="like" onClick={handleLike} disabled={isUserLoading}>
                                             <FavoriteIcon color={liked ? 'error' : 'inherit'}/>
                                         </IconButton>
                                         </span>
-                                    </Tooltip>
-                                    <Typography variant="caption" style={{marginRight: 12}}>
-                                        {likes}
-                                    </Typography>
-                                </Grid>
-                            </Grid>
-                        </CardActions>
+                    </Tooltip>
+                    <Typography variant="caption" style={{marginRight: 12}}>
+                        {likes}
+                    </Typography>
+                </Grid>
+            </Grid>
+        </CardActions>
+
+        <LoginPopover
+            open={anchor != null}
+            anchorEl={anchor}
+            onClose={handlePopoverClose}
+            anchorOrigin={{vertical: "bottom", horizontal: "right"}}
+            transformOrigin={{vertical: "top", horizontal: "right"}}
+        />
+    </>
+}
+
+export function InspirationCard(props: { data: Inspiration }): JSX.Element {
+    const {data} = props;
+    return (
+        <>
+            <Grid container>
+                <Grid item mr={1} ml={1}>
+                    <UserAvatar userId={data.raiser} redirect/>
+                </Grid>
+
+                <Grid item flexGrow={1} mt={1}>
+                    <Card sx={data.implemented ? {backgroundColor: green[600]} : {}}>
+                        <InspirationCardRoot data={data}/>
                     </Card>
                 </Grid>
             </Grid>
-            <LoginPopover
-                open={anchor != null}
-                anchorEl={anchor}
-                onClose={handlePopoverClose}
-                anchorOrigin={{vertical: "bottom", horizontal: "right"}}
-                transformOrigin={{vertical: "top", horizontal: "right"}}
-            />
         </>
     );
 }

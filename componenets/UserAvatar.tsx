@@ -6,6 +6,7 @@ import AccountIcon from "@mui/icons-material/AccountCircleOutlined";
 import {lookupUser} from "../lib/useUser";
 import {User} from "../lib/db/user";
 import {useMemo} from "react";
+import Link from "next/link";
 
 type UserAvatarProps = {
     image?: ImageID,
@@ -14,12 +15,13 @@ type UserAvatarProps = {
     onClick?: React.MouseEventHandler<HTMLElement>,
     user?: User,
     userId?: UserID,
-    loading?: boolean
+    loading?: boolean,
+    redirect?: boolean
 };
 
 export function UserAvatar(props: UserAvatarProps): JSX.Element {
     const theme = useTheme();
-    const {userId, user, image, sx, onClick, loading} = props;
+    const {userId, user, image, sx, onClick, loading, redirect} = props;
     const size = props.size ?? 56;
 
     const [loaded, setLoaded] = React.useState(false);
@@ -64,6 +66,8 @@ export function UserAvatar(props: UserAvatarProps): JSX.Element {
     return loaded ? (
         imageUri ? (
             <Avatar
+                component={Link}
+                href={redirect ? `/me/${user?._id ?? userId}` : '#'}
                 src={imageUri}
                 sx={{width: size, height: size, ...sx}}
                 alt="头像"
@@ -72,6 +76,8 @@ export function UserAvatar(props: UserAvatarProps): JSX.Element {
             />
         ) : (
             <Avatar
+                component={Link}
+                href={redirect ? `/me/${user?._id ?? userId}` : '#'}
                 sx={{bgcolor: theme.palette.primary.main, width: size, height: size, ...sx}}
                 alt="空头像"
                 key="empty"
