@@ -16,7 +16,7 @@ import {useRouter} from "next/router";
 import {useProfile, useUser} from "../lib/useUser";
 import {useRequestResult} from "../lib/useRequestResult";
 import * as React from "react";
-import {useCallback, useEffect, useState} from "react";
+import {useCallback, useEffect, useMemo, useState} from "react";
 import {getResponseRemark, hasPermission, maxUserMessageLength} from "../lib/contract";
 import {getImageUri, postMessage, uploadImage} from "../lib/utility";
 import {ProgressSlider} from "./PrograssSlider";
@@ -67,6 +67,7 @@ function RenderContent(props: DraftDialogProps): JSX.Element {
     const [imageAnchor, setAnchor] = useState<HTMLElement>();
     const [titleImage, setTitleImage] = useState<ImageID>();
     const [titleUpload, setTitleUpload] = useState<File>();
+    const canRaiseRecent = useMemo(() => user && hasPermission(user, 'raise_recent'), [user]);
 
     useEffect(() => {
         if (!user) return;
@@ -255,25 +256,27 @@ function RenderContent(props: DraftDialogProps): JSX.Element {
                 }
             </DialogActions>
         </ProgressSlider>
-        <ImagesPopover
-            open={Boolean(imageAnchor)}
-            onClose={() => setAnchor(undefined)}
-            onSelectImage={(image) => setTitleImage(image)}
-            selected={titleImage}
-            anchorEl={imageAnchor}
-            onSelectUpload={(file) => setTitleUpload(file)}
-            anchorOrigin={{
-                vertical: "bottom",
-                horizontal: "right"
-            }}
-            transformOrigin={{
-                vertical: "bottom",
-                horizontal: "right"
-            }}
-            PaperProps={{
-                sx: {maxHeight: "60%"}
-            }}
-        />
+        {
+            canRaiseRecent && <ImagesPopover
+                open={Boolean(imageAnchor)}
+                onClose={() => setAnchor(undefined)}
+                onSelectImage={(image) => setTitleImage(image)}
+                selected={titleImage}
+                anchorEl={imageAnchor}
+                onSelectUpload={(file) => setTitleUpload(file)}
+                anchorOrigin={{
+                    vertical: "bottom",
+                    horizontal: "right"
+                }}
+                transformOrigin={{
+                    vertical: "bottom",
+                    horizontal: "right"
+                }}
+                PaperProps={{
+                    sx: {maxHeight: "60%"}
+                }}
+            />
+        }
     </>;
 
 
@@ -517,4 +520,4 @@ export function DraftDialog(props: DraftDialogProps): JSX.Element {
             <RenderContent {...props}/>
         </GoogleReCaptchaProvider>
     </>
-    }
+}
