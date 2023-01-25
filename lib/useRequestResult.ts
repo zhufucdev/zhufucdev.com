@@ -13,8 +13,8 @@ export function useRequestResult(success?: () => void, error?: () => void): Resu
                     horizontal: "center"
                 }
             }
-            if (res.respond) {
-                if (res.msg) {
+            if (res.msg) {
+                if (res.respond) {
                     enqueueSnackbar(`${res.msg} (${res.respond})`, options);
                 } else {
                     enqueueSnackbar(res.msg as string, options);
