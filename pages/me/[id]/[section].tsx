@@ -18,6 +18,7 @@ import NotImplementedIcon from "@mui/icons-material/HandymanOutlined";
 import Link from "next/link";
 import {isMe} from "../../../lib/useUser";
 import {useTitle} from "../../../lib/useTitle";
+import {GoogleReCaptchaProvider} from "react-google-recaptcha-v3";
 
 function InspirationsTab(props: { data: Inspiration[] }): JSX.Element {
     const {data} = props;
@@ -70,7 +71,7 @@ export function QnaTab(): JSX.Element {
     </>
 }
 
-type TabProps = { section?: TraceType } & PageProps;
+type TabProps = { section?: TraceType } & Omit<PageProps, "reCaptchaKey">;
 const display: { [key: string]: string } = {
     qna: 'Q&A',
     inspirations: '灵感',
@@ -129,10 +130,10 @@ const TabbedMePage: NextPage<PageProps> = (props) => {
         } else {
             setTitle(`关于${props.owner.nick}`);
         }
-        return <>
+        return <GoogleReCaptchaProvider reCaptchaKey={props.reCaptchaKey}>
             <MeHeader user={fromSafeUser(props.owner)}/>
             <MeTabs section={section as TraceType} {...props}/>
-        </>
+        </GoogleReCaptchaProvider>
     } else {
         return <NoUserHint id={id as string}/>
     }
@@ -140,19 +141,23 @@ const TabbedMePage: NextPage<PageProps> = (props) => {
 
 type PageProps = {
     inspirations?: Inspiration[],
-    owner?: SafeUser
+    owner?: SafeUser,
+    reCaptchaKey: string
 }
 export const getServerSideProps: GetServerSideProps<PageProps> = async (context) => {
+    const reCaptchaKey = process.env.RECAPTCHA_KEY_FRONTEND as string;
     const {id} = context.query;
     const owner = (await getUser(id as string)) ?? undefined;
     let inspirations: Inspiration[] | undefined;
     if (owner) {
         inspirations = (await getInspirations()).filter(entry => entry.raiser == id);
         return {
-            props: {owner: getSafeUser(owner), inspirations}
+            props: {
+                owner: getSafeUser(owner), reCaptchaKey, inspirations
+            }
         }
     } else {
-        return {props: {}}
+        return {props: {reCaptchaKey}}
     }
 }
 

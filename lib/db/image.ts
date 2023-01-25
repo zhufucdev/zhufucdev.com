@@ -19,6 +19,7 @@ export interface ImageMeta {
     name: string;
     uploadTime: Date;
     uploader: UserID;
+    use?: ImageUse;
 }
 
 export interface Image extends ImageMeta {
@@ -42,6 +43,7 @@ export async function findImage(id: ImageID): Promise<Image | undefined> {
         name: meta.name,
         uploadTime: meta.uploadTime,
         uploader: meta.uploader,
+        use: meta.use,
         stream(): NodeJS.ReadableStream {
             return bucket.openDownloadStream(meta.ref);
         },
@@ -56,7 +58,8 @@ export async function listImages(): Promise<ImageMeta[]> {
             _id: v._id,
             name: v.name,
             uploader: v.uploader,
-            uploadTime: v.uploadTime
+            uploadTime: v.uploadTime,
+            use: v.use
         }))
         .toArray()
 }
@@ -68,10 +71,13 @@ export async function listImages(): Promise<ImageMeta[]> {
  * converting
  * @param content the file buffer
  * @param uploader who uploads
+ * @param use how the image should be used.
+ * If an image is used as avatar or blog, it will be deleted once the user's avatar is changed
+ * or the post is deleted.
  * @returns {@link AbstractImage} if the upload was successful, or undefined
  * if the database didn't acknowledge
  */
-export async function addImage(name: string, uploader: UserID, content: Buffer): Promise<ImageMeta | undefined> {
+export async function addImage(name: string, uploader: UserID, use: ImageUse | undefined, content: Buffer): Promise<ImageMeta | undefined> {
     requireBucket();
 
     const dot = name.lastIndexOf(".");
@@ -80,7 +86,8 @@ export async function addImage(name: string, uploader: UserID, content: Buffer):
         _id: nanoid(),
         uploader,
         name: identifier,
-        uploadTime: new Date()
+        uploadTime: new Date(),
+        use
     }
 
     const ref = new ObjectId();
@@ -96,6 +103,21 @@ export async function addImage(name: string, uploader: UserID, content: Buffer):
             })
         });
     })
+}
+
+/**
+ * Delete an image, removing all files and links
+ * @param id the target image
+ * @returns whether the removal was successful
+ */
+export async function removeImage(id: ImageID): Promise<boolean> {
+    requireBucket();
+    const images = db.collection<ImageStore>(collectionId)
+    const meta = await images.findOne({_id: id});
+    if (!meta) return false;
+    await imageBucket.delete(meta.ref);
+    const res = await images.findOneAndDelete({_id: id});
+    return res.ok === 1;
 }
 
 declare global {

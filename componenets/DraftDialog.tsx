@@ -5,7 +5,7 @@ import {
     Dialog,
     DialogActions,
     DialogContent,
-    DialogTitle, Fade, Grid, IconButton, Popover, PopoverProps, Skeleton,
+    DialogTitle, IconButton, Popover, PopoverProps, Skeleton,
     Stack,
     SwipeableDrawer,
     TextField, Typography,
@@ -116,11 +116,12 @@ function RenderContent(props: DraftDialogProps): JSX.Element {
             let imageId: ImageID;
             if (titleImage === 'upload') {
                 if (!titleUpload) throw new Error('no uploading candidate');
-                const res = await uploadImage(titleUpload);
+                const res = await uploadImage(titleUpload, token, 'save');
                 if (!res.ok) {
                     return {response: res};
                 }
                 imageId = await res.text();
+                if (executeRecaptcha) token = await executeRecaptcha(); // a new token is required
             } else {
                 imageId = titleImage!;
             }

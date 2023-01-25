@@ -10,18 +10,19 @@ import Link from "next/link";
 
 type UserAvatarProps = {
     image?: ImageID,
+    src?: string,
     size?: number,
     sx?: SxProps<Theme>,
     onClick?: React.MouseEventHandler<HTMLElement>,
     user?: User,
     userId?: UserID,
     loading?: boolean,
-    redirect?: boolean
+    link?: boolean,
 };
 
 export function UserAvatar(props: UserAvatarProps): JSX.Element {
     const theme = useTheme();
-    const {userId, user, image, sx, onClick, loading, redirect} = props;
+    const {userId, src, user, image, sx, onClick, loading, link} = props;
     const size = props.size ?? 56;
 
     const [loaded, setLoaded] = React.useState(false);
@@ -32,7 +33,9 @@ export function UserAvatar(props: UserAvatarProps): JSX.Element {
     }, [imageUri]);
 
     React.useEffect(() => {
-        if (image) {
+        if (src) {
+            setImageUri(src);
+        } else if (image) {
             setImageUri(getImageUri(image));
         } else if (userId) {
             lookupUser(userId)
@@ -56,7 +59,7 @@ export function UserAvatar(props: UserAvatarProps): JSX.Element {
             setImageUri('');
             setLoaded(true);
         }
-    }, [image, userId, user, loading])
+    }, [src, image, userId, user, loading])
 
     const iconStyle: SxProps<Theme> = useMemo(() => ({
         color: theme.palette.primary.contrastText,
@@ -67,7 +70,7 @@ export function UserAvatar(props: UserAvatarProps): JSX.Element {
         imageUri ? (
             <Avatar
                 component={Link}
-                href={redirect ? `/me/${user?._id ?? userId}` : '#'}
+                href={link ? `/me/${user?._id ?? userId}` : '#'}
                 src={imageUri}
                 sx={{width: size, height: size, ...sx}}
                 alt="头像"
@@ -77,7 +80,7 @@ export function UserAvatar(props: UserAvatarProps): JSX.Element {
         ) : (
             <Avatar
                 component={Link}
-                href={redirect ? `/me/${user?._id ?? userId}` : '#'}
+                href={link ? `/me/${user?._id ?? userId}` : '#'}
                 sx={{bgcolor: theme.palette.primary.main, width: size, height: size, ...sx}}
                 alt="空头像"
                 key="empty"

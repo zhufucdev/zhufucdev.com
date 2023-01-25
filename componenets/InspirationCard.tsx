@@ -98,7 +98,7 @@ export function InspirationCard(props: { data: Inspiration }): JSX.Element {
         <>
             <Grid container>
                 <Grid item mr={1} ml={1}>
-                    <UserAvatar userId={data.raiser} redirect/>
+                    <UserAvatar userId={data.raiser} link/>
                 </Grid>
 
                 <Grid item flexGrow={1} mt={1}>

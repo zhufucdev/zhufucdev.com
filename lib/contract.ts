@@ -24,7 +24,8 @@ export const userContract = {
     testNick: (nick: string) => {
         const illegal = /[*·$()（）「」【】/|\\@《》<>]/;
         return !illegal.test(nick);
-    }
+    },
+    maxBioLen: 50
 }
 
 export async function getResponseRemark(res: Response): Promise<RequestResult> {

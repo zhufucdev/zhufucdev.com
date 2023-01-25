@@ -27,6 +27,7 @@ declare global {
         | "*";
 
     type RequestResult = { success: boolean, respond?: string, msg?: string };
+    type ImageUse = 'avatar' | 'blog' | 'save';
 }
 
 export {};

@@ -7,10 +7,12 @@ import {getInspirations, Inspiration} from "../../../lib/db/inspiration";
 import {getUser} from "../../../lib/db/user";
 import {useTitle} from "../../../lib/useTitle";
 import {isMe} from "../../../lib/useUser";
+import {GoogleReCaptchaProvider} from "react-google-recaptcha-v3";
 
 type PageProps = {
     owner?: SafeUser,
-    inspirations?: Inspiration[]
+    inspirations?: Inspiration[],
+    reCaptchaKey: string
 }
 
 const DefaultMePage : NextPage<PageProps> = (props) => {
@@ -26,10 +28,10 @@ const DefaultMePage : NextPage<PageProps> = (props) => {
             setTitle(`关于${user.nick}`);
         }
 
-        return <>
+        return <GoogleReCaptchaProvider reCaptchaKey={props.reCaptchaKey}>
             <MeHeader user={user}/>
             <MeTabs owner={props.owner} inspirations={props.inspirations}/>
-        </>
+        </GoogleReCaptchaProvider>
     } else {
         return <NoUserHint id={id as string}/>
     }
@@ -38,6 +40,7 @@ const DefaultMePage : NextPage<PageProps> = (props) => {
 export default DefaultMePage;
 
 export const getServerSideProps: GetServerSideProps<PageProps> = async (context) => {
+    const reCaptchaKey = process.env.RECAPTCHA_KEY_FRONTEND as string;
     const {id} = context.query;
     const user = (await getUser(id as string)) ?? undefined;
     if (user) {
@@ -45,10 +48,10 @@ export const getServerSideProps: GetServerSideProps<PageProps> = async (context)
         return {
             props: {
                 owner: getSafeUser(user),
-                inspirations
+                inspirations, reCaptchaKey
             }
         }
     } else {
-        return {props: {}}
+        return {props: {reCaptchaKey}}
     }
 }
