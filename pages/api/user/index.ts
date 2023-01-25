@@ -4,6 +4,7 @@ import {getUser, modifyUser, UserProfile} from "../../../lib/db/user";
 import {validToken} from "../../../lib/db/token";
 import {userContract} from "../../../lib/contract";
 import {findImage} from "../../../lib/db/image";
+import {isMe} from "../../../lib/useUser";
 
 async function clearCookies(req: NextApiRequest) {
     req.session.userID = undefined;
@@ -51,6 +52,10 @@ async function userSet(req: NextApiRequest, res: NextApiResponse) {
 
     const acknowledged = await modifyUser(original._id, mod);
     if (acknowledged) {
+        if (isMe(original)) {
+            res.revalidate('/me');
+        }
+
         res.send('success')
     } else {
         res.status(500).send('database not acknowledged')
