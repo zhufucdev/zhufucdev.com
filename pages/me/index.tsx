@@ -1,4 +1,4 @@
-import {GetServerSideProps, NextPage} from "next";
+import {GetServerSideProps, GetStaticProps, NextPage} from "next";
 import {useTitle} from "../../lib/useTitle";
 import {getUser} from "../../lib/db/user";
 import {MeTabs} from "./[id]/[section]";
@@ -17,7 +17,7 @@ type PageProps = {
     user: SafeUser
 };
 
-export const getServerSideProps: GetServerSideProps<PageProps> = async () => {
+export const getStaticProps: GetStaticProps<PageProps> = async () => {
     const me = await getUser('zhufucdev');
     return {
         props: {
