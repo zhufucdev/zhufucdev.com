@@ -30,8 +30,7 @@ import {
     ThemeOptions,
     Tooltip,
     useMediaQuery,
-    useScrollTrigger,
-    useTheme
+    useScrollTrigger
 } from "@mui/material";
 import {createTheme, ThemeProvider} from "@mui/material/styles";
 import {Analytics} from "@vercel/analytics/react";
@@ -45,7 +44,7 @@ import {UserAvatar} from "../componenets/UserAvatar";
 import {fetchApi} from "../lib/utility";
 import {getResponseRemark} from "../lib/contract";
 import {useRequestResult} from "../lib/useRequestResult";
-import {TitleConsumer, TitleProvider, useTitle} from "../lib/useTitle";
+import {TitleProvider, useTitle} from "../lib/useTitle";
 
 export const drawerWidth = 240;
 

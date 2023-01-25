@@ -22,6 +22,7 @@ import LoginPopover from "./LoginPopover";
 import {LocalRecent} from "../pages";
 import {useRequestResult} from "../lib/useRequestResult";
 import {getResponseRemark} from "../lib/contract";
+import {MarkdownScope} from "./MarkdownScope";
 
 interface ExpandMoreProps extends IconButtonProps {
     expand: boolean;
@@ -138,7 +139,9 @@ export function RecentCard(props: { data: LocalRecent }) {
                     <Typography variant="h5" gutterBottom>
                         {data.title}
                     </Typography>
-                    <Typography variant="body2">{data.body}</Typography>
+                    <MarkdownScope>
+                        {data.body}
+                    </MarkdownScope>
                 </CardContent>
                 <CardActions disableSpacing className={styles.mWithoutTop}>
                     <Tooltip title="喜欢">
