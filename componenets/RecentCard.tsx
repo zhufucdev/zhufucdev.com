@@ -122,7 +122,7 @@ export function RecentCard(props: { data: LocalRecent }) {
 
     return (
         <>
-            <Card>
+            <Card variant="outlined" sx={{borderRadius: 2}}>
                 {imageCached ? (
                     <CardMedia
                         component="img"

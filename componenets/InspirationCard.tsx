@@ -94,6 +94,7 @@ export function InspirationCardRoot(props: {data: Inspiration}): JSX.Element {
 
 export function InspirationCard(props: { data: Inspiration }): JSX.Element {
     const {data} = props;
+    const colorProps = data.implemented ? {backgroundColor: green[600]} : {};
     return (
         <>
             <Grid container>
@@ -102,7 +103,7 @@ export function InspirationCard(props: { data: Inspiration }): JSX.Element {
                 </Grid>
 
                 <Grid item flexGrow={1} mt={1}>
-                    <Card sx={data.implemented ? {backgroundColor: green[600]} : {}}>
+                    <Card sx={{...colorProps, borderRadius: 2}}>
                         <InspirationCardRoot data={data}/>
                     </Card>
                 </Grid>

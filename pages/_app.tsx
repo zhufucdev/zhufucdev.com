@@ -167,7 +167,12 @@ function MyApp({Component, pageProps, emotionCache = clientEmotionCache}: MyAppP
         <>
             <Toolbar/>
             <Divider/>
-            <List>
+            <List sx={{
+                '.MuiListItemButton-root': {
+                    borderTopRightRadius: 20,
+                    borderBottomRightRadius: 20
+                }
+            }}>
                 {routes
                     .filter((e) => !e.hidden)
                     .map((entry) => (
