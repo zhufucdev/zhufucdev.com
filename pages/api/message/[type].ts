@@ -54,7 +54,7 @@ async function messageRoute(req: NextApiRequest, res: NextApiResponse) {
     }
 
     if (id) {
-        await res.revalidate('/');
+        res.revalidate('/');
         res.send(id);
     } else {
         res.status(500).send('database not acknowledging');
