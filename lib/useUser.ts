@@ -67,7 +67,9 @@ export function useProfile(): ProfileCallback {
     return {user: profile.user, isLoading: isLoading || profile.isLoading};
 }
 
+export const myId = 'zhufucdev';
+
 export function isMe(user: User | UserID): boolean {
-    if (typeof user === 'string') return user === 'zhufucdev';
-    return user._id === 'zhufucdev'
+    if (typeof user === 'string') return user === myId;
+    return user._id === myId
 }

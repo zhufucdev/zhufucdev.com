@@ -1,23 +1,23 @@
 import {GetServerSideProps, NextPage} from "next";
 import {Stack, Tab, Tabs, Box} from "@mui/material";
-import {getInspirations, Inspiration} from "../../../lib/db/inspiration";
-import {InspirationCardRoot} from "../../../componenets/InspirationCard";
+import {getInspirations, Inspiration} from "../../lib/db/inspiration";
+import {InspirationCardRoot} from "../../componenets/InspirationCard";
 import {useRouter} from "next/router";
-import {MeHeader} from "../../../componenets/MeHeader";
+import {MeHeader} from "../../componenets/MeHeader";
 import Typography from "@mui/material/Typography";
 import Divider from "@mui/material/Divider";
 import {ReactNode} from "react";
-import {getUser} from "../../../lib/db/user";
-import PlaceHolder from "../../../componenets/PlaceHolder";
-import {fromSafeUser, getSafeUser, SafeUser} from "../../../lib/getSafeUser";
+import {getUser} from "../../lib/db/user";
+import PlaceHolder from "../../componenets/PlaceHolder";
+import {fromSafeUser, getSafeUser, SafeUser} from "../../lib/getSafeUser";
 import QuestionIcon from "@mui/icons-material/HelpOutline";
 import AnswerIcon from "@mui/icons-material/QuestionAnswerOutlined";
 import ErrorIcon from "@mui/icons-material/ErrorOutline";
 import NoInspirationIcon from "@mui/icons-material/LightbulbOutlined";
 import NotImplementedIcon from "@mui/icons-material/HandymanOutlined";
 import Link from "next/link";
-import {isMe} from "../../../lib/useUser";
-import {useTitle} from "../../../lib/useTitle";
+import {isMe} from "../../lib/useUser";
+import {useTitle} from "../../lib/useTitle";
 import {GoogleReCaptchaProvider} from "react-google-recaptcha-v3";
 
 function InspirationsTab(props: { data: Inspiration[] }): JSX.Element {
@@ -122,17 +122,20 @@ export function NoUserHint(props: { id: UserID }): JSX.Element {
 
 const TabbedMePage: NextPage<PageProps> = (props) => {
     const router = useRouter();
-    const {id, section} = router.query;
+    const {param} = router.query;
+    const id = param && param[0], section = param && param[1];
     const [, setTitle] = useTitle();
+    let aboutMe = false;
     if (props.owner) {
         if (isMe(props.owner._id)) {
-            setTitle("关于我")
+            setTitle("关于我");
+            aboutMe = true
         } else {
             setTitle(`关于${props.owner.nick}`);
         }
         return <GoogleReCaptchaProvider reCaptchaKey={props.reCaptchaKey}>
             <MeHeader user={fromSafeUser(props.owner)}/>
-            <MeTabs section={section as TraceType} {...props}/>
+            <MeTabs section={(section || (aboutMe ? 'qna' : 'inspirations')) as TraceType} {...props}/>
         </GoogleReCaptchaProvider>
     } else {
         return <NoUserHint id={id as string}/>
@@ -144,21 +147,25 @@ type PageProps = {
     owner?: SafeUser,
     reCaptchaKey: string
 }
-export const getServerSideProps: GetServerSideProps<PageProps> = async (context) => {
+
+async function getProps(id: string | undefined): Promise<PageProps> {
     const reCaptchaKey = process.env.RECAPTCHA_KEY_FRONTEND as string;
-    const {id} = context.query;
-    const owner = (await getUser(id as string)) ?? undefined;
+    const owner = id && await getUser(id);
     let inspirations: Inspiration[] | undefined;
     if (owner) {
         inspirations = (await getInspirations()).filter(entry => entry.raiser == id);
         return {
-            props: {
-                owner: getSafeUser(owner), reCaptchaKey, inspirations
-            }
+            owner: getSafeUser(owner), reCaptchaKey, inspirations
         }
     } else {
-        return {props: {reCaptchaKey}}
+        return {reCaptchaKey}
     }
+}
+
+export const getServerSideProps: GetServerSideProps<PageProps> = async (context) => {
+    const {param} = context.query;
+    const id = param && param[0];
+    return {props: await getProps(id)}
 }
 
 export default TabbedMePage;
