@@ -1,7 +1,8 @@
 import {db, requireDatabase} from "./database";
 
 export interface WithLikes {
-    likes: UserID[]
+    likes: UserID[],
+
 }
 
 export interface WithDislikes {
@@ -49,6 +50,11 @@ export async function mergeWith(collectionID: Remarkable, itemID: any,
         requireRemoval("dislikes");
     }
 
-    const {ok} = await db.collection(collectionID).findOneAndReplace(filter, origin);
+    const {ok} = await db.collection(collectionID).findOneAndUpdate(filter, {
+        $set: {
+            likes: origin.likes,
+            dislikes: origin.dislikes
+        }
+    });
     return ok == 1;
 }
