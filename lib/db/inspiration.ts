@@ -1,12 +1,13 @@
 import {db, requireDatabase} from "./database";
 import {WithLikes} from "./remark";
 import {nanoid} from "nanoid";
+import {WithComments} from "./comment";
 
-export interface Inspiration extends WithLikes {
+export interface Inspiration extends WithLikes, WithComments {
     _id: InspirationID;
     raiser: UserID;
     body: string;
-    implemented: boolean;
+    implemented: boolean
 }
 
 const collectionID = "inspirations";
@@ -21,7 +22,8 @@ export async function getInspirations(): Promise<Inspiration[]> {
     return find.map(v => {
         return {
             ...v,
-            likes: v.likes ?? []
+            likes: v.likes ?? [],
+            comments: v.comments ?? []
         }
     })
 }
@@ -32,11 +34,15 @@ export async function getInspiration(id: InspirationID): Promise<Inspiration | n
 
 export async function addInspiration(raiser: UserID, body: string): Promise<string | undefined> {
     requireDatabase();
-    const value = {
-        _id: nanoid(),
+    const collection = db.collection<Inspiration>(collectionID);
+    const _id = nanoid();
+    const value: Inspiration = {
+        _id,
         raiser, body,
-        implemented: false
-    } as Inspiration;
-    const insert = await db.collection<Inspiration>(collectionID).insertOne(value);
+        implemented: false,
+        likes: [],
+        comments: []
+    };
+    const insert = await collection.insertOne(value);
     return insert.acknowledged ? value._id : undefined;
 }

@@ -5,7 +5,7 @@ import {Box, Button, Grid, Stack, Typography, useMediaQuery, useTheme} from "@mu
 import {motion} from "framer-motion";
 import NoRecentsIcon from "@mui/icons-material/WifiTetheringOffOutlined";
 import BulbIcon from "@mui/icons-material/LightbulbOutlined";
-import EditIcon from '@mui/icons-material/Edit';
+import EditIcon from "@mui/icons-material/Edit";
 
 import {getRecents, Recent} from "../lib/db/recent";
 import {getInspirations, Inspiration} from "../lib/db/inspiration";
@@ -20,6 +20,7 @@ import {useTitle} from "../lib/useTitle";
 const Home: NextPage<PageProps> = ({recents, inspirations, recaptchaKey}) => {
     const [draftOpen, setDraft] = useState(false);
     useTitle('主页');
+
     function handleNewPost(type: MessageType, id: string, raiser: UserID, content: MessageContent) {
         switch (type) {
             case "inspiration":
@@ -28,7 +29,8 @@ const Home: NextPage<PageProps> = ({recents, inspirations, recaptchaKey}) => {
                     raiser,
                     body: content.body,
                     likes: [],
-                    implemented: false
+                    implemented: false,
+                    comments: []
                 });
                 break;
             case "recent":

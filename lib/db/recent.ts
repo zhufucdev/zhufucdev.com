@@ -1,6 +1,5 @@
 import {db, requireDatabase} from "./database";
 import {WithDislikes, WithLikes} from "./remark";
-import {WithId} from "mongodb";
 import {nanoid} from "nanoid";
 
 

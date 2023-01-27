@@ -22,6 +22,8 @@ import AboutIcon from "@mui/icons-material/HelpOutline";
 import AccountIcon from "@mui/icons-material/AccountCircleOutlined";
 import LogoutIcon from "@mui/icons-material/LogoutOutlined";
 import LoginIcon from "@mui/icons-material/LoginOutlined";
+import ArticleIcon from "@mui/icons-material/ArticleOutlined";
+
 
 import {
     IconButton,
@@ -302,6 +304,12 @@ const routes = [
         route: "/login",
         name: "login",
         hidden: true,
+    },
+    {
+        title: "文章",
+        route: "/article",
+        icon: <ArticleIcon/>,
+        name: "articles"
     },
     {
         title: "关于我",

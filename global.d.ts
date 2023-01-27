@@ -4,7 +4,9 @@ declare global {
     type RecentID = string;
     type InspirationID = string;
     type ImageID = string;
-    type PrivateMessageID = string
+    type PrivateMessageID = string;
+    type CommentID = string;
+    type ArticleID = string;
 
     type MessageType = 'inspiration' | 'recent' | 'pm' | 'issue';
     type TraceType = 'inspirations' | 'qna' | 'issues';
@@ -13,6 +15,7 @@ declare global {
         | "raise_inspiration"
         | "raise_issue"
         | "raise_recent"
+        | "post_article"
         | "send_pm"
         | "comment"
         | "remark"
@@ -27,7 +30,7 @@ declare global {
         | "*";
 
     type RequestResult = { success: boolean, respond?: string, msg?: string };
-    type ImageUse = 'avatar' | 'blog' | 'save';
+    type ImageUse = 'avatar' | 'post' | 'save';
 }
 
 export {};

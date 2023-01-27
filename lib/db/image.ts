@@ -73,7 +73,7 @@ export async function listImages(): Promise<ImageMeta[]> {
  * @param uploader who uploads
  * @param use how the image should be used.
  * If an image is used as avatar or blog, it will be deleted once the user's avatar is changed
- * or the post is deleted.
+ * or the article is deleted.
  * @returns {@link AbstractImage} if the upload was successful, or undefined
  * if the database didn't acknowledge
  */

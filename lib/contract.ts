@@ -3,6 +3,7 @@
  **********************************************/
 
 import {User} from "./db/user";
+import remarkGfm from "remark-gfm";
 
 export const maxUserMessageLength = 500;
 
@@ -86,4 +87,8 @@ export function hasPermission(user: User, permit: PermissionID): boolean {
     } else {
         return user.permissions.includes(permit);
     }
+}
+
+export const markdownContract = {
+    plugins: [remarkGfm]
 }

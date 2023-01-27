@@ -9,8 +9,10 @@ import {
     CardMedia,
     Collapse,
     Divider,
-    IconButton, IconButtonProps,
-    Skeleton, styled,
+    IconButton,
+    IconButtonProps,
+    Skeleton,
+    styled,
     Tooltip,
     Typography
 } from "@mui/material";
@@ -38,7 +40,6 @@ const ExpandMore = styled((props: ExpandMoreProps) => {
         duration: theme.transitions.duration.shortest,
     }),
 }));
-
 
 export function RecentCard(props: { data: LocalRecent }) {
     const {data} = props;
