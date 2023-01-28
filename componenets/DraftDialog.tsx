@@ -22,7 +22,7 @@ import {useEffect, useMemo, useState} from "react";
 import {getResponseRemark, hasPermission, maxUserMessageLength} from "../lib/contract";
 import {postMessage, uploadImage} from "../lib/utility";
 import {ProgressSlider} from "./PrograssSlider";
-import {UserAvatar} from "./UserAvatar";
+import {LazyAvatar} from "./LazyAvatar";
 import {useGoogleReCaptcha} from "react-google-recaptcha-v3";
 import {ReCaptchaPolicy} from "./ReCaptchaPolicy";
 
@@ -204,7 +204,7 @@ function RenderContent(props: DraftDialogProps): JSX.Element {
 
     const inputs = (
         <Stack direction="row" spacing={2}>
-            <UserAvatar user={user} size={48} sx={{mt: 0.2, ml: 0.2}}/>
+            <LazyAvatar user={user} size={48} sx={{mt: 0.2, ml: 0.2}}/>
             <Stack spacing={1} width="100%">
                 <Collapse appear={false} in={type === 'recent'} mountOnEnter>
                     <TextField

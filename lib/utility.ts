@@ -52,17 +52,11 @@ export function getHumanReadableTime(time: Date): string {
     }
 }
 
-const imageCache = new Map<string, boolean>();
-
 export async function cacheImage(src: string) {
-    if (src in imageCache) {
-        return;
-    }
     const cache = new Image();
     const promise = new Promise(
         (resolve) =>
             (cache.onload = () => {
-                imageCache.set(src, true);
                 resolve(true);
             })
     );

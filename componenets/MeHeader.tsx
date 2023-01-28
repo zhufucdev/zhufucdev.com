@@ -14,7 +14,7 @@ import {
     useMediaQuery,
     useTheme
 } from "@mui/material";
-import {UserAvatar} from "./UserAvatar";
+import {LazyAvatar} from "./LazyAvatar";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import EditIcon from "@mui/icons-material/EditOutlined";
@@ -271,8 +271,8 @@ export function MeHeader(props: HeaderProps) {
                             </Fade>
                         </Collapse>
                     }
-                    avatar={upload ? <UserAvatar src={upload} onClick={handleAvatarClick}/> :
-                        <UserAvatar user={user} onClick={handleAvatarClick}/>}
+                    avatar={upload ? <LazyAvatar src={upload} onClick={handleAvatarClick}/> :
+                        <LazyAvatar user={user} onClick={handleAvatarClick}/>}
                     action={editMode ? editorAction : action}
                 />
                 {

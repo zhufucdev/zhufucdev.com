@@ -4,7 +4,7 @@ import * as React from "react";
 import {useEffect} from "react";
 import {useRequestResult} from "../lib/useRequestResult";
 import {Card, CardActions, CardContent, Grid, IconButton, Tooltip, Typography} from "@mui/material";
-import {UserAvatar} from "./UserAvatar";
+import {LazyAvatar} from "./LazyAvatar";
 import {green} from "@mui/material/colors";
 import ImplementedIcon from "@mui/icons-material/DoneAllOutlined";
 import FavoriteIcon from "@mui/icons-material/Favorite";
@@ -99,7 +99,7 @@ export function InspirationCard(props: { data: Inspiration }): JSX.Element {
         <>
             <Grid container>
                 <Grid item mr={1} ml={1}>
-                    <UserAvatar userId={data.raiser} link/>
+                    <LazyAvatar userId={data.raiser} link/>
                 </Grid>
 
                 <Grid item flexGrow={1} mt={1}>

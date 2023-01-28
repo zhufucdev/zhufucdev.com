@@ -20,10 +20,10 @@ type UserAvatarProps = {
     link?: boolean,
 };
 
-export function UserAvatar(props: UserAvatarProps): JSX.Element {
+export function LazyAvatar(props: UserAvatarProps): JSX.Element {
     const theme = useTheme();
     const {userId, src, user, image, sx, onClick, loading, link} = props;
-    const size = props.size ?? 56;
+    const size = useMemo(() => props.size ?? 56, [props.size]);
 
     const [loaded, setLoaded] = React.useState(false);
     const [imageUri, setImageUri] = React.useState('');

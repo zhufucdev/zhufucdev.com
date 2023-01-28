@@ -18,7 +18,7 @@ import NotImplementedIcon from "@mui/icons-material/HandymanOutlined";
 import Link from "next/link";
 import {isMe} from "../../lib/useUser";
 import {useTitle} from "../../lib/useTitle";
-import {GoogleReCaptchaProvider} from "react-google-recaptcha-v3";
+import {ReCaptchaScope} from "../../componenets/ReCaptchaScope";
 
 function InspirationsTab(props: { data: Inspiration[] }): JSX.Element {
     const {data} = props;
@@ -133,10 +133,10 @@ const TabbedMePage: NextPage<PageProps> = (props) => {
         } else {
             setTitle(`关于${props.owner.nick}`);
         }
-        return <GoogleReCaptchaProvider reCaptchaKey={props.reCaptchaKey}>
+        return <ReCaptchaScope reCaptchaKey={props.reCaptchaKey}>
             <MeHeader user={fromSafeUser(props.owner)}/>
             <MeTabs section={(section || (aboutMe ? 'qna' : 'inspirations')) as TraceType} {...props}/>
-        </GoogleReCaptchaProvider>
+        </ReCaptchaScope>
     } else {
         return <NoUserHint id={id as string}/>
     }

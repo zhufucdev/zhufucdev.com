@@ -24,7 +24,6 @@ import LogoutIcon from "@mui/icons-material/LogoutOutlined";
 import LoginIcon from "@mui/icons-material/LoginOutlined";
 import ArticleIcon from "@mui/icons-material/ArticleOutlined";
 
-
 import {
     IconButton,
     Menu,
@@ -42,7 +41,7 @@ import {CacheProvider, EmotionCache} from "@emotion/react";
 import Link from "next/link";
 import {SnackbarProvider} from "notistack";
 import {useUser} from "../lib/useUser";
-import {UserAvatar} from "../componenets/UserAvatar";
+import {LazyAvatar} from "../componenets/LazyAvatar";
 import {fetchApi} from "../lib/utility";
 import {getResponseRemark} from "../lib/contract";
 import {useRequestResult} from "../lib/useRequestResult";
@@ -110,7 +109,7 @@ function MyAppBar(props: MyAppBarProps): JSX.Element {
                     >
                         {
                             user
-                                ? <UserAvatar userId={user} size={32} loading={isUserLoading}/>
+                                ? <LazyAvatar userId={user} size={32} loading={isUserLoading}/>
                                 : <AccountIcon/>
                         }
                     </IconButton>
