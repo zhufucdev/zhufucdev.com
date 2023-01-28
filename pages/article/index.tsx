@@ -27,11 +27,13 @@ import Link from "next/link";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import {hasPermission} from "../../lib/contract";
 
+import {User} from "../../lib/db/user";
+import {useSnackbar} from "notistack";
+import PlaceHolder from "../../componenets/PlaceHolder";
 import EditIcon from "@mui/icons-material/EditOutlined";
 import DeleteIcon from "@mui/icons-material/DeleteOutline";
 import DropdownMenuIcon from "@mui/icons-material/MoreVertOutlined";
-import {User} from "../../lib/db/user";
-import {useSnackbar} from "notistack";
+import NoArticleIcon from "@mui/icons-material/PsychologyOutlined";
 
 
 type PageProps = {
@@ -176,15 +178,21 @@ function ArticleCard(props: { data: ArticleMeta }): JSX.Element {
 }
 
 function Content(props: { articles: ArticleMeta[] }): JSX.Element {
-    return (
-        <Grid container spacing={2} key="grid">
-            {props.articles.map(data => (
-                <Grid item key={data._id} flexGrow={1}>
-                    <ArticleCard data={data}/>
-                </Grid>
-            ))}
-        </Grid>
-    )
+    if (props.articles.length > 0) {
+        return (
+            <Grid container spacing={2} key="grid">
+                {props.articles.map(data => (
+                    <Grid item key={data._id} flexGrow={1}>
+                        <ArticleCard data={data}/>
+                    </Grid>
+                ))}
+            </Grid>
+        )
+    } else {
+        return (
+            <PlaceHolder icon={NoArticleIcon} title="未提供文章"/>
+        )
+    }
 }
 
 
