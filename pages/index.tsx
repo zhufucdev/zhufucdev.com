@@ -51,7 +51,7 @@ const Home: NextPage<PageProps> = ({recents, inspirations, recaptchaKey}) => {
         <>
             <Scaffold
                 spacing={2}
-                fab={
+                fabContent={
                     <>
                         <EditIcon sx={{mr: 1}}/>
                         草拟

@@ -28,11 +28,12 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import styles from '../styles/Login.module.css';
 import {fetchApi} from "../lib/utility";
 import {useRouter} from "next/router";
-import {GoogleReCaptchaProvider, useGoogleReCaptcha} from "react-google-recaptcha-v3";
+import {useGoogleReCaptcha} from "react-google-recaptcha-v3";
 import {userContract} from "../lib/contract";
 import {useRequestResult} from "../lib/useRequestResult";
 import {ReCaptchaPolicy} from "../componenets/ReCaptchaPolicy";
 import {useTitle} from "../lib/useTitle";
+import {ReCaptchaScope} from "../componenets/ReCaptchaScope";
 
 type Helper = { id?: string, pwd?: string, nick?: string, repwd?: string };
 type UserInfo = { id: string, pwd: string, token: string, nick?: string, repwd?: string };
@@ -141,7 +142,10 @@ function LoginUI() {
         const token = await handleRecaptchaVerify();
 
         const snapshot = {id, nick, pwd, repwd, token} as UserInfo;
-        if (!snapshot.token) return;
+        if (!snapshot.token) {
+            handleResult({success: false, msg: "reCaptcha未初始化"})
+            return;
+        }
         if (!userContract.testID(snapshot.id) || !userContract.testPwd(snapshot.pwd)) return;
         if (!snapshot.nick) snapshot.nick = snapshot.id;
         if (registering
@@ -194,7 +198,7 @@ function LoginUI() {
     return (
         <>
             <Typography variant="h5" sx={{marginBottom: 2}}>欢迎回来，我的朋友</Typography>
-            <Card variant="outlined">
+            <Card variant="outlined" sx={{borderRadius: 2}}>
                 <Fade in={loading} style={{transitionDelay: "400ms"}}>
                     <LinearProgress variant="indeterminate"/>
                 </Fade>
@@ -276,13 +280,9 @@ function LoginUI() {
 
 const Login: NextPage<LoginProps> = ({reCaptchaKey}) => {
     useTitle('登录')
-    return <GoogleReCaptchaProvider
-        reCaptchaKey={reCaptchaKey}
-        language="zh-CN"
-        useRecaptchaNet={true}
-        scriptProps={{appendTo: 'body'}}>
+    return <ReCaptchaScope reCaptchaKey={reCaptchaKey}>
         <LoginUI/>
-    </GoogleReCaptchaProvider>
+    </ReCaptchaScope>
 };
 
 export default Login;

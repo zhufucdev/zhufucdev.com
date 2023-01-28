@@ -5,7 +5,7 @@ import React, {useEffect, useState} from "react";
 
 type ScaffoldProps = {
     spacing: ResponsiveStyleValue<number | string>,
-    fab: React.ReactNode,
+    fabContent?: React.ReactNode,
     hideFabOnScroll?: boolean,
     children: React.ReactNode,
     onFabClick?: React.MouseEventHandler<HTMLButtonElement>
@@ -19,6 +19,7 @@ export function Scaffold(props: ScaffoldProps): JSX.Element {
         let recentScroll = 0;
 
         let timeout: NodeJS.Timeout;
+
         function timer(): NodeJS.Timeout {
             let captured: NodeJS.Timeout;
             captured = setTimeout(() => {
@@ -29,6 +30,7 @@ export function Scaffold(props: ScaffoldProps): JSX.Element {
             }, 5000)
             return captured;
         }
+
         const scrollHandler = (event: Event) => {
             if (event.currentTarget !== window) return;
             const current = window.scrollY;
@@ -51,9 +53,11 @@ export function Scaffold(props: ScaffoldProps): JSX.Element {
             <Stack spacing={props.spacing}>
                 {props.children}
             </Stack>
-            <AnimatedActionFab show={showFab} onClick={props.onFabClick}>
-                {props.fab}
-            </AnimatedActionFab>
+            {props.fabContent &&
+                <AnimatedActionFab show={showFab} onClick={props.onFabClick}>
+                    {props.fabContent}
+                </AnimatedActionFab>
+            }
         </>
     )
 }

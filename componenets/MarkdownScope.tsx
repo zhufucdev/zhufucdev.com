@@ -3,7 +3,7 @@ import {Link} from "@mui/material";
 import {markdownContract} from "../lib/contract";
 
 type MarkdownScopeProps = {
-    children: string
+    children: string | undefined
 }
 
 export function MarkdownScope(props: MarkdownScopeProps): JSX.Element {
@@ -11,6 +11,6 @@ export function MarkdownScope(props: MarkdownScopeProps): JSX.Element {
         components={{a: Link}}
         remarkPlugins={markdownContract.plugins}
     >
-        {props.children}
+        {props.children || ''}
     </ReactMarkdown>
 }

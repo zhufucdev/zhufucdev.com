@@ -15,7 +15,7 @@ export function AnimatedActionFab(prop: AnimatedActionFabProps): JSX.Element {
     }
 
     return (
-        <Zoom in={prop.show} unmountOnExit timeout={translations}>
+        <Zoom in={prop.show} unmountOnExit timeout={translations} appear={false}>
             <Fab variant="extended"
                  sx={{position: 'fixed', right: 24, bottom: 24}}
                  color="primary"
