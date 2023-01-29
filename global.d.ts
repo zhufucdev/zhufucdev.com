@@ -9,6 +9,7 @@ declare global {
     type ArticleID = string;
 
     type MessageType = 'inspiration' | 'recent' | 'pm' | 'issue';
+    type Postable = 'articles' | MessageType;
     type TraceType = 'inspirations' | 'qna' | 'issues';
     type MessageContent = { body: string, title?: string, image?: ImageID };
     type PermissionID =
@@ -30,7 +31,7 @@ declare global {
         | "*";
 
     type RequestResult = { success: boolean, respond?: string, msg?: string };
-    type ImageUse = 'avatar' | 'post' | 'save';
+    type ImageUse = 'avatar' | 'cover' | 'post' | 'save';
 }
 
 export {};

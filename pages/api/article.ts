@@ -4,6 +4,8 @@ import {getUser} from "../../lib/db/user";
 import {hasPermission} from "../../lib/contract";
 import {verifyReCaptcha} from "../../lib/utility";
 import {addArticle, ArticleUpdate, getArticle, updateArticle} from "../../lib/db/article";
+import {validRef} from "./begin/[type]";
+import {attachImage, detachImage} from "../../lib/db/image";
 
 export default routeWithIronSession(async (req, res) => {
     if (!await validUser(req)) {
@@ -20,13 +22,17 @@ export default routeWithIronSession(async (req, res) => {
         return
     }
 
-    const {token, title, forward, body, cover} = req.body;
+    const {token, ref, title, forward, body, cover} = req.body;
+    if (!validRef(ref, 'articles') && (!req.body.edit)) {
+        res.status(403).send('ref forbidden');
+        return
+    }
     if (!await verifyReCaptcha(token)) {
         res.status(400).send('invalid reCaptcha');
         return
     }
 
-    if (!req.body.id) {
+    if (!req.body.edit) {
         if (typeof title !== 'string'
             || typeof forward !== 'string'
             || (cover && typeof cover !== 'string')
@@ -34,7 +40,7 @@ export default routeWithIronSession(async (req, res) => {
             res.status(400).send('bad request');
             return
         }
-        const meta = await addArticle(req.session.userID!, title, cover, forward, body);
+        const meta = await addArticle(ref, req.session.userID!, title, cover, forward, body);
         if (meta) {
             res.revalidate('/article');
             res.send(meta._id)
@@ -42,19 +48,29 @@ export default routeWithIronSession(async (req, res) => {
             res.status(500).send('database not acknowledging')
         }
     } else {
-        const id = req.body.id;
-        const original = await getArticle(id);
+        const original = await getArticle(ref);
+        if (!original) {
+            res.status(404).send('not found');
+            return
+        }
         if (!hasPermission(user, 'modify')) {
-            if (!hasPermission(user, 'edit_own_post') || original?.author !== req.session.userID) {
+            if (!hasPermission(user, 'edit_own_post') || original.author !== req.session.userID) {
                 res.status(403).send('not permitted');
                 return
             }
         }
 
-        if (!id || !title && !forward && !body && !cover) {
+        if (!ref || !title && !forward && !body && !cover) {
             res.status(400).send('bad request');
             return
         }
+
+        if (cover && original.cover !== cover) {
+            // relink image
+            original.cover && detachImage(original.cover, ref);
+            attachImage(cover, ref);
+        }
+
         const update: ArticleUpdate = {
             title, forward, body, cover
         }
@@ -63,10 +79,10 @@ export default routeWithIronSession(async (req, res) => {
                 delete (update as any)[key]
             }
         }
-        const acknowledged = await updateArticle(id, update);
+        const acknowledged = await updateArticle(ref, update);
         if (acknowledged) {
             res.revalidate('/article');
-            res.revalidate(`/article/${id}`);
+            res.revalidate(`/article/${ref}`);
             res.send('success');
         } else {
             res.status(500).send('database not acknowledging')

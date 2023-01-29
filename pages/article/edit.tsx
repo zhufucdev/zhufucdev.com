@@ -36,7 +36,7 @@ import UploadIcon from "@mui/icons-material/UploadOutlined";
 
 import {useRequestResult} from "../../lib/useRequestResult";
 import {useRouter} from "next/router";
-import {fetchApi, readAll, uploadImage} from "../../lib/utility";
+import {beginPost, fetchApi, readAll, uploadImage} from "../../lib/utility";
 import {useGoogleReCaptcha} from "react-google-recaptcha-v3";
 import {getSafeArticle, SafeArticle} from "../../lib/getSafeArticle";
 import {ICommand} from "@uiw/react-md-editor";
@@ -257,13 +257,15 @@ function PageContent(props: PageProps): JSX.Element {
             return;
         }
 
-        const {source, cover, stop} = await presubmit();
+        const ref = props.article ? props.article._id : await beginPost('articles');
+        const {source, cover, stop} = await presubmit(ref);
         if (stop) return;
 
         const token = await executeRecaptcha();
-        let body: any = {title, forward, token, cover, body: source};
+        let body: any = {ref, title, forward, token, cover, body: source};
         if (props.article) {
             const original = props.article
+            body.edit = true;
             body.id = original._id;
             if (body.title === original.title) {
                 delete body.title;
@@ -283,7 +285,7 @@ function PageContent(props: PageProps): JSX.Element {
         handleResult(await getResponseRemark(res));
     }
 
-    async function presubmit(): Promise<{ source: string, cover?: string, stop?: boolean }> {
+    async function presubmit(ref: string): Promise<{ source: string, cover?: string, stop?: boolean }> {
         let coverId: string | undefined = props.article?.cover;
         const preloadKeys = Object.getOwnPropertyNames(preload);
         const stepCount = preloadKeys.length + 1;
@@ -292,7 +294,7 @@ function PageContent(props: PageProps): JSX.Element {
         } else if (cover) {
             // upload new cover
             const token = await executeRecaptcha!();
-            const res = await uploadImage(cover as File, token, 'post');
+            const res = await uploadImage(cover as File, token, 'cover', [ref]);
             const remark = await getResponseRemark(res);
             if (!remark.success) {
                 handleResult(remark);
@@ -310,7 +312,7 @@ function PageContent(props: PageProps): JSX.Element {
             const key = preloadKeys[i];
             const image = preload[key];
             const token = await executeRecaptcha!();
-            const res = await uploadImage(image, token);
+            const res = await uploadImage(image, token, 'post', [ref]);
             const remark = await getResponseRemark(res);
             if (!remark.success) {
                 handleResult(remark);

@@ -29,10 +29,10 @@ export async function getRecents(): Promise<Recent[]> {
         );
 }
 
-export async function addRecent(title: string, body: string, image: ImageID): Promise<RecentID | undefined> {
+export async function addRecent(id: string, title: string, body: string, image: ImageID): Promise<boolean> {
     requireDatabase();
     const recent: Recent = {
-        _id: nanoid(),
+        _id: id,
         cover: image,
         likes: [],
         dislikes: [],
@@ -40,7 +40,5 @@ export async function addRecent(title: string, body: string, image: ImageID): Pr
         body, title
     }
     const {acknowledged} = await db.collection<Recent>(collectionId).insertOne(recent);
-    if (acknowledged) {
-        return recent._id;
-    }
+    return acknowledged;
 }

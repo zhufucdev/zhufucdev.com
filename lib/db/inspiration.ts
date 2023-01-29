@@ -32,17 +32,16 @@ export async function getInspiration(id: InspirationID): Promise<Inspiration | n
     return await db.collection<Inspiration>(collectionID).findOne({_id: id});
 }
 
-export async function addInspiration(raiser: UserID, body: string): Promise<string | undefined> {
+export async function addInspiration(id: InspirationID, raiser: UserID, body: string): Promise<boolean> {
     requireDatabase();
     const collection = db.collection<Inspiration>(collectionID);
-    const _id = nanoid();
     const value: Inspiration = {
-        _id,
+        _id: id,
         raiser, body,
         implemented: false,
         likes: [],
         comments: []
     };
     const insert = await collection.insertOne(value);
-    return insert.acknowledged ? value._id : undefined;
+    return insert.acknowledged;
 }

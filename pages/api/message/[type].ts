@@ -5,6 +5,7 @@ import {addInspiration} from "../../../lib/db/inspiration";
 import {verifyReCaptcha} from "../../../lib/utility";
 import {getAndCheckUserPermission} from "../../../lib/db/user";
 import {addRecent} from "../../../lib/db/recent";
+import {validRef} from "../begin/[type]";
 
 async function messageRoute(req: NextApiRequest, res: NextApiResponse) {
     if (!req.session.userID || !await validUser(req)) {
@@ -13,11 +14,16 @@ async function messageRoute(req: NextApiRequest, res: NextApiResponse) {
     }
 
     const {type} = req.query as {type: MessageType};
-    const {token} = req.body;
+    const {token, ref} = req.body;
     const body = req.body.body.trim();
     if (!type || typeof body !== 'string' || !body || !token) {
         res.status(400).send('bad request');
         return;
+    }
+
+    if (!validRef(ref, type)) {
+        res.status(403).send('ref forbidden');
+        return
     }
 
     const reCaptchaValid = await verifyReCaptcha(token);
@@ -33,11 +39,11 @@ async function messageRoute(req: NextApiRequest, res: NextApiResponse) {
         }
         return r;
     }
-    let id: string | undefined;
+    let succeeded: boolean;
     switch (type) {
         case "inspiration":
             if (!await permitted("raise_inspiration")) return;
-            id = await addInspiration(req.session.userID, body);
+            succeeded = await addInspiration(ref, req.session.userID, body);
             break;
         case "recent":
             const {title, image} = req.body;
@@ -46,16 +52,16 @@ async function messageRoute(req: NextApiRequest, res: NextApiResponse) {
                 return;
             }
             if (!await permitted("raise_recent")) return;
-            id = await addRecent(title, body, image);
+            succeeded = await addRecent(ref, title, body, image);
             break;
         default:
             res.status(501).send(`messaging as ${type} not supported`);
             return;
     }
 
-    if (id) {
+    if (succeeded) {
         res.revalidate('/');
-        res.send(id);
+        res.send('success');
     } else {
         res.status(500).send('database not acknowledging');
     }

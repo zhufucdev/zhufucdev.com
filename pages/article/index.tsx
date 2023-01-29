@@ -195,7 +195,6 @@ function Content(props: { articles: ArticleMeta[] }): JSX.Element {
     }
 }
 
-
 export const getStaticProps: GetStaticProps<PageProps> = async () => {
     const articles = await listArticles();
 

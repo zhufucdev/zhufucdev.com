@@ -3,6 +3,7 @@ import {requireDatabase} from "./database";
 import {nanoid} from "nanoid";
 import {Readable} from "stream";
 import {WithDislikes, WithLikes} from "./remark";
+import {attachImage} from "./image";
 
 export interface ArticleMeta extends WithLikes, WithDislikes {
     _id: ArticleID;
@@ -24,6 +25,7 @@ export interface Article extends ArticleMeta {
 const collectionId = "articles";
 
 export async function addArticle(
+    id: ArticleID,
     author: UserID,
     title: string,
     cover: ImageID | undefined,
@@ -42,13 +44,14 @@ export async function addArticle(
 
     const store: ArticleStore = {
         author, title, forward,
-        _id: nanoid(),
+        _id: id,
         file: fileId,
         postTime: new Date(),
         likes: [], dislikes: []
     }
     if (cover) {
         store.cover = cover;
+        attachImage(cover, id);
     }
     const acknowledged = (await db.collection<ArticleStore>(collectionId).insertOne(store)).acknowledged;
     if (acknowledged) {

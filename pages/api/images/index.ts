@@ -12,6 +12,8 @@ async function imagePost(req: NextApiRequest, res: NextApiResponse) {
     const file = form[0];
     const token = form[1].data.toString();
     const use = form[2].data.toString() as ImageUse;
+    const targetString = form[3]?.data?.toString();
+    const target = targetString ? JSON.parse(targetString) as string[] : undefined;
     if (!use) {
         res.status(400).send('bad request');
         return
@@ -21,16 +23,8 @@ async function imagePost(req: NextApiRequest, res: NextApiResponse) {
         return
     }
     try {
-        const image = await addImage(file.filename!, req.session.userID!, use, file.data);
+        const image = await addImage(file.filename!, req.session.userID!, use, file.data, target);
         if (image) {
-            if (use === 'avatar') {
-                // remove redundant image
-                const user = await getUser(req.session.userID!);
-                const avatar = user?.avatar;
-                if (avatar && (await findImage(avatar))?.use === 'avatar') {
-                    removeImage(avatar);
-                }
-            }
             res.send(image._id)
         } else {
             res.status(500).send('database not acknowledging')

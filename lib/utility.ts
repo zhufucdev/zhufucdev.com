@@ -76,13 +76,25 @@ export async function remark(type: Remarkable, id: any, mode: RemarkMode): Promi
     return fetch(`/api/remark/${type}/${mode}/${id}`)
 }
 
-
-export async function postMessage(type: MessageType, message: MessageContent, token: string): Promise<Response> {
+export async function postMessage(type: MessageType, ref: string, message: MessageContent, token: string): Promise<Response> {
     const body = message.body.trim();
     return fetchApi(
         `/api/message/${type}`,
-        type === 'recent' ? {...message, body, token} : {body, token}
+        type === 'recent' ? {...message, body, token, ref} : {body, token, ref}
     )
+}
+
+/**
+ * To post something, first apply for it.
+ * Access this api to get a token for next steps,
+ * which with the post being uploaded can be referred to.
+ * In another word, the token is its id, if the post is completed.
+ *
+ * Usually, the token is called 'ref'
+ * @param type
+ */
+export async function beginPost(type: Postable): Promise<string> {
+    return fetch(`/api/begin/${type}`).then(res => res.text());
 }
 
 export async function verifyReCaptcha(token: string): Promise<boolean> {
@@ -92,18 +104,31 @@ export async function verifyReCaptcha(token: string): Promise<boolean> {
             `https://www.google.com/recaptcha/api/siteverify?secret=${secret}&response=${token}`,
             {method: 'POST'}
         );
-    const json = await res.json();
+        const json = await res.json();
         return json.success;
     } catch (e) {
         return false;
     }
 }
 
-export async function uploadImage(file: Blob, token: string, useAs: ImageUse = 'save'): Promise<Response> {
+/**
+ * Client operation. Upload an image to database
+ * @param file the image
+ * @param token from reCAPTCHA
+ * @param useAs what the image is used for
+ * @param target present only if {@link useAs} is set to 'cover' or 'post'.
+ * If so, the image will be automatically deleted if the cover is changed or
+ * the post is deleted. Moreover, if using as 'avatar', image shall be deleted
+ * if the same user changes the avatar.
+ */
+export async function uploadImage(file: Blob, token: string, useAs: ImageUse = 'save', target: string[] = []): Promise<Response> {
     const form = new FormData();
     form.set("file", file);
     form.set("token", token);
-    form.set("use", useAs)
+    form.set("use", useAs);
+    if (useAs === 'cover' || useAs === 'post') {
+        form.set("target", JSON.stringify(target));
+    }
 
     return await fetch(
         '/api/images',
@@ -114,6 +139,10 @@ export async function uploadImage(file: Blob, token: string, useAs: ImageUse = '
     );
 }
 
+/**
+ * Buffer a stream. Wonder why ECMScript isn't shipped with this
+ * @param stream the stream
+ */
 export async function readAll(stream: stream.Readable): Promise<Buffer> {
     return new Promise<Buffer>((resolve, reject) => {
         const chunks = new Array<Uint8Array>();

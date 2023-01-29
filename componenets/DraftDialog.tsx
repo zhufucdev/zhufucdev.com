@@ -20,7 +20,7 @@ import {useRequestResult} from "../lib/useRequestResult";
 import * as React from "react";
 import {useEffect, useMemo, useState} from "react";
 import {getResponseRemark, hasPermission, maxUserMessageLength} from "../lib/contract";
-import {postMessage, uploadImage} from "../lib/utility";
+import {beginPost, postMessage, uploadImage} from "../lib/utility";
 import {ProgressSlider} from "./PrograssSlider";
 import {LazyAvatar} from "./LazyAvatar";
 import {useGoogleReCaptcha} from "react-google-recaptcha-v3";
@@ -110,12 +110,12 @@ function RenderContent(props: DraftDialogProps): JSX.Element {
         }
     }
 
-    async function makePostRequest(token: string): Promise<{ response: Response, content?: MessageContent }> {
+    async function makePostRequest(token: string, ref: string): Promise<{ response: Response, content?: MessageContent }> {
         if (type === 'recent') {
             let imageId: ImageID;
             if (titleImage === 'upload') {
                 if (!titleUpload) throw new Error('no uploading candidate');
-                const res = await uploadImage(titleUpload, token, 'post');
+                const res = await uploadImage(titleUpload, token, 'post', [ref]);
                 if (!res.ok) {
                     return {response: res};
                 }
@@ -126,13 +126,13 @@ function RenderContent(props: DraftDialogProps): JSX.Element {
             }
             const content = {body: draft, title: title, image: imageId};
             return {
-                response: await postMessage(type, content, token),
+                response: await postMessage(type, ref, content, token),
                 content
             }
         } else {
             const content = {body: draft};
             return {
-                response: await postMessage(type, content, token),
+                response: await postMessage(type, ref, content, token),
                 content
             }
         }
@@ -142,7 +142,8 @@ function RenderContent(props: DraftDialogProps): JSX.Element {
         if (!executeRecaptcha) return;
         setPosting(true);
         const token = await executeRecaptcha();
-        const {response: res, content} = await makePostRequest(token);
+        const ref = await beginPost(type);
+        const {response: res, content} = await makePostRequest(token, ref);
         let result: RequestResult;
         if (res.ok) {
             result = {success: true, respond: await res.text()}
