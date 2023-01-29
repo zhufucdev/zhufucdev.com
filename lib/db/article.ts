@@ -108,6 +108,9 @@ export async function updateArticle(id: ArticleID, update: ArticleUpdate): Promi
         }
         delete update.body;
     }
+    if (update.cover) {
+
+    }
     const res = await db.collection<ArticleStore>(collectionId).findOneAndUpdate({_id: id}, {$set: update});
     return res.ok === 1
 }

@@ -90,7 +90,7 @@ export async function addImage(
     target: string[] = []
 ): Promise<ImageMeta | undefined> {
     requireBucket();
-    removeRedundancy(uploader, use, target);
+    reduceRedundancyFast(uploader, use, target);
 
     const dot = name.lastIndexOf(".");
     const identifier = name.substring(0, dot);
@@ -142,20 +142,31 @@ export async function removeImage(id: ImageID): Promise<boolean> {
  */
 export async function attachImage(id: ImageID, target: any): Promise<boolean> {
     requireDatabase();
-    const res = await db.collection<ImageStore>(collectionId).findOneAndUpdate({_id: id}, {$push: {target}});
+    const res = await db.collection<ImageStore>(collectionId).findOneAndUpdate({
+        _id: id,
+        target: {$not: {$exists: target}}
+    }, {$push: {target}});
     return res.ok === 1;
 }
 
+/**
+ * Make an image not target something
+ * @param id the image
+ * @param target the thing
+ * @returns whether the database acknowledged
+ * @see addImage
+ */
 export async function detachImage(id: ImageID, target: any): Promise<boolean> {
     requireDatabase();
     const res = await db.collection<ImageStore>(collectionId).findOneAndUpdate({_id: id}, {$pull: {target}});
+    reduceRedundancy();
     return res.ok === 1;
 }
 
 /**
  * Helps the {@link addImage} work
  */
-async function removeRedundancy(uploader: UserID, use: ImageUse, target: string[]) {
+async function reduceRedundancyFast(uploader: UserID, use: ImageUse, target: string[]) {
     switch (use) {
         case "avatar":
             const user = await getUser(uploader);
@@ -166,8 +177,14 @@ async function removeRedundancy(uploader: UserID, use: ImageUse, target: string[
             break;
         case "cover":
             const coll = db.collection<ImageStore>(collectionId);
-            await coll.deleteMany({target});
+            coll.find({target}).forEach(meta => {
+                removeImage(meta._id)
+            });
     }
+}
+
+async function reduceRedundancy() {
+    await db.collection<ImageStore>(collectionId).deleteMany({target: {$size: 0}});
 }
 
 /**
