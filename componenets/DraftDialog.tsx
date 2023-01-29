@@ -115,7 +115,7 @@ function RenderContent(props: DraftDialogProps): JSX.Element {
             let imageId: ImageID;
             if (titleImage === 'upload') {
                 if (!titleUpload) throw new Error('no uploading candidate');
-                const res = await uploadImage(titleUpload, token, 'save');
+                const res = await uploadImage(titleUpload, token, 'post');
                 if (!res.ok) {
                     return {response: res};
                 }

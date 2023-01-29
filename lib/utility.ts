@@ -99,7 +99,7 @@ export async function verifyReCaptcha(token: string): Promise<boolean> {
     }
 }
 
-export async function uploadImage(file: File, token: string, useAs: ImageUse = 'save'): Promise<Response> {
+export async function uploadImage(file: Blob, token: string, useAs: ImageUse = 'save'): Promise<Response> {
     const form = new FormData();
     form.set("file", file);
     form.set("token", token);

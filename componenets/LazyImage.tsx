@@ -3,7 +3,7 @@ import {CSSProperties, useEffect, useState} from "react";
 import {cacheImage} from "../lib/utility";
 
 type LazyImageProps = {
-    src: string,
+    src: string | undefined,
     alt: string,
     style?: CSSProperties,
 }
@@ -11,7 +11,7 @@ type LazyImageProps = {
 export function LazyImage(props: LazyImageProps): JSX.Element {
     const [cached, setCached] = useState(false);
     useEffect(() => {
-        cacheImage(props.src).then(() => setCached(true));
+        if (props.src) cacheImage(props.src).then(() => setCached(true));
     }, [props.src])
 
     return (

@@ -2,9 +2,9 @@ import {GetServerSideProps, NextPage} from "next";
 import dynamic from "next/dynamic";
 import {getArticle} from "../../lib/db/article";
 import {useTitle} from "../../lib/useTitle";
-import {useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 
-import {MarkdownScope} from "../../componenets/MarkdownScope";
+import {LocalCache, LocalImage, MarkdownScope} from "../../componenets/MarkdownScope";
 import {ImagesPopover} from "../../componenets/ImagesPopover";
 import "@uiw/react-md-editor/markdown-editor.css";
 import "@uiw/react-markdown-preview/markdown.css";
@@ -32,16 +32,52 @@ import PlaceHolder from "../../componenets/PlaceHolder";
 
 import PictureIcon from "@mui/icons-material/PhotoOutlined";
 import LockedIcon from "@mui/icons-material/PublicOffOutlined";
+import UploadIcon from "@mui/icons-material/UploadOutlined";
+
 import {useRequestResult} from "../../lib/useRequestResult";
 import {useRouter} from "next/router";
-import {fetchApi, readAll} from "../../lib/utility";
+import {fetchApi, readAll, uploadImage} from "../../lib/utility";
 import {useGoogleReCaptcha} from "react-google-recaptcha-v3";
 import {getSafeArticle, SafeArticle} from "../../lib/getSafeArticle";
+import {ICommand} from "@uiw/react-md-editor";
+import {nanoid} from "nanoid";
 
 const MDEditor = dynamic(
-    () => import("@uiw/react-md-editor").then(m => m.default),
+    () => import("@uiw/react-md-editor"),
     {ssr: false}
 );
+
+const EditPage: NextPage<PageProps> = (props) => {
+    useTitle(props.body ? '编辑文章' : '草拟文章');
+    const {user, isLoading} = useUser();
+    const [isPermitted, setPermission] = useState(true);
+
+    useEffect(() => {
+        if (!isLoading) {
+            if (!user) {
+                setPermission(false);
+            } else {
+                lookupUser(user).then(u => {
+                    if (!u) {
+                        setPermission(false);
+                    } else {
+                        if (!hasPermission(u, 'post_article')) {
+                            setPermission(false);
+                        }
+                    }
+                })
+            }
+        }
+    }, [isLoading, user])
+
+    return <ReCaptchaScope reCaptchaKey={props.reCaptchaKey}>
+        {
+            isPermitted ?
+                <PageContent {...props}/>
+                : <PlaceHolder icon={LockedIcon} title="做得好，下次别做了"/>
+        }
+    </ReCaptchaScope>
+}
 
 type ButtonProps = { disabled?: boolean, setter?: (stepIncremental: number) => void, children?: string }
 
@@ -121,6 +157,74 @@ function MetadataStepContent(props: MetadataProps): JSX.Element {
     </>
 }
 
+type EditorProps = {
+    value: string | undefined,
+    preload: LocalImage,
+    onChange: (value?: string) => void,
+    onUploadImage: (key: string, image: File) => void
+}
+
+function MyEditor({value, preload, onChange, onUploadImage}: EditorProps): JSX.Element {
+    const [imageCache, setImageCache] = useState<LocalCache>({});
+    const uploadRef = useRef<HTMLInputElement>(null);
+
+    const uploadImage: ICommand = {
+        name: 'upload image',
+        keyCommand: 'upload',
+        buttonProps: {'aria-label': '上传图片'},
+        icon: <UploadIcon sx={{fontSize: 16}}/>,
+        execute: (state, api) => {
+            if (!uploadRef.current) return;
+
+            uploadRef.current.click();
+            const changeListener = () => {
+                const file = uploadRef.current!.files?.item(0);
+                if (!file) return;
+                const id = nanoid();
+                onUploadImage(id, file);
+
+                if (state.selectedText) {
+                    api.replaceSelection(id);
+                } else {
+                    api.replaceSelection(`![image-${Object.getOwnPropertyNames(preload).length}](${id})`)
+                }
+            };
+            uploadRef.current.addEventListener('change', changeListener, {once: true});
+            uploadRef.current.addEventListener('cancel', (ev) => {
+                ev.currentTarget!.removeEventListener('change', changeListener);
+            })
+        },
+    };
+
+    function handleNewCache(key: string, cache: string) {
+        const nextCache = imageCache;
+        nextCache[key] = cache;
+        setImageCache(nextCache);
+    }
+
+    const preview =
+        <MarkdownScope
+            preload={preload}
+            imageCache={imageCache}
+            newCache={handleNewCache}>
+            {value}
+        </MarkdownScope>;
+
+    return (
+        <>
+            <MDEditor
+                value={value}
+                onChange={onChange}
+                components={{preview: () => preview}}
+                extraCommands={[
+                    uploadImage
+                ]}
+            />
+            <input hidden type="file" accept="image/*" ref={uploadRef}/>
+        </>
+    )
+}
+
 function PageContent(props: PageProps): JSX.Element {
     const router = useRouter();
     const {executeRecaptcha} = useGoogleReCaptcha();
@@ -128,34 +232,36 @@ function PageContent(props: PageProps): JSX.Element {
     const [title, setTitle] = useState(props.article?.title ?? '');
     const [forward, setForward] = useState(props.article?.forward ?? '');
     const [cover, setCover] = useState<File | ImageID>();
-    const [coverId, setCoverId] = useState('');
     const [value, setValue] = useState(props.body);
+    const [preload, setPreload] = useState<LocalImage>({});
 
     const [activeStep, setActiveStep] = useState(0);
     const lastStep = 2;
     const stepIncrease = (i: number) => setActiveStep(activeStep + i);
 
-    const [loading, setLoading] = useState(false);
+    const [progress, setProgress] = useState(-1);
     const handleResult = useRequestResult(
         () => {
             router.push('/article')
         },
         () => {
-            setLoading(false);
+            setProgress(-1);
             setActiveStep(lastStep);
         }
     )
 
     async function handleSubmit() {
-        setLoading(true);
+        setProgress(0);
         if (!title || !forward || !value || !executeRecaptcha) {
             handleResult({success: false, msg: 'bug'})
             return;
         }
-        const token = await executeRecaptcha();
-        let body: any = {title, forward, token, body: value};
-        if (coverId) body.cover = coverId;
 
+        const {source, cover, stop} = await presubmit();
+        if (stop) return;
+
+        const token = await executeRecaptcha();
+        let body: any = {title, forward, token, cover, body: source};
         if (props.article) {
             const original = props.article
             body.id = original._id;
@@ -165,10 +271,10 @@ function PageContent(props: PageProps): JSX.Element {
             if (body.forward === original.forward) {
                 delete body.forward;
             }
-            if (body.cover === original.cover) {
+            if (body.cover === original.cover || !body.cover) {
                 delete body.cover
             }
-            if (value === props.body) {
+            if (source === props.body) {
                 delete body.body
             }
         }
@@ -177,21 +283,64 @@ function PageContent(props: PageProps): JSX.Element {
         handleResult(await getResponseRemark(res));
     }
 
+    async function presubmit(): Promise<{ source: string, cover?: string, stop?: boolean }> {
+        let coverId: string | undefined = props.article?.cover;
+        const preloadKeys = Object.getOwnPropertyNames(preload);
+        const stepCount = preloadKeys.length + 1;
+        if (typeof cover === 'string') {
+            coverId = cover;
+        } else if (cover) {
+            // upload new cover
+            const token = await executeRecaptcha!();
+            const res = await uploadImage(cover as File, token, 'post');
+            const remark = await getResponseRemark(res);
+            if (!remark.success) {
+                handleResult(remark);
+                return {
+                    source: '',
+                    stop: true
+                }
+            }
+            coverId = await res.text();
+        }
+        setProgress(1 / stepCount * 100);
+
+        let source = value!;
+        for (let i = 0; i < preloadKeys.length; i++) {
+            const key = preloadKeys[i];
+            const image = preload[key];
+            const token = await executeRecaptcha!();
+            const res = await uploadImage(image, token);
+            const remark = await getResponseRemark(res);
+            if (!remark.success) {
+                handleResult(remark);
+                return {
+                    source: '',
+                    stop: true
+                }
+            }
+
+            const imageId = await res.text();
+            source = source.replaceAll(key, imageId);
+
+            setProgress((i + 2) / stepCount * 100)
+        }
+
+        return {
+            cover: coverId,
+            source
+        }
+    }
+
     useEffect(() => {
         if (activeStep > lastStep) {
             handleSubmit();
         }
     }, [activeStep]);
 
-    useEffect(() => {
-        if (typeof cover === 'string') {
-            setCoverId(cover);
-        }
-    }, [cover]);
-
     return <>
-        <Modal open={loading} sx={{transitionDelay: '400ms'}}>
-            <LinearProgress variant="indeterminate"/>
+        <Modal open={progress >= 0} sx={{transitionDelay: '400ms'}}>
+            <LinearProgress variant={progress > 0 ? "determinate" : "indeterminate"} value={progress}/>
         </Modal>
         <Stepper activeStep={activeStep} orientation="vertical">
             <Step key="metadata">
@@ -222,11 +371,14 @@ function PageContent(props: PageProps): JSX.Element {
                     内容
                 </StepLabel>
                 <StepContent>
-                    <MDEditor
+                    <MyEditor
                         value={value}
                         onChange={setValue}
-                        components={{
-                            preview: (source) => <MarkdownScope>{source}</MarkdownScope>
+                        preload={preload}
+                        onUploadImage={(key, file) => {
+                            const nextPreupload = preload;
+                            preload[key] = file;
+                            setPreload(nextPreupload);
                         }}
                     />
                     <Box mb={2} mt={2}>
@@ -248,38 +400,6 @@ function PageContent(props: PageProps): JSX.Element {
             </Step>
         </Stepper>
     </>
-}
-
-const EditPage: NextPage<PageProps> = (props) => {
-    useTitle(props.body ? '编辑文章' : '草拟文章');
-    const {user, isLoading} = useUser();
-    const [isPermitted, setPermission] = useState(true);
-
-    useEffect(() => {
-        if (!isLoading) {
-            if (!user) {
-                setPermission(false);
-            } else {
-                lookupUser(user).then(u => {
-                    if (!u) {
-                        setPermission(false);
-                    } else {
-                        if (!hasPermission(u, 'post_article')) {
-                            setPermission(false);
-                        }
-                    }
-                })
-            }
-        }
-    }, [isLoading, user])
-
-    return <ReCaptchaScope reCaptchaKey={props.reCaptchaKey}>
-        {
-            isPermitted ?
-                <PageContent {...props}/>
-                : <PlaceHolder icon={LockedIcon} title="做得好，下次别做了"/>
-        }
-    </ReCaptchaScope>
 }
 
 type PageProps = {
