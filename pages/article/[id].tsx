@@ -10,6 +10,7 @@ import NoArticleIcon from "@mui/icons-material/PowerOffOutlined";
 import {useScrollTrigger} from "@mui/material";
 import {useEffect, useRef, useState} from "react";
 import {useTitle} from "../../lib/useTitle";
+import {Copyright} from "../../componenets/Copyright";
 
 type PageProps = {
     meta?: SafeArticle,
@@ -33,6 +34,7 @@ const ArticleApp: NextPage<PageProps> = ({meta, body, authorNick}) => {
                     由{authorNick ?? meta.author}发布于{getHumanReadableTime(new Date(meta.postTime))}
                 </Typography>
                 <MarkdownScope>{body}</MarkdownScope>
+                <Copyright/>
             </>
         } else {
             return <>
