@@ -23,7 +23,7 @@ export default routeWithIronSession(async (req, res) => {
 })
 
 export function validRef(ref: string, type: Postable): boolean {
-    return postToken[ref] === type;
+    return globalThis.postToken && postToken[ref] === type;
 }
 
 declare global {
