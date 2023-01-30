@@ -86,7 +86,6 @@ export function MarkdownScope(props: MarkdownScopeProps): JSX.Element {
                 )
             },
             img(props) {
-                console.log(props.node)
                 return <MdImage
                     {...props}
                     preload={preload}
