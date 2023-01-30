@@ -40,6 +40,7 @@ import {beginPost, fetchApi, readAll, uploadImage} from "../../lib/utility";
 import {useGoogleReCaptcha} from "react-google-recaptcha-v3";
 import {getSafeArticle, SafeArticle} from "../../lib/getSafeArticle";
 import {ICommand} from "@uiw/react-md-editor";
+import * as commands from "@uiw/react-md-editor/lib/commands";
 import {nanoid} from "nanoid";
 
 const MDEditor = dynamic(
@@ -216,9 +217,8 @@ function MyEditor({value, preload, onChange, onUploadImage}: EditorProps): JSX.E
                 value={value}
                 onChange={onChange}
                 components={{preview: () => preview}}
-                extraCommands={[
-                    uploadImage
-                ]}
+                commands={commands.getCommands()}
+                extraCommands={[uploadImage, commands.divider, ...commands.getExtraCommands()]}
             />
             <input hidden type="file" accept="image/*" ref={uploadRef}/>
         </>
