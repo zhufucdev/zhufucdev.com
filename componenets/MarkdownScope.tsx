@@ -1,11 +1,12 @@
 import ReactMarkdown from "react-markdown";
-import {Link, useTheme} from "@mui/material";
+import {Link, useMediaQuery, useTheme} from "@mui/material";
 import {markdownContract} from "../lib/contract";
 import {Prism} from "react-syntax-highlighter";
 import {dracula as dark, duotoneLight as light} from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import {LazyImage} from "./LazyImage";
 import {ComponentPropsWithoutRef, useEffect, useState} from "react";
 import {getImageUri} from "../lib/utility";
+import {drawerWidth} from "../pages/_app";
 
 export type LocalImage = { [key: string]: File };
 export type LocalCache = { [key: string]: string };
@@ -63,6 +64,7 @@ function MdImage({src, preload, imageCache, newCache}: ComponentPropsWithoutRef<
 
 export function MarkdownScope(props: MarkdownScopeProps): JSX.Element {
     const theme = useTheme();
+    const fixedDrawer = useMediaQuery(theme.breakpoints.up('sm'));
     const {preload, imageCache, newCache} = props;
     return (<ReactMarkdown
         components={{
@@ -75,6 +77,7 @@ export function MarkdownScope(props: MarkdownScopeProps): JSX.Element {
                         style={theme.palette.mode === "dark" ? dark : light}
                         language={match[1]}
                         PreTag="div"
+                        customStyle={{width: `calc(100vw - ${fixedDrawer ? drawerWidth : 0}px - 50px)`}}
                         {...props}
                     >
                         {String(children).replace(/\n$/, '')}
