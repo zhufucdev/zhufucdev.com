@@ -1,5 +1,5 @@
-import {GetServerSideProps, NextPage} from "next";
-import {getArticle} from "../../lib/db/article";
+import {GetStaticPaths, GetStaticProps, NextPage} from "next";
+import {getArticle, listArticles} from "../../lib/db/article";
 import {getSafeArticle, SafeArticle} from "../../lib/getSafeArticle";
 import Typography from "@mui/material/Typography";
 import {MarkdownScope} from "../../componenets/MarkdownScope";
@@ -58,7 +58,7 @@ function Title(props: { title: string }): JSX.Element {
     return <Typography variant="h3" ref={titleRef}>{props.title}</Typography>
 }
 
-export const getServerSideProps: GetServerSideProps<PageProps> = async (context) => {
+export const getStaticProps: GetStaticProps<PageProps> = async (context) => {
     const {id} = context.params!;
     const meta = await getArticle(id as ArticleID);
     const stream = meta?.stream();
@@ -74,5 +74,13 @@ export const getServerSideProps: GetServerSideProps<PageProps> = async (context)
     }
     return {props}
 }
+
+export const getStaticPaths: GetStaticPaths = async () => {
+    const articles = await listArticles();
+    return {
+        paths: articles.map(meta => ({params: {id: meta._id}})),
+        fallback: 'blocking'
+    }
+};
 
 export default ArticleApp;
