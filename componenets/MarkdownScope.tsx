@@ -1,6 +1,5 @@
 import ReactMarkdown from "react-markdown";
 import {Link, useMediaQuery, useTheme} from "@mui/material";
-import {markdownContract} from "../lib/contract";
 import {Prism} from "react-syntax-highlighter";
 import {dracula as dark, duotoneLight as light} from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import {LazyImage} from "./LazyImage";
@@ -32,6 +31,9 @@ type ImageProps = {
 interface MarkdownScopeProps extends ImageProps {
     children: string | undefined;
 }
+
+import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
 
 function MdImage({src, preload, imageCache, newCache}: ComponentPropsWithoutRef<"img"> & ImageProps): JSX.Element {
     const [content, setContent] = useState(src);
@@ -67,6 +69,8 @@ export function MarkdownScope(props: MarkdownScopeProps): JSX.Element {
     const fixedDrawer = useMediaQuery(theme.breakpoints.up('sm'));
     const {preload, imageCache, newCache} = props;
     return (<ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        rehypePlugins={[rehypeRaw]}
         components={{
             a: Link,
             code({node, inline, className, children, ...props}) {
@@ -96,7 +100,6 @@ export function MarkdownScope(props: MarkdownScopeProps): JSX.Element {
                     newCache={newCache}/>
             }
         }}
-        remarkPlugins={markdownContract.plugins}
     >
         {props.children || ''}
     </ReactMarkdown>)
