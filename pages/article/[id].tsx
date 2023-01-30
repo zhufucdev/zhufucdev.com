@@ -11,6 +11,7 @@ import {useScrollTrigger} from "@mui/material";
 import {useEffect, useRef, useState} from "react";
 import {useTitle} from "../../lib/useTitle";
 import {Copyright} from "../../componenets/Copyright";
+import {getUser} from "../../lib/db/user";
 
 type PageProps = {
     meta?: SafeArticle,
@@ -19,7 +20,6 @@ type PageProps = {
 }
 
 const ArticleApp: NextPage<PageProps> = ({meta, body, authorNick}) => {
-
     if (meta) {
         if (body) {
             return <>
@@ -63,15 +63,14 @@ export const getServerSideProps: GetServerSideProps<PageProps> = async (context)
     const meta = await getArticle(id as ArticleID);
     const stream = meta?.stream();
     const body = stream && (await readAll(stream)).toString();
-    const props: PageProps = {
-        meta: meta && getSafeArticle(meta),
-        body
-    };
-    if (!meta) {
-        delete props.meta;
+    const props: PageProps = {};
+    if (meta) {
+        props.meta = getSafeArticle(meta);
+        const user = await getUser(meta.author);
+        if (user) props.authorNick = user.nick;
     }
-    if (!body) {
-        delete props.body;
+    if (body) {
+        props.body = body;
     }
     return {props}
 }
