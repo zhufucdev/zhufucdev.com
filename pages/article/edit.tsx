@@ -161,7 +161,7 @@ function MetadataStepContent(props: MetadataProps): JSX.Element {
 type EditorProps = {
     value: string | undefined,
     preload: LocalImage,
-    onChange: (value?: string) => void,
+    onChange: (value: string) => void,
     onUploadImage: (key: string, image: File) => void
 }
 
@@ -215,7 +215,7 @@ function MyEditor({value, preload, onChange, onUploadImage}: EditorProps): JSX.E
         <>
             <MDEditor
                 value={value}
-                onChange={onChange}
+                onChange={v => onChange(v ?? '')}
                 components={{preview: () => preview}}
                 commands={commands.getCommands()}
                 extraCommands={[uploadImage, commands.divider, ...commands.getExtraCommands()]}
@@ -229,11 +229,34 @@ function PageContent(props: PageProps): JSX.Element {
     const router = useRouter();
     const {executeRecaptcha} = useGoogleReCaptcha();
 
-    const [title, setTitle] = useState(props.article?.title ?? '');
-    const [forward, setForward] = useState(props.article?.forward ?? '');
-    const [cover, setCover] = useState<File | ImageID>();
-    const [value, setValue] = useState(props.body);
+    const storageIdentifier = props.article ? props.article._id : "new_article";
+    let article: SafeArticle | undefined = props.article;
+    function useSaved<T>(type: string, or: T | undefined) {
+        const draft = localStorage.getItem(`${storageIdentifier}.${type}`) as T
+        return useState<T | string>(draft ?? or ?? '');
+    }
+    const [title, setTitle] = useSaved('title', article?.title);
+    const [forward, setForward] = useSaved('forward', article?.forward);
+    const [cover, setCover] = useSaved<File | ImageID>('cover', article?.cover);
+    const [value, setValue] = useSaved('body', props.body);
     const [preload, setPreload] = useState<LocalImage>({});
+
+    function saveFunc(type: string, content: () => string): () => void {
+        const id = storageIdentifier;
+        return () => {
+            localStorage.setItem(`${id}.${type}`, content())
+        }
+    }
+
+    useEffect(saveFunc('title', () => title), [title]);
+    useEffect(saveFunc('forward', () => forward), [forward]);
+    useEffect(saveFunc('body', () => value!), [value]);
+    useEffect(() => {
+        if (typeof cover === 'string') {
+            localStorage.setItem(storageIdentifier + ".cover", cover)
+        }
+    }, [cover]);
+
 
     const [activeStep, setActiveStep] = useState(0);
     const lastStep = 2;
@@ -242,7 +265,8 @@ function PageContent(props: PageProps): JSX.Element {
     const [progress, setProgress] = useState(-1);
     const handleResult = useRequestResult(
         () => {
-            router.push('/article')
+            ['cover', 'title', 'ref', 'body'].forEach(v => localStorage.removeItem(`${storageIdentifier}.${v}`));
+            router.push('/article');
         },
         () => {
             setProgress(-1);
@@ -257,14 +281,14 @@ function PageContent(props: PageProps): JSX.Element {
             return;
         }
 
-        const ref = props.article ? props.article._id : await beginPost('articles');
+        const ref = article ? article._id : await beginPost('articles');
         const {source, cover, stop} = await presubmit(ref);
         if (stop) return;
 
         const token = await executeRecaptcha();
         let body: any = {ref, title, forward, token, cover, body: source};
-        if (props.article) {
-            const original = props.article
+        if (article) {
+            const original = article
             body.edit = true;
             body.id = original._id;
             if (body.title === original.title) {
@@ -286,7 +310,7 @@ function PageContent(props: PageProps): JSX.Element {
     }
 
     async function presubmit(ref: string): Promise<{ source: string, cover?: string, stop?: boolean }> {
-        let coverId: string | undefined = props.article?.cover;
+        let coverId: string | undefined = article?.cover;
         const preloadKeys = Object.getOwnPropertyNames(preload);
         const stepCount = preloadKeys.length + 1;
         if (typeof cover === 'string') {
