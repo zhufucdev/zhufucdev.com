@@ -20,7 +20,7 @@ export async function mergeWith(collectionID: Remarkable, itemID: any,
     if (!origin) throw new Error(`${collectionID} with id ${itemID} was not found`)
 
     function requireRemoval(p: string) {
-        if (Object.hasOwn(origin, p)) {
+        if (origin[p]) {
             origin[p] = origin[p].filter((v: string) => v != user);
         }
     }
