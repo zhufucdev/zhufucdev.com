@@ -9,7 +9,7 @@ export interface WithDislikes {
     dislikes: UserID[]
 }
 
-export type Remarkable = 'recents' | 'inspirations' | ''
+export type Remarkable = 'recents' | 'inspirations' | 'articles'
 export type RemarkMode = 'like' | 'dislike' | 'none'
 
 export async function mergeWith(collectionID: Remarkable, itemID: any,

@@ -27,7 +27,7 @@ import ArticleIcon from "@mui/icons-material/ArticleOutlined";
 import {
     IconButton,
     Menu,
-    MenuItem,
+    MenuItem, MenuList,
     ThemeOptions,
     Tooltip,
     useMediaQuery,
@@ -128,23 +128,25 @@ function MyAppBar(props: MyAppBarProps): JSX.Element {
                         horizontal: "center"
                     }}
                 >
-                    {
-                        user
-                            ? <>
-                                <MenuItem component={Link} href={`/me/${user}`} onClick={dismissHandler}>
-                                    <ListItemIcon><AccountIcon fontSize="small"/></ListItemIcon>
-                                    <ListItemText>我的主页</ListItemText>
+                    <MenuList>
+                        {
+                            user
+                                ? <>
+                                    <MenuItem component={Link} href={`/me/${user}`} onClick={dismissHandler}>
+                                        <ListItemIcon><AccountIcon fontSize="small"/></ListItemIcon>
+                                        <ListItemText>我的主页</ListItemText>
+                                    </MenuItem>
+                                    <MenuItem onClick={handleLogout}>
+                                        <ListItemIcon><LogoutIcon fontSize="small"/></ListItemIcon>
+                                        <ListItemText>退出账号</ListItemText>
+                                    </MenuItem>
+                                </>
+                                : <MenuItem component={Link} href="/login" onClick={dismissHandler}>
+                                    <ListItemIcon><LoginIcon fontSize="small"/></ListItemIcon>
+                                    <ListItemText>登录</ListItemText>
                                 </MenuItem>
-                                <MenuItem onClick={handleLogout}>
-                                    <ListItemIcon><LogoutIcon fontSize="small"/></ListItemIcon>
-                                    <ListItemText>退出账号</ListItemText>
-                                </MenuItem>
-                            </>
-                            : <MenuItem component={Link} href="/login" onClick={dismissHandler}>
-                                <ListItemIcon><LoginIcon fontSize="small"/></ListItemIcon>
-                                <ListItemText>登录</ListItemText>
-                            </MenuItem>
-                    }
+                        }
+                    </MenuList>
                 </Menu>
             </Toolbar>
         </AppBar>

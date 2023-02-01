@@ -9,7 +9,7 @@ import {
     Grid,
     IconButton,
     Menu,
-    MenuItem,
+    MenuItem, MenuList,
     MenuProps,
     Skeleton
 } from "@mui/material";
@@ -20,12 +20,12 @@ import {Scaffold} from "../../componenets/Scaffold";
 import {isMe, useProfile, useProfileOf, useUser} from "../../lib/useUser";
 import {useRouter} from "next/router";
 import {useTitle} from "../../lib/useTitle";
-import {cacheImage, getHumanReadableTime, getImageUri} from "../../lib/utility";
+import {cacheImage, getHumanReadableTime, getImageUri, remark} from "../../lib/utility";
 import React, {useEffect, useMemo, useState} from "react";
 import {fromSaveArticle, getSafeArticle, SafeArticle} from "../../lib/getSafeArticle";
 import Link from "next/link";
 import ListItemIcon from "@mui/material/ListItemIcon";
-import {hasPermission} from "../../lib/contract";
+import {getResponseRemark, hasPermission} from "../../lib/contract";
 
 import {User} from "../../lib/db/user";
 import {useSnackbar} from "notistack";
@@ -34,7 +34,9 @@ import EditIcon from "@mui/icons-material/EditOutlined";
 import DeleteIcon from "@mui/icons-material/DeleteOutline";
 import DropdownMenuIcon from "@mui/icons-material/MoreVertOutlined";
 import NoArticleIcon from "@mui/icons-material/PsychologyOutlined";
-
+import LikeIcon from "@mui/icons-material/ThumbUp";
+import DislikeIcon from "@mui/icons-material/ThumbDown";
+import {useRequestResult} from "../../lib/useRequestResult";
 
 type PageProps = {
     articles: SafeArticle[]
@@ -57,22 +59,98 @@ const PostPage: NextPage<PageProps> = (props) => {
     </Scaffold>
 }
 
-type IMenuProps = Omit<MenuProps, "children"> & {
+type IMenuBaseProps = {
     user: User | undefined,
     article: ArticleMeta
-};
+}
+
+type IMenuProps = Omit<MenuProps, "children"> & IMenuBaseProps;
+type PopoverBasicProps = IMenuBaseProps & {
+    like: [boolean, (value: boolean) => void],
+    dislike: [boolean, (value: boolean) => void]
+}
+
+function PopoverBasics({article, like, dislike}: PopoverBasicProps): JSX.Element {
+    const [liked, setLiked] = like;
+    const [disliked, setDisliked] = dislike;
+    const handleRemark = useRequestResult();
+
+    async function handleLike() {
+        let result: RequestResult;
+
+        if (!liked) {
+            setLiked(true);
+            setDisliked(false);
+            result = await getResponseRemark(await remark('articles', article._id, 'like'));
+        } else {
+            setLiked(false);
+            result = await getResponseRemark(await remark('articles', article._id, 'none'));
+        }
+
+        handleRemark(result);
+        if (!result.success) {
+            setLiked(liked);
+            setDisliked(disliked);
+        }
+    }
+
+    async function handleDislike() {
+        let result: RequestResult;
+
+        if (!disliked) {
+            setDisliked(true);
+            setLiked(false);
+            result = await getResponseRemark(await remark('articles', article._id, 'dislike'));
+        } else {
+            setDisliked(false);
+            result = await getResponseRemark(await remark('articles', article._id, 'none'));
+        }
+
+        handleRemark(result);
+        if (!result.success) {
+            setLiked(liked);
+            setDisliked(disliked);
+        }
+    }
+
+    return <>
+        <MenuItem onClick={handleLike}>
+            <ListItemIcon>
+                <LikeIcon color={liked ? "error" : "inherit"}/>
+            </ListItemIcon>
+            <ListItemText>喜欢</ListItemText>
+        </MenuItem>
+        <MenuItem onClick={handleDislike}>
+            <ListItemIcon>
+                <DislikeIcon color={disliked ? "error" : "inherit"}/>
+            </ListItemIcon>
+            <ListItemText>不喜欢</ListItemText>
+        </MenuItem>
+    </>
+}
 
 function PopoverMenu(props: IMenuProps): JSX.Element {
     const router = useRouter();
     const canEdit = useMemo(
         () =>
             (props.user
-                && hasPermission(props.user, 'post_article')
-                && hasPermission(props.user, 'edit_own_post')) === true,
+                && (hasPermission(props.user, 'post_article')
+                    && hasPermission(props.user, 'edit_own_post')
+                    && props.article.author === props.user._id
+                    || hasPermission(props.user, 'modify')
+                )) === true,
         [props.user]
     );
+    const like = useState(false);
+    const dislike = useState(false);
     const [deleting, setDeleting] = useState(false);
     const {enqueueSnackbar} = useSnackbar();
+
+    useEffect(() => {
+        if (!props.user) return;
+        like[1](props.user && props.article.likes.includes(props.user._id));
+        dislike[1](props.article.dislikes.includes(props.user._id));
+    }, [props.user])
 
     async function handleDelete() {
         if (!canEdit) return;
@@ -101,9 +179,18 @@ function PopoverMenu(props: IMenuProps): JSX.Element {
         setDeleting(false);
     }
 
+    if (!canEdit) {
+        return (
+            <Menu {...props}>
+                <MenuList>
+                    <PopoverBasics {...props} like={like} dislike={dislike}/>
+                </MenuList>
+            </Menu>
+        );
+    }
     return (
         <Menu {...props}>
-            {canEdit && <>
+            <MenuList>
                 <MenuItem onClick={() => router.push(`/article/edit?id=${props.article._id}`)}>
                     <ListItemIcon><EditIcon/></ListItemIcon>
                     <ListItemText>编辑</ListItemText>
@@ -117,7 +204,8 @@ function PopoverMenu(props: IMenuProps): JSX.Element {
                     </ListItemIcon>
                     <ListItemText>删除</ListItemText>
                 </MenuItem>
-            </>}
+                <PopoverBasics {...props} like={like} dislike={dislike}/>
+            </MenuList>
         </Menu>
     )
 }
@@ -171,7 +259,7 @@ function ArticleCard(props: { data: ArticleMeta }): JSX.Element {
             open={Boolean(popoverAnchor)}
             onClose={() => setAnchor(undefined)}
             anchorEl={popoverAnchor}
-            user={profile.user}
+            user={self.user}
             article={data}
         />
     </>
@@ -196,7 +284,12 @@ function Content(props: { articles: ArticleMeta[] }): JSX.Element {
 }
 
 export const getStaticProps: GetStaticProps<PageProps> = async () => {
-    const articles = await listArticles();
+    const articles = await listArticles()
+        .then(list => list.sort(
+            (a, b) =>
+                Math.log(b.likes.length + 1) - Math.log(b.dislikes.length + 1)
+                - Math.log(a.likes.length + 1) + Math.log(a.dislikes.length + 1)
+        ));
 
     return {
         props: {
