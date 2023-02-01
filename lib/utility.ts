@@ -40,9 +40,8 @@ export function getHumanReadableTime(time: Date): string {
                 }
             }
         } else {
-            return `${time.getMonth().toLocaleString("zh-CN")}月${time
-                .getDate()
-                .toLocaleString("zh-CN")}日 ${clock}`;
+            return `${(time.getMonth() + 1).toLocaleString("zh-CN")}月${time.getDate().toLocaleString("zh-CN")}日
+            ${clock}`;
         }
     } else {
         const yearElasped = now.getFullYear() - time.getFullYear();
