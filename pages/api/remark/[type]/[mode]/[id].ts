@@ -38,7 +38,7 @@ async function postMerge(type: Remarkable, res: NextApiResponse) {
             await res.revalidate('/');
             break;
         case "articles":
-            await res.revalidate('/articles');
+            await res.revalidate('/article');
     }
 }
 
