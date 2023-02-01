@@ -7,11 +7,9 @@ import {getHumanReadableTime, readAll} from "../../lib/utility";
 import PlaceHolder from "../../componenets/PlaceHolder";
 import NoContentIcon from "@mui/icons-material/PsychologyOutlined";
 import NoArticleIcon from "@mui/icons-material/PowerOffOutlined";
-import {useScrollTrigger} from "@mui/material";
-import {useEffect, useRef, useState} from "react";
-import {useTitle} from "../../lib/useTitle";
 import {Copyright} from "../../componenets/Copyright";
 import {getUser} from "../../lib/db/user";
+import {ArticleHeader} from "../../componenets/ArticleHeader";
 
 type PageProps = {
     meta?: SafeArticle,
@@ -23,7 +21,7 @@ const ArticleApp: NextPage<PageProps> = ({meta, body, authorNick}) => {
     if (meta) {
         if (body) {
             return <>
-                <Title title={meta.title}/>
+                <ArticleHeader title={meta.title} cover={meta.cover}/>
                 <Typography variant="body2" color="text.secondary">
                     由{authorNick ?? meta.author}发布于{getHumanReadableTime(new Date(meta.postTime))}
                 </Typography>
@@ -39,23 +37,6 @@ const ArticleApp: NextPage<PageProps> = ({meta, body, authorNick}) => {
     } else {
         return <PlaceHolder icon={NoArticleIcon} title="文章未找到"/>
     }
-}
-
-function Title(props: { title: string }): JSX.Element {
-    const titleRef = useRef<HTMLTitleElement>(null);
-    const [titleHeight, setTitleHeight] = useState(0);
-    const scrolled = useScrollTrigger({threshold: titleHeight, disableHysteresis: true});
-    const [, setTitle] = useTitle('文章')
-    useEffect(() => {
-        setTitleHeight(titleRef.current?.clientHeight ?? 0);
-    }, [titleRef]);
-    useEffect(() => {
-        if (scrolled)
-            setTitle(props.title);
-        else
-            setTitle('文章')
-    }, [scrolled, props.title]);
-    return <Typography variant="h3" ref={titleRef}>{props.title}</Typography>
 }
 
 export const getStaticProps: GetStaticProps<PageProps> = async (context) => {
