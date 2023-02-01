@@ -62,7 +62,7 @@ function MdImage({src, preload, imageCache, newCache}: ComponentPropsWithoutRef<
         setContent(getImageUri(src));
     }, [src, preload, imageCache]);
     return <LazyImage src={content} alt=""
-                      style={{maxHeight: '200px', maxWidth: '80%', display: 'block', margin: 'auto'}}/>
+                      style={{maxHeight: '200px', maxWidth: 'calc(100vw - 50px)', display: 'block', margin: 'auto'}}/>
 }
 
 export function MarkdownScope(props: MarkdownScopeProps): JSX.Element {
