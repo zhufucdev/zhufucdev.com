@@ -1,0 +1,9 @@
+# Block all crawlers for /accounts
+User-agent: *
+Disallow: /me/*
+
+# Allow all crawlers
+User-agent: *
+Allow: /
+
+Sitemap: https://zhufucdev.com/sitemap.xml
