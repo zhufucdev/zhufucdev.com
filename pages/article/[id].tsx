@@ -128,8 +128,9 @@ function generateNodeTree(root: HTMLDivElement): Contents {
 
         const children: ContentsNode[] = [];
         while (true) {
-            index++;
             const next = coll[index];
+            index++;
+
             if (!next) break;
             const nextLv = getLevel(next);
 
