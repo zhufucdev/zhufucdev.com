@@ -61,6 +61,7 @@ function ArticleBody({meta, body, authorNick}: PageProps) {
             const children: ContentsNode[] = [];
             while (true) {
                 const next = coll[index];
+                if (!next) break;
                 const nextLv = getLevel(next);
 
                 if (nextLv > lv) {
@@ -68,7 +69,8 @@ function ArticleBody({meta, body, authorNick}: PageProps) {
                     if (node) {
                         children.push(node);
                     }
-                } else {
+                } else if (nextLv > 0) {
+                    index--;
                     break;
                 }
                 index++
