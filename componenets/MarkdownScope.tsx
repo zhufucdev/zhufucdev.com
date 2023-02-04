@@ -1,10 +1,12 @@
 import ReactMarkdown from "react-markdown";
-import {Link, useMediaQuery, useTheme} from "@mui/material";
+import {Card, IconButton, Link, styled, Tooltip, useMediaQuery, useTheme} from "@mui/material";
 import {Prism} from "react-syntax-highlighter";
 import {dracula as dark, duotoneLight as light} from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import {LazyImage} from "./LazyImage";
-import {ComponentPropsWithoutRef, useEffect, useState} from "react";
+import {ComponentPropsWithoutRef, ReactNode, useEffect, useMemo, useRef, useState} from "react";
 import {getImageUri} from "../lib/utility";
+
+import CopyIcon from "@mui/icons-material/ContentCopyOutlined";
 
 export type LocalImage = { [key: string]: File };
 export type LocalCache = { [key: string]: string };
@@ -33,6 +35,43 @@ interface MarkdownScopeProps extends ImageProps {
 
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+import {useSnackbar} from "notistack";
+
+export function MarkdownScope(props: MarkdownScopeProps): JSX.Element {
+    const theme = useTheme();
+    const {preload, imageCache, newCache} = props;
+
+    const StyledCodeBlock = styled("code")`
+      background: ${theme.palette.mode === 'light' ? theme.palette.grey.A200 : theme.palette.grey.A700};
+      border-radius: 4px;
+      padding: 2px;
+    `;
+
+    return (<ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        rehypePlugins={[rehypeRaw]}
+        components={{
+            a: Link,
+            code({node, inline, className, children, ...props}) {
+                const match = /language-(\w+)/.exec(className || '')
+                return !inline
+                    ? <MdCode lang={(match && match[1]) ?? 'plain'} {...props}>{children}</MdCode>
+                    : <StyledCodeBlock className={className} {...props}>{children}</StyledCodeBlock>
+            },
+            img(props) {
+                return <MdImage
+                    {...props}
+                    preload={preload}
+                    imageCache={imageCache}
+                    newCache={newCache}/>
+            }
+        }}
+    >
+        {props.children || ''}
+    </ReactMarkdown>)
+}
 
 function MdImage({src, preload, imageCache, newCache}: ComponentPropsWithoutRef<"img"> & ImageProps): JSX.Element {
     const [content, setContent] = useState(src);
@@ -64,43 +103,41 @@ function MdImage({src, preload, imageCache, newCache}: ComponentPropsWithoutRef<
                       style={{maxHeight: '200px', maxWidth: 'calc(100% - 50px)', display: 'block', margin: 'auto'}}/>
 }
 
-export function MarkdownScope(props: MarkdownScopeProps): JSX.Element {
+function MdCode(props: { lang: string, children: ReactNode & ReactNode[] }) {
     const theme = useTheme();
     const fixedDrawer = useMediaQuery(theme.breakpoints.up('sm'));
-    const {preload, imageCache, newCache} = props;
-    return (<ReactMarkdown
-        remarkPlugins={[remarkGfm]}
-        rehypePlugins={[rehypeRaw]}
-        components={{
-            a: Link,
-            code({node, inline, className, children, ...props}) {
-                const match = /language-(\w+)/.exec(className || '')
-                return !inline && match ? (
-                    <Prism
-                        // @ts-ignore
-                        style={theme.palette.mode === "dark" ? dark : light}
-                        language={match[1]}
-                        PreTag="div"
-                        customStyle={{width: fixedDrawer ? '100%' : 'calc(100vw - 50px)'}}
-                        {...props}
-                    >
-                        {String(children).replace(/\n$/, '')}
-                    </Prism>
-                ) : (
-                    <code className={className} {...props}>
-                        {children}
-                    </code>
-                )
-            },
-            img(props) {
-                return <MdImage
-                    {...props}
-                    preload={preload}
-                    imageCache={imageCache}
-                    newCache={newCache}/>
-            }
-        }}
-    >
-        {props.children || ''}
-    </ReactMarkdown>)
+    const codeBody = useMemo(() => String(props.children).replace(/\n$/, ''), [props.children])
+    const {enqueueSnackbar} = useSnackbar();
+
+    async function handleCopy() {
+        await navigator.clipboard.writeText(codeBody);
+        enqueueSnackbar('已复制，别忘了给我打钱', {variant: 'success'});
+    }
+
+    return <>
+        <Prism
+            style={theme.palette.mode === "dark" ? dark : light}
+            language={props.lang}
+            PreTag="div"
+            customStyle={{width: fixedDrawer ? '100%' : 'calc(100vw - 50px)'}}
+            {...props}
+        >
+            {codeBody}
+        </Prism>
+        <Card elevation={1}>
+            <Box display="flex" alignItems="center">
+                <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{flexGrow: 1, ml: 2}}>
+                    {props.lang === 'plain' ? '不知道是啥语言' : props.lang + ' 代码'}
+                </Typography>
+                <Tooltip title="复制">
+                    <IconButton onClick={handleCopy}>
+                        <CopyIcon fontSize="small"/>
+                    </IconButton>
+                </Tooltip>
+            </Box>
+        </Card>
+    </>
 }
