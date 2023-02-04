@@ -211,7 +211,7 @@ function ContentsNodeComponent(props: { node: ContentsNodeState, indent?: number
     function Item(props: { title: string, href: string, indent: number, selected: boolean }) {
         return <ListItem disablePadding>
             <ListItemButton
-                component={Link}
+                component="a"
                 href={props.href}
                 selected={props.selected}
             >
