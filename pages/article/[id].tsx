@@ -11,8 +11,11 @@ import {Copyright} from "../../componenets/Copyright";
 import {getUser} from "../../lib/db/user";
 import {ArticleHeader} from "../../componenets/ArticleHeader";
 import Box from "@mui/material/Box";
-import {ContentsNode, useContents} from "../../lib/useContents";
+import {Contents, ContentsNode, useContents} from "../../lib/useContents";
 import {useEffect, useRef} from "react";
+import {useMediaQuery, useTheme} from "@mui/material";
+import {ContentsNodeComponent} from "../../componenets/ContentsNodeComponent";
+import List from "@mui/material/List";
 
 type PageProps = {
     meta?: SafeArticle,
@@ -36,7 +39,9 @@ const ArticleApp: NextPage<PageProps> = ({meta, body, authorNick}) => {
 }
 
 function ArticleBody({meta, body, authorNick}: PageProps) {
-    const [, setContents] = useContents();
+    const theme = useTheme();
+    const onLargeScreen = useMediaQuery(theme.breakpoints.up('md'));
+    const [contents, setContents] = useContents();
     const articleRef = useRef<HTMLDivElement>(null);
     useEffect(() => {
         if (!articleRef.current) {
@@ -44,57 +49,7 @@ function ArticleBody({meta, body, authorNick}: PageProps) {
             return
         }
 
-        let index = 0;
-        function generateNode(ele: Element, coll: HTMLCollection): ContentsNode | undefined {
-            function getLevel(ele?: Element): number {
-                if (!ele || ele.tagName.length !== 2 || ele.tagName.charAt(0).toLowerCase() !== 'h') return 0;
-                return parseInt(ele.tagName.charAt(1));
-            }
-
-            const lv = getLevel(ele);
-
-            index++
-            if (lv <= 0) {
-                return undefined;
-            }
-
-            const children: ContentsNode[] = [];
-            while (true) {
-                const next = coll[index];
-                if (!next) break;
-                const nextLv = getLevel(next);
-
-                if (nextLv > lv) {
-                    const node = generateNode(next, coll);
-                    if (node) {
-                        children.push(node);
-                    }
-                } else if (nextLv > 0) {
-                    index--;
-                    break;
-                }
-                index++
-            }
-            ele.textContent && ele.setAttribute('id', ele.textContent);
-            return {
-                title: ele.textContent ?? '',
-                element: ele,
-                href: `#${ele.textContent}`,
-                children
-            }
-        }
-
-        const elements = articleRef.current.children;
-        const tree: ContentsNode[] = [];
-
-        while (index < elements.length) {
-            const node = generateNode(elements[index]!, elements);
-            if (node) tree.push(node);
-        }
-        setContents({
-            target: 'articles',
-            nodes: tree
-        });
+        setContents(generateNodeTree(articleRef.current));
     }, [articleRef]);
 
     return <>
@@ -102,9 +57,21 @@ function ArticleBody({meta, body, authorNick}: PageProps) {
         <Typography variant="body2" color="text.secondary">
             由{authorNick ?? meta!.author}发布于{getHumanReadableTime(new Date(meta!.postTime))}
         </Typography>
-        <Box ref={articleRef}>
+        <Box ref={articleRef} sx={{width: onLargeScreen ? '70%' : '100%'}}>
             <MarkdownScope>{body}</MarkdownScope>
         </Box>
+        {onLargeScreen &&
+            <Box sx={{
+                width: 'calc(30% - 100px)',
+                position: 'fixed',
+                top: meta?.cover ? '250px' : '70px',
+                bottom: 100,
+                right: 10,
+                overflowY: 'auto'
+            }}>
+                {contents && <List><ContentsNodeComponent node={contents}/></List>}
+            </Box>
+        }
         <Copyright/>
     </>
 }
@@ -135,3 +102,59 @@ export const getStaticPaths: GetStaticPaths = async () => {
 };
 
 export default ArticleApp;
+
+function generateNodeTree(root: HTMLDivElement): Contents {
+    let index = 0;
+
+    function generateNode(ele: Element, coll: HTMLCollection): ContentsNode | undefined {
+        function getLevel(ele?: Element): number {
+            if (!ele || ele.tagName.length !== 2 || ele.tagName.charAt(0).toLowerCase() !== 'h') return 0;
+            return parseInt(ele.tagName.charAt(1));
+        }
+
+        const lv = getLevel(ele);
+
+        index++
+        if (lv <= 0) {
+            return undefined;
+        }
+
+        const children: ContentsNode[] = [];
+        while (true) {
+            const next = coll[index];
+            if (!next) break;
+            const nextLv = getLevel(next);
+
+            if (nextLv > lv) {
+                const node = generateNode(next, coll);
+                if (node) {
+                    children.push(node);
+                }
+            } else if (nextLv > 0) {
+                index--;
+                break;
+            }
+            index++
+        }
+        ele.textContent && ele.setAttribute('id', ele.textContent);
+        return {
+            title: ele.textContent ?? '',
+            element: ele,
+            href: `#${ele.textContent}`,
+            children
+        }
+    }
+
+    const elements = root.children;
+    const tree: ContentsNode[] = [];
+
+    while (index < elements.length) {
+        const node = generateNode(elements[index]!, elements);
+        if (node) tree.push(node);
+    }
+
+    return {
+        target: 'articles',
+        nodes: tree
+    }
+}

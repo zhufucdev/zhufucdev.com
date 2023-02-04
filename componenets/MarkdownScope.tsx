@@ -5,7 +5,6 @@ import {dracula as dark, duotoneLight as light} from 'react-syntax-highlighter/d
 import {LazyImage} from "./LazyImage";
 import {ComponentPropsWithoutRef, useEffect, useState} from "react";
 import {getImageUri} from "../lib/utility";
-import {drawerWidth} from "../pages/_app";
 
 export type LocalImage = { [key: string]: File };
 export type LocalCache = { [key: string]: string };
@@ -62,7 +61,7 @@ function MdImage({src, preload, imageCache, newCache}: ComponentPropsWithoutRef<
         setContent(getImageUri(src));
     }, [src, preload, imageCache]);
     return <LazyImage src={content} alt=""
-                      style={{maxHeight: '200px', maxWidth: 'calc(100vw - 50px)', display: 'block', margin: 'auto'}}/>
+                      style={{maxHeight: '200px', maxWidth: 'calc(100% - 50px)', display: 'block', margin: 'auto'}}/>
 }
 
 export function MarkdownScope(props: MarkdownScopeProps): JSX.Element {
@@ -82,7 +81,7 @@ export function MarkdownScope(props: MarkdownScopeProps): JSX.Element {
                         style={theme.palette.mode === "dark" ? dark : light}
                         language={match[1]}
                         PreTag="div"
-                        customStyle={{width: `calc(100vw - ${fixedDrawer ? drawerWidth : 0}px - 50px)`}}
+                        customStyle={{width: fixedDrawer ? '100%' : 'calc(100vw - 50px)'}}
                         {...props}
                     >
                         {String(children).replace(/\n$/, '')}
