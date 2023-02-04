@@ -7,7 +7,7 @@ import {drawerWidth} from "../pages/_app";
 import {LazyImage} from "./LazyImage";
 import {getImageUri} from "../lib/utility";
 
-export function ArticleHeader(props: { cover: ImageID | undefined, title: string }): JSX.Element {
+export function ArticleHeader(props: { cover: ImageID | undefined, title: string, onScroll?: (scrolled: boolean) => void }): JSX.Element {
     const theme = useTheme();
     const onLargeScreen = useMediaQuery(theme.breakpoints.up('sm'));
 
@@ -25,7 +25,8 @@ export function ArticleHeader(props: { cover: ImageID | undefined, title: string
             setTitle(props.title);
         else
             setTitle('文章')
-    }, [scrolled, props.title]);
+        props.onScroll?.call({}, scrolled);
+    }, [scrolled, props.title, props.onScroll]);
 
     return <>
         {

@@ -89,7 +89,7 @@ export function ContentsNodeComponent(props: { node: ContentsNodeState, indent?:
             node.children.map(n =>
                 <ContentsNodeComponent
                     node={n}
-                    indent={(indent ?? 0) + 1}
+                    indent={(indent ?? 0) + 2}
                     key={n.element.textContent}
                     current={indent ? props.current : currentTitle}
                 />

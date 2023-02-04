@@ -12,10 +12,11 @@ import {getUser} from "../../lib/db/user";
 import {ArticleHeader} from "../../componenets/ArticleHeader";
 import Box from "@mui/material/Box";
 import {Contents, ContentsNode, useContents} from "../../lib/useContents";
-import {useEffect, useRef} from "react";
-import {useMediaQuery, useTheme} from "@mui/material";
+import {useEffect, useRef, useState} from "react";
+import {useMediaQuery, useScrollTrigger, useTheme} from "@mui/material";
 import {ContentsNodeComponent} from "../../componenets/ContentsNodeComponent";
 import List from "@mui/material/List";
+import {motion} from "framer-motion";
 
 type PageProps = {
     meta?: SafeArticle,
@@ -51,26 +52,32 @@ function ArticleBody({meta, body, authorNick}: PageProps) {
 
         setContents(generateNodeTree(articleRef.current));
     }, [articleRef]);
+    const [scrolled, setScrolled] = useState(false);
 
     return <>
-        <ArticleHeader title={meta!.title} cover={meta!.cover}/>
+        <ArticleHeader title={meta!.title} cover={meta!.cover} onScroll={setScrolled}/>
         <Typography variant="body2" color="text.secondary">
             由{authorNick ?? meta!.author}发布于{getHumanReadableTime(new Date(meta!.postTime))}
         </Typography>
         <Box ref={articleRef} sx={{width: onLargeScreen ? '70%' : '100%'}}>
             <MarkdownScope>{body}</MarkdownScope>
         </Box>
-        {onLargeScreen &&
-            <Box sx={{
-                width: 'calc(30% - 100px)',
-                position: 'fixed',
-                top: meta?.cover ? '250px' : '70px',
-                bottom: 100,
-                right: 10,
-                overflowY: 'auto'
-            }}>
-                {contents && <List><ContentsNodeComponent node={contents}/></List>}
-            </Box>
+        {onLargeScreen && contents &&
+            <motion.div
+                animate={{y: scrolled ? 0 : 180}}
+                style={{
+                    width: 'calc(30% - 100px)',
+                    position: 'fixed',
+                    top: '70px',
+                    bottom: 100,
+                    right: 10,
+                    overflowY: 'auto'
+                }}
+            >
+                <List>
+                    <ContentsNodeComponent node={contents}/>
+                </List>
+            </motion.div>
         }
         <Copyright/>
     </>
@@ -114,13 +121,14 @@ function generateNodeTree(root: HTMLDivElement): Contents {
 
         const lv = getLevel(ele);
 
-        index++
         if (lv <= 0) {
+            index++;
             return undefined;
         }
 
         const children: ContentsNode[] = [];
         while (true) {
+            index++;
             const next = coll[index];
             if (!next) break;
             const nextLv = getLevel(next);
@@ -131,10 +139,8 @@ function generateNodeTree(root: HTMLDivElement): Contents {
                     children.push(node);
                 }
             } else if (nextLv > 0) {
-                index--;
                 break;
             }
-            index++
         }
         ele.textContent && ele.setAttribute('id', ele.textContent);
         return {
