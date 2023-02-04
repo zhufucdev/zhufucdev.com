@@ -33,7 +33,7 @@ import {
     ThemeOptions,
     Tooltip,
     useMediaQuery,
-    useScrollTrigger
+    useScrollTrigger, useTheme
 } from "@mui/material";
 import {createTheme, ThemeProvider} from "@mui/material/styles";
 import {Analytics} from "@vercel/analytics/react";
@@ -65,6 +65,7 @@ type MyAppBarProps = {
 };
 
 function MyAppBar(props: MyAppBarProps): JSX.Element {
+    const theme = useTheme();
     const {user, mutateUser, isLoading: isUserLoading} = useUser();
     const handleResult = useRequestResult();
     const [title] = useTitle();
@@ -79,7 +80,8 @@ function MyAppBar(props: MyAppBarProps): JSX.Element {
     };
     const dismissHandler = () => setUserMenuAnchor(undefined);
 
-    const trigger = useScrollTrigger({disableHysteresis: true, threshold: 0});
+    const scrolled = useScrollTrigger({disableHysteresis: true, threshold: 0});
+    const useSurfaceColor = theme.palette.mode === 'light' && !scrolled;
 
     return (
         <AppBar
@@ -87,13 +89,13 @@ function MyAppBar(props: MyAppBarProps): JSX.Element {
             sx={{
                 width: {sm: `calc(100% - ${drawerWidth}px)`},
                 ml: `${drawerWidth}px`,
-                background: trigger ? undefined : 'transparent' // for user cover
+                background: scrolled ? undefined : 'transparent' // for user cover
             }}
-            elevation={trigger ? 4 : 0}
+            elevation={scrolled ? 4 : 0}
         >
             <Toolbar>
                 <IconButton
-                    color="inherit"
+                    color={useSurfaceColor ? "default" : "inherit"}
                     aria-label="open drawer"
                     edge="start"
                     onClick={props.onToggleDrawer}
@@ -101,7 +103,12 @@ function MyAppBar(props: MyAppBarProps): JSX.Element {
                 >
                     <MenuIcon/>
                 </IconButton>
-                <Typography variant="h6" noWrap component="div" sx={{flexGrow: 1}}>
+                <Typography
+                    variant="h6"
+                    noWrap
+                    color={useSurfaceColor ? "text.primary" : "inherit"}
+                    component="div"
+                    sx={{flexGrow: 1}}>
                     {title || 'zhufucdev'}
                 </Typography>
                 <Tooltip title={isUserLoading ? "" : (user ? user : "未登录")}>
@@ -202,7 +209,10 @@ function MyDrawerContent(props: { onItemClicked: () => void }) {
                             <Box key={`${entry.name}-contents`}
                                  sx={{display: {sm: "block", md: "none"}}}
                             >
-                                <ContentsNodeComponent node={root}/>
+                                <ContentsNodeComponent
+                                    node={root}
+                                    onClick={props.onItemClicked}
+                                />
                             </Box>
                         }
                     </>

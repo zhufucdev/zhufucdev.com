@@ -5,15 +5,23 @@ import ListItemText from "@mui/material/ListItemText";
 import * as React from "react";
 import {useEffect, useMemo, useState} from "react";
 
-export function ContentsNodeComponent(props: { node: ContentsNodeState, indent?: number, current?: string }) {
-    const {node, indent} = props;
+type ContentsNodeComponentProps = {
+    current?: string,
+    indent?: number,
+    node: ContentsNodeState,
+    onClick?: (node: ContentsNodeState) => void
+};
 
-    function Item(props: { title: string, href: string, indent: number, selected: boolean }) {
+export function ContentsNodeComponent(props: ContentsNodeComponentProps) {
+    const {node, indent, onClick} = props;
+
+    function Item(props: { title: string, href: string, indent: number, selected: boolean, onClick: () => void }) {
         return <ListItem disablePadding>
             <ListItemButton
                 component="a"
                 href={props.href}
                 selected={props.selected}
+                onClick={props.onClick}
             >
                 <ListItemText sx={{ml: props.indent}}>{props.title}</ListItemText>
             </ListItemButton>
@@ -84,7 +92,8 @@ export function ContentsNodeComponent(props: { node: ContentsNodeState, indent?:
                          title={node.title}
                          href={node.href}
                          indent={indent}
-                         selected={selected}/>}
+                         selected={selected}
+                         onClick={() => onClick?.call({}, node)}/>}
         {
             node.children.map(n =>
                 <ContentsNodeComponent
@@ -92,6 +101,7 @@ export function ContentsNodeComponent(props: { node: ContentsNodeState, indent?:
                     indent={(indent ?? 0) + 2}
                     key={n.element.textContent}
                     current={indent ? props.current : currentTitle}
+                    onClick={onClick}
                 />
             )
         }
