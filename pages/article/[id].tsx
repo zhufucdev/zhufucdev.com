@@ -13,7 +13,7 @@ import {ArticleHeader} from "../../componenets/ArticleHeader";
 import Box from "@mui/material/Box";
 import {Contents, ContentsNode, useContents} from "../../lib/useContents";
 import {useEffect, useRef, useState} from "react";
-import {useMediaQuery, useScrollTrigger, useTheme} from "@mui/material";
+import {useMediaQuery, useTheme} from "@mui/material";
 import {ContentsNodeComponent} from "../../componenets/ContentsNodeComponent";
 import List from "@mui/material/List";
 import {motion} from "framer-motion";
@@ -64,7 +64,7 @@ function ArticleBody({meta, body, authorNick}: PageProps) {
         </Box>
         {onLargeScreen && contents &&
             <motion.div
-                animate={{y: scrolled ? 0 : 180}}
+                animate={{y: scrolled || !Boolean(meta?.cover) ? 0 : 180}}
                 style={{
                     width: 'calc(30% - 100px)',
                     position: 'fixed',
