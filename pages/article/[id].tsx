@@ -111,53 +111,62 @@ export const getStaticPaths: GetStaticPaths = async () => {
 export default ArticleApp;
 
 function generateNodeTree(root: HTMLDivElement): Contents {
-    let index = 0;
-
-    function generateNode(ele: Element, coll: HTMLCollection): ContentsNode | undefined {
+    function generateNode(coll: HTMLCollection, from: number): [ContentsNode | undefined, number] {
         function getLevel(ele?: Element): number {
             if (!ele || ele.tagName.length !== 2 || ele.tagName.charAt(0).toLowerCase() !== 'h') return 0;
             return parseInt(ele.tagName.charAt(1));
         }
 
-        const lv = getLevel(ele);
-
-        if (lv <= 0) {
-            index++;
-            return undefined;
-        }
-
-        const children: ContentsNode[] = [];
-        while (true) {
-            const next = coll[index];
-            index++;
-
-            if (!next) break;
-            const nextLv = getLevel(next);
-
-            if (nextLv > lv) {
-                const node = generateNode(next, coll);
-                if (node) {
-                    children.push(node);
-                }
-            } else if (nextLv > 0) {
-                break;
+        let children: ContentsNode[] = [], parent: Element | undefined, baseline: number | undefined;
+        for (let i = from; i < coll.length; i++) {
+            const curr = coll[i];
+            const lv = getLevel(curr);
+            if (lv > 0) {
+                parent = curr;
+                from = i;
+                baseline = lv;
+                break
             }
         }
-        ele.textContent && ele.setAttribute('id', ele.textContent);
-        return {
-            title: ele.textContent ?? '',
-            element: ele,
-            href: `#${ele.textContent}`,
-            children
+
+        if (!parent || !baseline) return [undefined, coll.length];
+
+        for (let i = from + 1; i < coll.length; i++) {
+            const curr = coll[i];
+            const lv = getLevel(curr);
+            if (lv > 0) {
+                if (lv <= baseline) {
+                    return [pack(parent), i];
+                } else {
+                    const [node, end] = generateNode(coll, i);
+                    i = end - 1;
+                    if (node) children.push(node);
+                }
+            }
         }
+
+        function pack(parent: Element) {
+            parent.textContent && parent.setAttribute('id', parent.textContent);
+            return {
+                title: parent.textContent ?? '',
+                element: parent,
+                href: `#${parent.textContent}`,
+                children
+            }
+        }
+
+        return [pack(parent), coll.length];
     }
 
     const elements = root.children;
     const tree: ContentsNode[] = [];
 
-    while (index < elements.length) {
-        const node = generateNode(elements[index]!, elements);
+    let lastEnd = 0;
+    while (true) {
+        const [node, lastIndex] = generateNode(elements, lastEnd);
+        lastEnd = lastIndex;
         if (node) tree.push(node);
+        if (lastIndex >= elements.length) break;
     }
 
     return {
