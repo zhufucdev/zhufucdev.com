@@ -46,6 +46,8 @@ import {fetchApi} from "../lib/utility";
 import {getResponseRemark} from "../lib/contract";
 import {useRequestResult} from "../lib/useRequestResult";
 import {TitleProvider, useTitle} from "../lib/useTitle";
+import {ContentsNodeState, ContentsProvider, ContentsRootNode, useContents} from "../lib/useContents";
+import {useEffect, useMemo, useState} from "react";
 
 export const drawerWidth = 240;
 
@@ -158,30 +160,34 @@ function MyHead() {
     return <Head><title>{title}</title></Head>
 }
 
-function MyApp({Component, pageProps, emotionCache = clientEmotionCache}: MyAppProps) {
+function MyDrawerContent(props: { onItemClicked: () => void }) {
     const router = useRouter();
-    const [mobileOpen, setMobileOpen] = React.useState(false);
+    const [root, setContents] = useContents();
 
-    const handleDrawerToggle = () => {
-        setMobileOpen(!mobileOpen);
-    };
+    useEffect(() => {
+        router.events.on('routeChangeStart', () => {
+            setContents({
+                target: '',
+                nodes: []
+            })
+        })
+    }, [router]);
 
-    const drawerContent = (
-        <>
-            <Toolbar/>
-            <Divider/>
-            <List sx={{
-                '.MuiListItemButton-root': {
-                    borderTopRightRadius: 20,
-                    borderBottomRightRadius: 20
-                }
-            }}>
-                {routes
-                    .filter((e) => !e.hidden)
-                    .map((entry) => (
+    return <>
+        <Toolbar/>
+        <Divider/>
+        <List sx={{
+            '.MuiListItemButton-root': {
+                borderTopRightRadius: 20,
+                borderBottomRightRadius: 20
+            }
+        }}>
+            {routes
+                .filter((e) => !e.hidden)
+                .map((entry) => (<>
                         <ListItem key={entry.name} disablePadding>
                             <ListItemButton
-                                onClick={handleDrawerToggle}
+                                onClick={props.onItemClicked}
                                 component={Link}
                                 href={entry.route!}
                                 selected={entry.route === router.pathname}
@@ -190,10 +196,115 @@ function MyApp({Component, pageProps, emotionCache = clientEmotionCache}: MyAppP
                                 <ListItemText primary={entry.title}/>
                             </ListItemButton>
                         </ListItem>
-                    ))}
-            </List>
-        </>
-    );
+                        {entry.name === root?.target &&
+                            <ContentsNodeComponent node={root}/>
+                        }
+                    </>
+                ))}
+        </List>
+    </>
+}
+
+function ContentsNodeComponent(props: { node: ContentsNodeState, indent?: number, current?: string }) {
+    const {node, indent} = props;
+
+    function Item(props: { title: string, href: string, indent: number, selected: boolean }) {
+        return <ListItem disablePadding>
+            <ListItemButton
+                component={Link}
+                href={props.href}
+                selected={props.selected}
+            >
+                <ListItemText sx={{ml: props.indent}}>{props.title}</ListItemText>
+            </ListItemButton>
+        </ListItem>
+    }
+
+    const [currentTitle, setCurrentTitle] = useState(node.children[0]?.id ?? '');
+    useEffect(() => {
+        // an optimums algorithm to find the current header:
+        // - single event handler
+        // - cache
+        if (!indent) {
+            // this is a root node
+            const nodesUnfolded: ContentsNodeState[] = [];
+
+            function unfold(node: ContentsNodeState) {
+                if (!ContentsRootNode.isNodeRoot(node))
+                    nodesUnfolded.push(node)
+                node.children.forEach(unfold);
+            }
+
+            unfold(node);
+
+            let from = 0, lastScrolling = 0;
+
+            function findAppropriateNode(from: number, reverse: boolean): number {
+                function getDistance(index: number) {
+                    return Math.abs(nodesUnfolded[index].element.getBoundingClientRect().y)
+                }
+
+                let min = getDistance(from);
+                let i;
+                if (reverse) {
+                    for (i = from - 1; i >= 0; i--) {
+                        const curr = getDistance(i);
+                        if (curr > min) {
+                            return i + 1;
+                        }
+                    }
+                    return 0;
+                } else {
+                    for (i = from + 1; i < nodesUnfolded.length; i++) {
+                        const curr = getDistance(i);
+                        if (curr > min) {
+                            return i - 1;
+                        }
+                    }
+                    return nodesUnfolded.length - 1;
+                }
+            }
+
+            function scrollHandler() {
+                const curr = window.scrollY;
+                from = findAppropriateNode(from, curr < lastScrolling);
+                lastScrolling = curr;
+                setCurrentTitle(nodesUnfolded[from].id);
+            }
+
+            window.removeEventListener('scroll', scrollHandler);
+            window.addEventListener('scroll', scrollHandler);
+        }
+    }, [indent]);
+
+    const selected = useMemo(() => props.node.id === props.current, [props.current]);
+
+    return <>
+        {indent && <Item key="master"
+                         title={node.title}
+                         href={node.href}
+                         indent={indent}
+                         selected={selected}/>}
+        {
+            node.children.map(n =>
+                <ContentsNodeComponent
+                    node={n}
+                    indent={(indent ?? 0) + 1}
+                    key={n.element.textContent}
+                    current={indent ? props.current : currentTitle}
+                />
+            )
+        }
+    </>
+}
+
+function MyApp({Component, pageProps, emotionCache = clientEmotionCache}: MyAppProps) {
+    const router = useRouter();
+    const [mobileOpen, setMobileOpen] = React.useState(false);
+
+    const handleDrawerToggle = () => {
+        setMobileOpen(!mobileOpen);
+    };
 
     const prefersDark = useMediaQuery("(prefers-color-scheme: dark)");
     const theme = React.useMemo(
@@ -205,62 +316,64 @@ function MyApp({Component, pageProps, emotionCache = clientEmotionCache}: MyAppP
         <CacheProvider value={emotionCache}>
             <ThemeProvider theme={theme}>
                 <TitleProvider title={routes.find(e => e.route === router.pathname)?.title}>
-                    <MyHead/>
-                    <SnackbarProvider>
-                        <Box sx={{display: "flex"}}>
-                            <CssBaseline/>
-                            <MyAppBar onToggleDrawer={handleDrawerToggle}/>
+                    <ContentsProvider>
+                        <MyHead/>
+                        <SnackbarProvider>
+                            <Box sx={{display: "flex"}}>
+                                <CssBaseline/>
+                                <MyAppBar onToggleDrawer={handleDrawerToggle}/>
 
-                            <Box
-                                component="nav"
-                                sx={{width: {sm: drawerWidth}, flexShrink: {sm: 0}}}
-                                aria-label="drawer content"
-                            >
-                                <Drawer
-                                    variant="temporary"
-                                    open={mobileOpen}
-                                    onClose={handleDrawerToggle}
-                                    ModalProps={{
-                                        keepMounted: true, // Better open performance on mobile.
-                                    }}
+                                <Box
+                                    component="nav"
+                                    sx={{width: {sm: drawerWidth}, flexShrink: {sm: 0}}}
+                                    aria-label="drawer content"
+                                >
+                                    <Drawer
+                                        variant="temporary"
+                                        open={mobileOpen}
+                                        onClose={handleDrawerToggle}
+                                        ModalProps={{
+                                            keepMounted: true, // Better open performance on mobile.
+                                        }}
+                                        sx={{
+                                            display: {xs: "block", sm: "none"},
+                                            "& .MuiDrawer-paper": {
+                                                boxSizing: "border-box",
+                                                width: drawerWidth,
+                                            },
+                                        }}
+                                    >
+                                        <MyDrawerContent onItemClicked={handleDrawerToggle}/>
+                                    </Drawer>
+                                    <Drawer
+                                        variant="permanent"
+                                        sx={{
+                                            display: {xs: "none", sm: "block"},
+                                            "& .MuiDrawer-paper": {
+                                                boxSizing: "border-box",
+                                                width: drawerWidth,
+                                            },
+                                        }}
+                                        open
+                                    >
+                                        <MyDrawerContent onItemClicked={handleDrawerToggle}/>
+                                    </Drawer>
+                                </Box>
+
+                                <Box
                                     sx={{
-                                        display: {xs: "block", sm: "none"},
-                                        "& .MuiDrawer-paper": {
-                                            boxSizing: "border-box",
-                                            width: drawerWidth,
-                                        },
+                                        flexGrow: 1,
+                                        p: 3,
+                                        width: {sm: `calc(100% - ${drawerWidth}px)`},
                                     }}
                                 >
-                                    {drawerContent}
-                                </Drawer>
-                                <Drawer
-                                    variant="permanent"
-                                    sx={{
-                                        display: {xs: "none", sm: "block"},
-                                        "& .MuiDrawer-paper": {
-                                            boxSizing: "border-box",
-                                            width: drawerWidth,
-                                        },
-                                    }}
-                                    open
-                                >
-                                    {drawerContent}
-                                </Drawer>
+                                    <Toolbar/>
+                                    <Component {...pageProps} />
+                                </Box>
                             </Box>
-
-                            <Box
-                                sx={{
-                                    flexGrow: 1,
-                                    p: 3,
-                                    width: {sm: `calc(100% - ${drawerWidth}px)`},
-                                }}
-                            >
-                                <Toolbar/>
-                                <Component {...pageProps} />
-                            </Box>
-                        </Box>
-                        <Analytics/>
-                    </SnackbarProvider>
+                            <Analytics/>
+                        </SnackbarProvider>
+                    </ContentsProvider>
                 </TitleProvider>
             </ThemeProvider>
         </CacheProvider>
