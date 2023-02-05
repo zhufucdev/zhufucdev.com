@@ -4,7 +4,7 @@ import type {AppProps} from "next/app";
 
 import {useRouter} from "next/router";
 import * as React from "react";
-import {useEffect} from "react";
+import {useEffect, useState} from "react";
 
 import Box from "@mui/material/Box";
 import Drawer from "@mui/material/Drawer";
@@ -26,7 +26,8 @@ import LoginIcon from "@mui/icons-material/LoginOutlined";
 import ArticleIcon from "@mui/icons-material/ArticleOutlined";
 
 import {
-    IconButton,
+    Backdrop,
+    IconButton, LinearProgress,
     Menu,
     MenuItem,
     MenuList,
@@ -221,6 +222,44 @@ function MyDrawerContent(props: { onItemClicked: () => void }) {
     </>
 }
 
+function MyBackdrop() {
+    const router = useRouter();
+    const [transiting, setTransiting] = useState(false);
+    const [progress, setProgress] = useState(-1);
+    useEffect(() => {
+        let timer: NodeJS.Timer;
+
+        function onHandler() {
+            setTransiting(true);
+            setProgress(0);
+            let i = 1;
+            timer = setInterval(() => {
+                if (transiting) clearInterval(timer);
+                else {
+                    setProgress(100 - 100 / i);
+                    i++;
+                }
+            }, 100);
+        }
+
+        function offHandler() {
+            setTransiting(false);
+            setProgress(100);
+        }
+
+        router.events.off('routeChangeStart', onHandler);
+        router.events.off('routeChangeComplete', offHandler);
+        router.events.off('routeChangeError', offHandler);
+        router.events.on('routeChangeStart', onHandler);
+        router.events.on('routeChangeComplete', offHandler);
+        router.events.on('routeChangeError', offHandler);
+    }, [router]);
+
+    return <Backdrop open={transiting} unmountOnExit sx={{zIndex: 10000, transitionDelay: '400ms'}}>
+        <LinearProgress variant="determinate" value={progress} sx={{position: 'absolute', top: 0, width: '100%'}}/>
+    </Backdrop>
+}
+
 function MyApp({Component, pageProps, emotionCache = clientEmotionCache}: MyAppProps) {
     const router = useRouter();
     const [mobileOpen, setMobileOpen] = React.useState(false);
@@ -241,6 +280,7 @@ function MyApp({Component, pageProps, emotionCache = clientEmotionCache}: MyAppP
                 <TitleProvider title={routes.find(e => e.route === router.pathname)?.title}>
                     <ContentsProvider>
                         <MyHead/>
+                        <MyBackdrop/>
                         <SnackbarProvider>
                             <Box sx={{display: "flex"}}>
                                 <CssBaseline/>
