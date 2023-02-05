@@ -3,7 +3,7 @@ import {Card, IconButton, Link, styled, Tooltip, useMediaQuery, useTheme} from "
 import {Prism} from "react-syntax-highlighter";
 import {dracula as dark, duotoneLight as light} from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import {LazyImage} from "./LazyImage";
-import {ComponentPropsWithoutRef, ReactNode, useEffect, useMemo, useRef, useState} from "react";
+import {ComponentPropsWithoutRef, ReactNode, useEffect, useMemo, useState} from "react";
 import {getImageUri} from "../lib/utility";
 
 import CopyIcon from "@mui/icons-material/ContentCopyOutlined";
@@ -106,6 +106,7 @@ function MdImage({src, preload, imageCache, newCache}: ComponentPropsWithoutRef<
 
 function MdCode(props: { lang: string, children: ReactNode & ReactNode[] }) {
     const theme = useTheme();
+    const darkTheme = theme.palette.mode === 'dark';
     const fixedDrawer = useMediaQuery(theme.breakpoints.up('sm'));
     const codeBody = useMemo(() => String(props.children).replace(/\n$/, ''), [props.children])
     const {enqueueSnackbar} = useSnackbar();
@@ -116,9 +117,9 @@ function MdCode(props: { lang: string, children: ReactNode & ReactNode[] }) {
     }
 
     return <>
-        <Card elevation={1} variant="outlined" sx={{background: `rgb(40, 42, 53)`}}>
+        <Card elevation={1} variant="outlined" sx={{background: darkTheme ? `rgb(40, 42, 53)` : `rgb(250, 248, 246)`}}>
             <Prism
-                style={theme.palette.mode === "dark" ? dark : light}
+                style={darkTheme ? dark : light}
                 language={props.lang}
                 PreTag="div"
                 customStyle={{width: fixedDrawer ? '100%' : 'calc(100vw - 50px)'}}
