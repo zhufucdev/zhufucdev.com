@@ -59,14 +59,14 @@ function ArticleBody({meta, body, authorNick}: PageProps) {
         <Typography variant="body2" color="text.secondary">
             由{authorNick ?? meta!.author}发布于{getHumanReadableTime(new Date(meta!.postTime))}
         </Typography>
-        <Box ref={articleRef} sx={{width: onLargeScreen ? '70%' : '100%'}}>
+        <Box ref={articleRef} sx={{width: onLargeScreen ? 'calc(100% - 240px)' : '100%'}}>
             <MarkdownScope>{body}</MarkdownScope>
         </Box>
         {onLargeScreen && contents &&
             <motion.div
                 animate={{y: scrolled || !Boolean(meta?.cover) ? 0 : 180}}
                 style={{
-                    width: 'calc(30% - 100px)',
+                    width: 240,
                     position: 'fixed',
                     top: '70px',
                     bottom: 100,
@@ -74,7 +74,8 @@ function ArticleBody({meta, body, authorNick}: PageProps) {
                     overflowY: 'auto'
                 }}
             >
-                <List>
+                <List sx={{'.MuiListItemButton-root': {borderRadius: 4}}}
+                      dense>
                     <ContentsNodeComponent node={contents}/>
                 </List>
             </motion.div>

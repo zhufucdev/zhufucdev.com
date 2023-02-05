@@ -38,6 +38,7 @@ import rehypeRaw from "rehype-raw";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import {useSnackbar} from "notistack";
+import Divider from "@mui/material/Divider";
 
 export function MarkdownScope(props: MarkdownScopeProps): JSX.Element {
     const theme = useTheme();
@@ -115,16 +116,17 @@ function MdCode(props: { lang: string, children: ReactNode & ReactNode[] }) {
     }
 
     return <>
-        <Prism
-            style={theme.palette.mode === "dark" ? dark : light}
-            language={props.lang}
-            PreTag="div"
-            customStyle={{width: fixedDrawer ? '100%' : 'calc(100vw - 50px)'}}
-            {...props}
-        >
-            {codeBody}
-        </Prism>
-        <Card elevation={1}>
+        <Card elevation={1} variant="outlined" sx={{background: `rgb(40, 42, 53)`}}>
+            <Prism
+                style={theme.palette.mode === "dark" ? dark : light}
+                language={props.lang}
+                PreTag="div"
+                customStyle={{width: fixedDrawer ? '100%' : 'calc(100vw - 50px)'}}
+                {...props}
+            >
+                {codeBody}
+            </Prism>
+            <Divider/>
             <Box display="flex" alignItems="center">
                 <Typography
                     variant="body2"
