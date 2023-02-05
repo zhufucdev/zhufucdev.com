@@ -106,7 +106,10 @@ function LoginUI() {
     const [helpers, setHelpers] = React.useState({id, pwd, nick, repwd} as Helper);
     const {executeRecaptcha} = useGoogleReCaptcha();
     const handleResult = useRequestResult(
-        () => router.push('/'),
+        () => {
+            const deferred = localStorage.getItem('login_from');
+            router.push(deferred ?? '/')
+        },
         () => setLoading(false)
     );
     const router = useRouter();

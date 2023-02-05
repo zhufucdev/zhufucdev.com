@@ -37,6 +37,7 @@ import NoArticleIcon from "@mui/icons-material/PsychologyOutlined";
 import LikeIcon from "@mui/icons-material/ThumbUp";
 import DislikeIcon from "@mui/icons-material/ThumbDown";
 import {useRequestResult} from "../../lib/useRequestResult";
+import LoginPopover from "../../componenets/LoginPopover";
 
 type PageProps = {
     articles: SafeArticle[]
@@ -234,7 +235,7 @@ function ArticleCard(props: { data: ArticleMeta }): JSX.Element {
                     subheader={data.forward}
                     sx={{pb: 0}}
                     action={
-                        <IconButton onClick={handlePopoverActivatorClick} disabled={!self.user}>
+                        <IconButton onClick={handlePopoverActivatorClick} disabled={self.isLoading}>
                             <DropdownMenuIcon/>
                         </IconButton>
                     }
@@ -255,13 +256,21 @@ function ArticleCard(props: { data: ArticleMeta }): JSX.Element {
                 </CardContent>
             </CardActionArea>
         </Card>
-        <PopoverMenu
-            open={Boolean(popoverAnchor)}
-            onClose={() => setAnchor(undefined)}
-            anchorEl={popoverAnchor}
-            user={self.user}
-            article={data}
-        />
+        {
+            self.user
+                ? <PopoverMenu
+                    open={Boolean(popoverAnchor)}
+                    onClose={() => setAnchor(undefined)}
+                    anchorEl={popoverAnchor}
+                    user={self.user}
+                    article={data}
+                />
+                : <LoginPopover
+                    open={Boolean(popoverAnchor)}
+                    onClose={() => setAnchor(undefined)}
+                    anchorEl={popoverAnchor}
+                />
+        }
     </>
 }
 
