@@ -14,6 +14,7 @@ import {Contents, ContentsNode, useContents} from "../lib/useContents";
 export function ArticleHeader(props: { cover: ImageID | undefined, title: string, article: React.RefObject<HTMLDivElement> }): JSX.Element {
     const theme = useTheme();
     const onLargeScreen = useMediaQuery(theme.breakpoints.up('sm'));
+    const onWideScreen = useMediaQuery(theme.breakpoints.up('md'));
 
     const titleRef = useRef<HTMLTitleElement>(null);
     const [titleHeight, setTitleHeight] = useState(0);
@@ -74,7 +75,7 @@ export function ArticleHeader(props: { cover: ImageID | undefined, title: string
         }
         <Typography variant="h3" ref={titleRef} mt={props.cover ? 10 : 0}>{props.title}</Typography>
 
-        {onLargeScreen && contents &&
+        {onWideScreen && contents &&
             <motion.div
                 animate={{y: scrolled || !Boolean(props.cover) ? 0 : 180}}
                 style={{
