@@ -11,12 +11,8 @@ import {Copyright} from "../../componenets/Copyright";
 import {getUser} from "../../lib/db/user";
 import {ArticleHeader} from "../../componenets/ArticleHeader";
 import Box from "@mui/material/Box";
-import {Contents, ContentsNode, useContents} from "../../lib/useContents";
-import {useEffect, useRef, useState} from "react";
+import {useRef} from "react";
 import {useMediaQuery, useTheme} from "@mui/material";
-import {ContentsNodeComponent} from "../../componenets/ContentsNodeComponent";
-import List from "@mui/material/List";
-import {motion} from "framer-motion";
 
 type PageProps = {
     meta?: SafeArticle,
@@ -42,44 +38,17 @@ const ArticleApp: NextPage<PageProps> = ({meta, body, authorNick}) => {
 function ArticleBody({meta, body, authorNick}: PageProps) {
     const theme = useTheme();
     const onLargeScreen = useMediaQuery(theme.breakpoints.up('md'));
-    const [contents, setContents] = useContents();
     const articleRef = useRef<HTMLDivElement>(null);
-    useEffect(() => {
-        if (!articleRef.current) {
-            setContents(undefined);
-            return
-        }
 
-        setContents(generateNodeTree(articleRef.current));
-    }, [articleRef]);
-    const [scrolled, setScrolled] = useState(false);
 
     return <>
-        <ArticleHeader title={meta!.title} cover={meta!.cover} onScroll={setScrolled}/>
+        <ArticleHeader title={meta!.title} cover={meta!.cover} article={articleRef} />
         <Typography variant="body2" color="text.secondary">
             由{authorNick ?? meta!.author}发布于{getHumanReadableTime(new Date(meta!.postTime))}
         </Typography>
         <Box ref={articleRef} sx={{width: onLargeScreen ? 'calc(100% - 240px)' : '100%'}}>
             <MarkdownScope>{body}</MarkdownScope>
         </Box>
-        {onLargeScreen && contents &&
-            <motion.div
-                animate={{y: scrolled || !Boolean(meta?.cover) ? 0 : 180}}
-                style={{
-                    width: 240,
-                    position: 'fixed',
-                    top: '70px',
-                    bottom: 100,
-                    right: 10,
-                    overflowY: 'auto'
-                }}
-            >
-                <List sx={{'.MuiListItemButton-root': {borderRadius: 4}}}
-                      dense>
-                    <ContentsNodeComponent node={contents}/>
-                </List>
-            </motion.div>
-        }
         <Copyright/>
     </>
 }
@@ -110,68 +79,3 @@ export const getStaticPaths: GetStaticPaths = async () => {
 };
 
 export default ArticleApp;
-
-function generateNodeTree(root: HTMLDivElement): Contents {
-    function generateNode(coll: HTMLCollection, from: number): [ContentsNode | undefined, number] {
-        function getLevel(ele?: Element): number {
-            if (!ele || ele.tagName.length !== 2 || ele.tagName.charAt(0).toLowerCase() !== 'h') return 0;
-            return parseInt(ele.tagName.charAt(1));
-        }
-
-        let children: ContentsNode[] = [], parent: Element | undefined, baseline: number | undefined;
-        for (let i = from; i < coll.length; i++) {
-            const curr = coll[i];
-            const lv = getLevel(curr);
-            if (lv > 0) {
-                parent = curr;
-                from = i;
-                baseline = lv;
-                break
-            }
-        }
-
-        if (!parent || !baseline) return [undefined, coll.length];
-
-        for (let i = from + 1; i < coll.length; i++) {
-            const curr = coll[i];
-            const lv = getLevel(curr);
-            if (lv > 0) {
-                if (lv <= baseline) {
-                    return [pack(parent), i];
-                } else {
-                    const [node, end] = generateNode(coll, i);
-                    i = end - 1;
-                    if (node) children.push(node);
-                }
-            }
-        }
-
-        function pack(parent: Element) {
-            parent.textContent && parent.setAttribute('id', parent.textContent);
-            return {
-                title: parent.textContent ?? '',
-                element: parent,
-                href: `#${parent.textContent}`,
-                children
-            }
-        }
-
-        return [pack(parent), coll.length];
-    }
-
-    const elements = root.children;
-    const tree: ContentsNode[] = [];
-
-    let lastEnd = 0;
-    while (true) {
-        const [node, lastIndex] = generateNode(elements, lastEnd);
-        lastEnd = lastIndex;
-        if (node) tree.push(node);
-        if (lastIndex >= elements.length) break;
-    }
-
-    return {
-        target: 'articles',
-        nodes: tree
-    }
-}

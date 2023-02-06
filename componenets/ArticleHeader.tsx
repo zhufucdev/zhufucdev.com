@@ -6,8 +6,12 @@ import Box from "@mui/material/Box";
 import {drawerWidth} from "../pages/_app";
 import {LazyImage} from "./LazyImage";
 import {getImageUri} from "../lib/utility";
+import {motion} from "framer-motion";
+import List from "@mui/material/List";
+import {ContentsNodeComponent} from "./ContentsNodeComponent";
+import {Contents, ContentsNode, useContents} from "../lib/useContents";
 
-export function ArticleHeader(props: { cover: ImageID | undefined, title: string, onScroll?: (scrolled: boolean) => void }): JSX.Element {
+export function ArticleHeader(props: { cover: ImageID | undefined, title: string, article: React.RefObject<HTMLDivElement> }): JSX.Element {
     const theme = useTheme();
     const onLargeScreen = useMediaQuery(theme.breakpoints.up('sm'));
 
@@ -25,8 +29,18 @@ export function ArticleHeader(props: { cover: ImageID | undefined, title: string
             setTitle(props.title);
         else
             setTitle('文章')
-        props.onScroll?.call({}, scrolled);
-    }, [scrolled, props.title, props.onScroll]);
+    }, [scrolled, props.title]);
+
+    const [contents, setContents] = useContents();
+
+    useEffect(() => {
+        if (!props.article.current) {
+            setContents(undefined);
+            return
+        }
+
+        setContents(generateNodeTree(props.article.current));
+    }, [props.article]);
 
     return <>
         {
@@ -59,5 +73,89 @@ export function ArticleHeader(props: { cover: ImageID | undefined, title: string
             </Box>
         }
         <Typography variant="h3" ref={titleRef} mt={props.cover ? 10 : 0}>{props.title}</Typography>
+
+        {onLargeScreen && contents &&
+            <motion.div
+                animate={{y: scrolled || !Boolean(props.cover) ? 0 : 180}}
+                style={{
+                    width: 240,
+                    position: 'fixed',
+                    top: '70px',
+                    bottom: 100,
+                    right: 10,
+                    overflowY: 'auto'
+                }}
+            >
+                <List sx={{'.MuiListItemButton-root': {borderRadius: 4}}}
+                      dense>
+                    <ContentsNodeComponent node={contents}/>
+                </List>
+            </motion.div>
+        }
     </>;
+}
+
+function generateNodeTree(root: HTMLDivElement): Contents {
+    function generateNode(coll: HTMLCollection, from: number): [ContentsNode | undefined, number] {
+        function getLevel(ele?: Element): number {
+            if (!ele || ele.tagName.length !== 2 || ele.tagName.charAt(0).toLowerCase() !== 'h') return 0;
+            return parseInt(ele.tagName.charAt(1));
+        }
+
+        let children: ContentsNode[] = [], parent: Element | undefined, baseline: number | undefined;
+        for (let i = from; i < coll.length; i++) {
+            const curr = coll[i];
+            const lv = getLevel(curr);
+            if (lv > 0) {
+                parent = curr;
+                from = i;
+                baseline = lv;
+                break
+            }
+        }
+
+        if (!parent || !baseline) return [undefined, coll.length];
+
+        for (let i = from + 1; i < coll.length; i++) {
+            const curr = coll[i];
+            const lv = getLevel(curr);
+            if (lv > 0) {
+                if (lv <= baseline) {
+                    return [pack(parent), i];
+                } else {
+                    const [node, end] = generateNode(coll, i);
+                    i = end - 1;
+                    if (node) children.push(node);
+                }
+            }
+        }
+
+        function pack(parent: Element) {
+            parent.textContent && parent.setAttribute('id', parent.textContent);
+            return {
+                title: parent.textContent ?? '',
+                element: parent,
+                href: `#${parent.textContent}`,
+                children
+            }
+        }
+
+        return [pack(parent), coll.length];
+    }
+
+    const elements = root.children;
+    const tree: ContentsNode[] = [];
+
+    let lastEnd = 0;
+    while (true) {
+        const [node, lastIndex] = generateNode(elements, lastEnd);
+        lastEnd = lastIndex;
+        if (node) tree.push(node);
+        if (lastIndex >= elements.length) break;
+    }
+
+    return {
+        target: 'articles',
+        nodes: tree
+    }
 }
