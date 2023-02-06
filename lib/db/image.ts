@@ -1,4 +1,4 @@
-import {GridFSBucket, ObjectId, WithId} from "mongodb";
+import {GridFSBucket, ObjectId} from "mongodb";
 import {db, requireDatabase} from "./database";
 import {nanoid} from "nanoid";
 import sharp from "sharp";
@@ -34,7 +34,7 @@ interface ImageStore extends ImageMeta {
 
 const collectionId = "images"
 
-function tranformer(store: ImageStore): ImageMeta {
+function transformer(store: ImageStore): ImageMeta {
     return {
         _id: store._id,
         name: store.name,
@@ -52,7 +52,7 @@ export async function findImage(id: ImageID): Promise<Image | undefined> {
     if (!await bucket.find({_id: meta.ref}).hasNext()) return undefined;
 
     return {
-        ...tranformer(meta),
+        ...transformer(meta),
         stream(): NodeJS.ReadableStream {
             return bucket.openDownloadStream(meta.ref);
         },
@@ -63,7 +63,7 @@ export async function listImages(): Promise<ImageMeta[]> {
     requireDatabase();
     return await db.collection<ImageStore>(collectionId)
         .find()
-        .map(tranformer)
+        .map(transformer)
         .toArray()
 }
 

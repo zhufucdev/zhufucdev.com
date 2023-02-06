@@ -154,6 +154,7 @@ function MetadataStepContent(props: MetadataProps): JSX.Element {
             onSelectUpload={props.onCoverChanged}
             selected={typeof props.cover === 'string' ? props.cover : 'upload'}
             onClose={() => setAnchor(undefined)}
+            filter={meta => meta.use === 'save'}
         />
     </>
 }

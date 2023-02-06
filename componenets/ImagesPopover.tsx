@@ -22,7 +22,8 @@ import ErrorIcon from "@mui/icons-material/Error";
 type ImagesPopoverProps = PopoverProps & {
     selected: ImageID | 'upload' | undefined,
     onSelectImage?: (image: ImageID) => void,
-    onSelectUpload?: (file: File) => void
+    onSelectUpload?: (file: File) => void,
+    filter?: (image: ImageMeta) => boolean
 };
 
 export function ImagesPopover(props: ImagesPopoverProps): JSX.Element {
@@ -41,7 +42,7 @@ export function ImagesPopover(props: ImagesPopoverProps): JSX.Element {
             if (res.ok) {
                 setFailMsg('');
                 const images = await res.json() as ImageMeta[];
-                setImages(images);
+                setImages(props.filter ? images.filter(props.filter) : images);
             } else {
                 setFailMsg(await res.text());
             }

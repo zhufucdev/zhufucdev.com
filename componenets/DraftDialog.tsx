@@ -265,6 +265,7 @@ function RenderContent(props: DraftDialogProps): JSX.Element {
                 selected={titleImage}
                 anchorEl={imageAnchor}
                 onSelectUpload={(file) => setTitleUpload(file)}
+                filter={meta => meta.use === 'save'}
                 anchorOrigin={{
                     vertical: "bottom",
                     horizontal: "right"
