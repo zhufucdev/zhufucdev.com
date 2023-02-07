@@ -40,7 +40,6 @@ function ArticleBody({meta, body, authorNick}: PageProps) {
     const onLargeScreen = useMediaQuery(theme.breakpoints.up('md'));
     const articleRef = useRef<HTMLDivElement>(null);
 
-
     return <>
         <ArticleHeader title={meta!.title} cover={meta!.cover} article={articleRef} />
         <Typography variant="body2" color="text.secondary">

@@ -67,6 +67,12 @@ export function getImageUri(id: ImageID) {
     return `/api/images/${id}`;
 }
 
+export async function lookupImage(id: ImageID): Promise<ImageMetaClient | undefined> {
+    const res = await fetch(`/api/images/${id}/meta`);
+    if (!res.ok) return undefined;
+    return res.json();
+}
+
 export async function fetchApi(url: string, body: any): Promise<Response> {
     return fetch(url, {method: 'POST', headers: {'content-type': 'application/json'}, body: JSON.stringify(body)});
 }

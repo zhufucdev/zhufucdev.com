@@ -32,6 +32,7 @@ declare global {
 
     type RequestResult = { success: boolean, respond?: string, msg?: string };
     type ImageUse = 'avatar' | 'cover' | 'post' | 'save';
+    type ImageMetaClient = {id: ImageID, uploader: UserID, uploadTime: string, name: string, use: ImageUse}
 }
 
 export {};

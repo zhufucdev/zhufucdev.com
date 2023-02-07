@@ -1,6 +1,5 @@
 import {NextApiRequest, NextApiResponse} from "next";
 import {findImage} from "../../../lib/db/image";
-
 import {readFile} from "fs/promises";
 import path from "path";
 

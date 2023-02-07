@@ -39,6 +39,7 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import {useSnackbar} from "notistack";
 import Divider from "@mui/material/Divider";
+import {ImageViewer} from "./ImageViewer";
 
 export function MarkdownScope(props: MarkdownScopeProps): JSX.Element {
     const theme = useTheme();
@@ -76,15 +77,20 @@ export function MarkdownScope(props: MarkdownScopeProps): JSX.Element {
 
 function MdImage({src, preload, imageCache, newCache}: ComponentPropsWithoutRef<"img"> & ImageProps): JSX.Element {
     const [content, setContent] = useState(src);
+    const [viewer, setViewer] = useState(false);
+    const [imageId, setImageId] = useState('');
+
     useEffect(() => {
         if (!src) return
         if (src.includes('/')) {
+            setImageId('');
             setContent(src);
             return
         } else if (preload) {
             const local = preload[src];
             if (local) {
                 if (imageCache && imageCache[src]) {
+                    setImageId('');
                     setContent(imageCache[src]);
                     return
                 } else {
@@ -92,16 +98,28 @@ function MdImage({src, preload, imageCache, newCache}: ComponentPropsWithoutRef<
                     reader.addEventListener('load', () => {
                         newCache?.call({}, src, reader.result as string);
                         setContent(reader.result as string);
+                        setImageId('');
                     })
                     reader.readAsDataURL(local);
                     return
                 }
             }
         }
+        setImageId(src);
         setContent(getImageUri(src));
     }, [src, preload, imageCache]);
-    return <LazyImage src={content} alt=""
-                      style={{maxHeight: '200px', maxWidth: 'calc(100% - 50px)', display: 'block', margin: 'auto'}}/>
+    return <>
+        <LazyImage
+            src={content} alt=""
+            style={{maxHeight: '200px', maxWidth: 'calc(100% - 50px)', display: 'block', margin: 'auto'}}
+            onClick={() => setViewer(true)}
+        />
+        <ImageViewer
+            open={viewer}
+            onClose={() => setViewer(false)}
+            {...imageId ? {image: imageId} : {src: content}}
+        />
+    </>
 }
 
 function MdCode(props: { lang: string, children: ReactNode & ReactNode[] }) {

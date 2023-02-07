@@ -6,6 +6,7 @@ type LazyImageProps = {
     src: string | undefined,
     alt: string,
     style?: CSSProperties,
+    onClick?: () => void
 }
 
 export function LazyImage(props: LazyImageProps): JSX.Element {
