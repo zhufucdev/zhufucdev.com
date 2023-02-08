@@ -153,7 +153,13 @@ function MyAppBar(props: MyAppBarProps): JSX.Element {
                                         <ListItemText>退出账号</ListItemText>
                                     </MenuItem>
                                 </>
-                                : <MenuItem component={Link} href="/login" onClick={dismissHandler}>
+                                : <MenuItem
+                                    component={Link}
+                                    href="/login"
+                                    onClick={() => {
+                                        dismissHandler()
+                                        localStorage.setItem('login_from', '/')
+                                    }}>
                                     <ListItemIcon><LoginIcon fontSize="small"/></ListItemIcon>
                                     <ListItemText>登录</ListItemText>
                                 </MenuItem>
