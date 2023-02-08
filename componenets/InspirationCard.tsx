@@ -13,6 +13,7 @@ import LoginPopover from "./LoginPopover";
 import {getResponseRemark, hasPermission, reCaptchaNotReady} from "../lib/contract";
 import {fetchApi, remark} from "../lib/utility";
 import {useGoogleReCaptcha} from "react-google-recaptcha-v3";
+import {DeleteAlertDialog} from "./DeleteAlertDialog";
 
 export interface RenderingInspiration extends Inspiration {
     raiserNick?: string | undefined
@@ -85,6 +86,7 @@ export function InspirationCardRoot({data, onDeleted, onImplementedChanged}: Ins
         }
     }
 
+    const [toDelete, setToDelete] = useState(false);
     async function handleDelete() {
         if (executeRecaptcha) {
             const token = await executeRecaptcha();
@@ -120,7 +122,7 @@ export function InspirationCardRoot({data, onDeleted, onImplementedChanged}: Ins
                     {canModify && (
                         <Tooltip title="删除">
                             <span>
-                            <IconButton onClick={handleDelete}>
+                            <IconButton onClick={() => setToDelete(true)}>
                                 <DeleteIcon/>
                             </IconButton>
                             </span>
@@ -161,6 +163,12 @@ export function InspirationCardRoot({data, onDeleted, onImplementedChanged}: Ins
             onClose={handlePopoverClose}
             anchorOrigin={{vertical: "bottom", horizontal: "right"}}
             transformOrigin={{vertical: "top", horizontal: "right"}}
+        />
+        <DeleteAlertDialog
+            targetName="灵感"
+            open={toDelete}
+            onConfirm={handleDelete}
+            onClose={() => setToDelete(false)}
         />
     </>
 }

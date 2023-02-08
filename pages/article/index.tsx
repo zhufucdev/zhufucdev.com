@@ -41,6 +41,7 @@ import LoginPopover from "../../componenets/LoginPopover";
 import {ReCaptchaPolicy} from "../../componenets/ReCaptchaPolicy";
 import {ReCaptchaScope} from "../../componenets/ReCaptchaScope";
 import {useGoogleReCaptcha} from "react-google-recaptcha-v3";
+import {DeleteAlertDialog} from "../../componenets/DeleteAlertDialog";
 
 type PageProps = {
     articles: RenderingArticle[],
@@ -198,6 +199,8 @@ function PopoverMenu(props: IMenuProps): JSX.Element {
         setDeleting(false);
     }
 
+    const [toDelete, setToDelete] = useState(false);
+
     if (!canEdit) {
         return (
             <Menu {...props}>
@@ -207,14 +210,14 @@ function PopoverMenu(props: IMenuProps): JSX.Element {
             </Menu>
         );
     }
-    return (
+    return <>
         <Menu {...props}>
             <MenuList>
                 <MenuItem onClick={() => router.push(`/article/edit?id=${props.article._id}`)}>
                     <ListItemIcon><EditIcon/></ListItemIcon>
                     <ListItemText>编辑</ListItemText>
                 </MenuItem>
-                <MenuItem onClick={handleDelete}>
+                <MenuItem onClick={() => setToDelete(true)}>
                     <ListItemIcon>{
                         deleting
                             ? <CircularProgress variant="indeterminate" size={24}/>
@@ -226,7 +229,14 @@ function PopoverMenu(props: IMenuProps): JSX.Element {
                 <PopoverBasics {...props} like={like} dislike={dislike}/>
             </MenuList>
         </Menu>
-    )
+        <DeleteAlertDialog
+            targetName={props.article.title}
+            open={toDelete}
+            onConfirm={handleDelete}
+            onClose={() => setToDelete(false)}
+            onCancel={props.onClose as any} // idk why they are not compatible
+        />
+    </>
 }
 
 function ArticleCard(props: { data: RenderingArticle }): JSX.Element {
