@@ -1,5 +1,5 @@
 import {GetStaticProps, NextPage} from "next";
-import {ArticleMeta, listArticles} from "../../lib/db/article";
+import {listArticles} from "../../lib/db/article";
 import {
     Card,
     CardActionArea,
@@ -17,17 +17,17 @@ import Typography from "@mui/material/Typography";
 import ListItemText from "@mui/material/ListItemText";
 import {Copyright} from "../../componenets/Copyright";
 import {Scaffold} from "../../componenets/Scaffold";
-import {isMe, useProfile, useProfileOf, useUser} from "../../lib/useUser";
+import {isMe, useProfile, useUser} from "../../lib/useUser";
 import {useRouter} from "next/router";
 import {useTitle} from "../../lib/useTitle";
 import {cacheImage, getHumanReadableTime, getImageUri, remark} from "../../lib/utility";
 import React, {useEffect, useMemo, useState} from "react";
-import {fromSaveArticle, getSafeArticle, SafeArticle} from "../../lib/getSafeArticle";
+import {getSafeArticle, SafeArticle} from "../../lib/getSafeArticle";
 import Link from "next/link";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import {getResponseRemark, hasPermission} from "../../lib/contract";
 
-import {User} from "../../lib/db/user";
+import {getUsers, User} from "../../lib/db/user";
 import {useSnackbar} from "notistack";
 import PlaceHolder from "../../componenets/PlaceHolder";
 import EditIcon from "@mui/icons-material/EditOutlined";
@@ -40,7 +40,7 @@ import {useRequestResult} from "../../lib/useRequestResult";
 import LoginPopover from "../../componenets/LoginPopover";
 
 type PageProps = {
-    articles: SafeArticle[]
+    articles: RenderingArticle[]
 }
 
 const PostPage: NextPage<PageProps> = (props) => {
@@ -55,14 +55,14 @@ const PostPage: NextPage<PageProps> = (props) => {
         spacing={1}
         onFabClick={() => router.push('/article/edit')}
     >
-        <Content articles={props.articles.map(fromSaveArticle)}/>
+        <Content articles={props.articles}/>
         <Copyright/>
     </Scaffold>
 }
 
 type IMenuBaseProps = {
     user: User | undefined,
-    article: ArticleMeta
+    article: RenderingArticle
 }
 
 type IMenuProps = Omit<MenuProps, "children"> & IMenuBaseProps;
@@ -211,7 +211,7 @@ function PopoverMenu(props: IMenuProps): JSX.Element {
     )
 }
 
-function ArticleCard(props: { data: ArticleMeta }): JSX.Element {
+function ArticleCard(props: { data: RenderingArticle }): JSX.Element {
     const {data} = props;
     const [coverCached, setCached] = useState(false);
     const [popoverAnchor, setAnchor] = useState<HTMLElement>();
@@ -219,7 +219,6 @@ function ArticleCard(props: { data: ArticleMeta }): JSX.Element {
         if (data.cover)
             cacheImage(getImageUri(data.cover)).then(() => setCached(true));
     }, [data.cover]);
-    const profile = useProfileOf(data.author);
     const self = useProfile();
 
     function handlePopoverActivatorClick(ev: React.MouseEvent<HTMLElement>) {
@@ -251,7 +250,7 @@ function ArticleCard(props: { data: ArticleMeta }): JSX.Element {
                     )}
                 <CardContent sx={{pt: 0}}>
                     <Typography variant="caption" color="text.secondary">
-                        由{profile.user?.nick || data.author}发布于{getHumanReadableTime(data.postTime)}
+                        由{data.authorNick ?? data.author}发布于{getHumanReadableTime(new Date(data.postTime))}
                     </Typography>
                 </CardContent>
             </CardActionArea>
@@ -274,7 +273,7 @@ function ArticleCard(props: { data: ArticleMeta }): JSX.Element {
     </>
 }
 
-function Content(props: { articles: ArticleMeta[] }): JSX.Element {
+function Content(props: { articles: RenderingArticle[] }): JSX.Element {
     if (props.articles.length > 0) {
         return (
             <Grid container spacing={2} key="grid">
@@ -292,6 +291,10 @@ function Content(props: { articles: ArticleMeta[] }): JSX.Element {
     }
 }
 
+interface RenderingArticle extends SafeArticle {
+    authorNick?: string | undefined
+}
+
 export const getStaticProps: GetStaticProps<PageProps> = async () => {
     const articles = await listArticles()
         .then(list => list.sort(
@@ -299,10 +302,15 @@ export const getStaticProps: GetStaticProps<PageProps> = async () => {
                 Math.log(b.likes.length + 1) - Math.log(b.dislikes.length + 1)
                 - Math.log(a.likes.length + 1) + Math.log(a.dislikes.length + 1)
         ));
+    const users = await getUsers(articles.map(m => m.author));
+    const unfolded: RenderingArticle[] = articles.map(m => users(m.author) ? {
+        ...getSafeArticle(m),
+        authorNick: users(m.author)!.nick
+    } : getSafeArticle(m));
 
     return {
         props: {
-            articles: articles.map(getSafeArticle)
+            articles: unfolded
         }
     }
 }

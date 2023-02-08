@@ -1,7 +1,7 @@
 import {GetServerSideProps, NextPage} from "next";
 import {Stack, Tab, Tabs, Box} from "@mui/material";
-import {getInspirations, Inspiration} from "../../lib/db/inspiration";
-import {InspirationCardRoot} from "../../componenets/InspirationCard";
+import {getInspirations} from "../../lib/db/inspiration";
+import {InspirationCardRoot, RenderingInspiration} from "../../componenets/InspirationCard";
 import {useRouter} from "next/router";
 import {MeHeader} from "../../componenets/MeHeader";
 import Typography from "@mui/material/Typography";
@@ -20,7 +20,7 @@ import {isMe} from "../../lib/useUser";
 import {useTitle} from "../../lib/useTitle";
 import {ReCaptchaScope} from "../../componenets/ReCaptchaScope";
 
-function InspirationsTab(props: { data: Inspiration[] }): JSX.Element {
+function InspirationsTab(props: { data: RenderingInspiration[] }): JSX.Element {
     const {data} = props;
     if (data.length > 0) {
         return <Stack>
@@ -143,7 +143,7 @@ const TabbedMePage: NextPage<PageProps> = (props) => {
 };
 
 type PageProps = {
-    inspirations?: Inspiration[],
+    inspirations?: RenderingInspiration[],
     owner?: SafeUser,
     reCaptchaKey: string
 }
@@ -151,9 +151,12 @@ type PageProps = {
 async function getProps(id: string | undefined): Promise<PageProps> {
     const reCaptchaKey = process.env.RECAPTCHA_KEY_FRONTEND as string;
     const owner = id && await getUser(id);
-    let inspirations: Inspiration[] | undefined;
+    let inspirations: RenderingInspiration[] | undefined;
     if (owner) {
-        inspirations = (await getInspirations()).filter(entry => entry.raiser == id);
+        const user = getSafeUser(owner);
+        inspirations = (await getInspirations())
+            .filter(entry => entry.raiser == id)
+            .map(entry => ({...entry, raiserNick: user.nick}));
         return {
             owner: getSafeUser(owner), reCaptchaKey, inspirations
         }

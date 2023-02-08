@@ -8,14 +8,15 @@ import BulbIcon from "@mui/icons-material/LightbulbOutlined";
 import EditIcon from "@mui/icons-material/Edit";
 
 import {getRecents, Recent} from "../lib/db/recent";
-import {getInspirations, Inspiration} from "../lib/db/inspiration";
+import {getInspirations} from "../lib/db/inspiration";
 import PlaceHolder from "../componenets/PlaceHolder";
 import {Copyright} from "../componenets/Copyright";
 import {Scaffold} from "../componenets/Scaffold";
 import {DraftDialog} from "../componenets/DraftDialog";
-import {InspirationCard} from "../componenets/InspirationCard";
+import {InspirationCard, RenderingInspiration} from "../componenets/InspirationCard";
 import {RecentCard} from "../componenets/RecentCard";
 import {useTitle} from "../lib/useTitle";
+import {getUsers} from "../lib/db/user";
 
 const Home: NextPage<PageProps> = ({recents, inspirations, recaptchaKey}) => {
     const [draftOpen, setDraft] = useState(false);
@@ -169,7 +170,7 @@ function RecentCards(props: { data: LocalRecent[] }): JSX.Element {
     }
 }
 
-function InspirationCards(props: { data: Inspiration[] }): JSX.Element {
+function InspirationCards(props: { data: RenderingInspiration[] }): JSX.Element {
     const {data} = props;
     const subtitle = <Caption key="subtitle-inspirations">灵感</Caption>;
 
@@ -194,7 +195,7 @@ function InspirationCards(props: { data: Inspiration[] }): JSX.Element {
 
 type PageProps = {
     recents: LocalRecent[];
-    inspirations: Inspiration[];
+    inspirations: RenderingInspiration[];
     recaptchaKey: string;
 };
 
@@ -206,11 +207,22 @@ type StaticProps = {
 export async function getStaticProps(): Promise<StaticProps> {
     const recents = (await getRecents()).map((v) => ({...v, time: v.time.toISOString()}));
     const inspirations = await getInspirations();
-
+    const unfoldedInspirations: RenderingInspiration[] = [];
+    const users = await getUsers(inspirations.map(m => m.raiser));
+    for (const meta of inspirations) {
+        const user = users(meta.raiser);
+        if (user)
+            unfoldedInspirations.push({
+                ...meta,
+                raiserNick: user.nick
+            })
+        else
+            unfoldedInspirations.push(meta)
+    }
     return {
         props: {
             recents,
-            inspirations,
+            inspirations: unfoldedInspirations,
             recaptchaKey: process.env.RECAPTCHA_KEY_FRONTEND as string
         },
         revalidate: false

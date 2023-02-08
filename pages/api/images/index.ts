@@ -1,8 +1,8 @@
 import {NextApiRequest, NextApiResponse} from "next";
 import {routeWithIronSession} from "../../../lib/session";
 import {validUser} from "../../../lib/db/token";
-import {getAndCheckUserPermission, getUser} from "../../../lib/db/user";
-import {addImage, findImage, listImages, removeImage} from "../../../lib/db/image";
+import {getAndCheckUserPermission} from "../../../lib/db/user";
+import {addImage, listImages} from "../../../lib/db/image";
 import * as multipart from "parse-multipart-data";
 import {readAll, verifyReCaptcha} from "../../../lib/utility";
 

@@ -26,6 +26,21 @@ export async function getUser(id: UserID): Promise<User | null> {
 }
 
 /**
+ * Get a bunch of users, but faster
+ */
+export async function getUsers(ids: UserID[]): Promise<BunchUsers> {
+    let cache: {[key: string]: User} = {};
+    for (const id of ids) {
+        if (cache[id]) continue;
+        const meta = await getUser(id);
+        if (meta) cache[id] = meta;
+    }
+    return (id) => cache[id] ?? null
+}
+
+type BunchUsers = (id: UserID) => User | null
+
+/**
  * Create a new user out of nowhere.
  * @param id corresponding to the "_id" field.
  * @param nick the "nick" field.

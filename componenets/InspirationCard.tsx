@@ -1,5 +1,5 @@
 import {Inspiration} from "../lib/db/inspiration";
-import {useProfileOf, useUser} from "../lib/useUser";
+import {useUser} from "../lib/useUser";
 import * as React from "react";
 import {useEffect} from "react";
 import {useRequestResult} from "../lib/useRequestResult";
@@ -11,11 +11,13 @@ import FavoriteIcon from "@mui/icons-material/Favorite";
 import LoginPopover from "./LoginPopover";
 import {getResponseRemark} from "../lib/contract";
 
+export interface RenderingInspiration extends Inspiration {
+    raiserNick?: string | undefined
+}
 
-export function InspirationCardRoot(props: {data: Inspiration}): JSX.Element {
+export function InspirationCardRoot(props: {data: RenderingInspiration}): JSX.Element {
     const {data} = props;
     const {user, isLoading: isUserLoading} = useUser();
-    const {user: raiser} = useProfileOf(data.raiser);
 
     const [anchor, setAnchor] = React.useState<HTMLElement | null>(null);
     const [liked, setLiked] = React.useState(false);
@@ -59,7 +61,7 @@ export function InspirationCardRoot(props: {data: Inspiration}): JSX.Element {
             <Grid container ml={1}>
                 <Grid item flexGrow={1}>
                     <Typography variant="body2" color="text.secondary">
-                        {raiser ? raiser.nick : data.raiser}
+                        {data.raiserNick ? data.raiserNick : data.raiser}
                     </Typography>
                 </Grid>
                 <Grid item alignItems="center" sx={{display: "flex"}}>
@@ -92,7 +94,7 @@ export function InspirationCardRoot(props: {data: Inspiration}): JSX.Element {
     </>
 }
 
-export function InspirationCard(props: { data: Inspiration }): JSX.Element {
+export function InspirationCard(props: { data: RenderingInspiration }): JSX.Element {
     const {data} = props;
     const colorProps = data.implemented ? {backgroundColor: green[600]} : {};
     return (
