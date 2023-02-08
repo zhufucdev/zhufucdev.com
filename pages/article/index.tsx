@@ -25,7 +25,7 @@ import React, {useEffect, useMemo, useState} from "react";
 import {getSafeArticle, SafeArticle} from "../../lib/getSafeArticle";
 import Link from "next/link";
 import ListItemIcon from "@mui/material/ListItemIcon";
-import {getResponseRemark, hasPermission} from "../../lib/contract";
+import {getResponseRemark, hasPermission, reCaptchaNotReady} from "../../lib/contract";
 
 import {getUsers, User} from "../../lib/db/user";
 import {useSnackbar} from "notistack";
@@ -38,26 +38,33 @@ import LikeIcon from "@mui/icons-material/ThumbUp";
 import DislikeIcon from "@mui/icons-material/ThumbDown";
 import {useRequestResult} from "../../lib/useRequestResult";
 import LoginPopover from "../../componenets/LoginPopover";
+import {ReCaptchaPolicy} from "../../componenets/ReCaptchaPolicy";
+import {ReCaptchaScope} from "../../componenets/ReCaptchaScope";
+import {useGoogleReCaptcha} from "react-google-recaptcha-v3";
 
 type PageProps = {
-    articles: RenderingArticle[]
+    articles: RenderingArticle[],
+    recaptchaKey: string,
 }
 
 const PostPage: NextPage<PageProps> = (props) => {
     const {user} = useUser();
     const router = useRouter();
     useTitle('文章')
-    return <Scaffold
-        fabContent={user && isMe(user) && <>
-            <EditIcon sx={{mr: 1}}/>
-            草拟
-        </>}
-        spacing={1}
-        onFabClick={() => router.push('/article/edit')}
-    >
-        <Content articles={props.articles}/>
-        <Copyright/>
-    </Scaffold>
+    return <ReCaptchaScope reCaptchaKey={props.recaptchaKey}>
+        <Scaffold
+            fabContent={user && isMe(user) && <>
+                <EditIcon sx={{mr: 1}}/>
+                草拟
+            </>}
+            spacing={1}
+            onFabClick={() => router.push('/article/edit')}
+        >
+            <Content articles={props.articles}/>
+            <ReCaptchaPolicy/>
+            <Copyright/>
+        </Scaffold>
+    </ReCaptchaScope>
 }
 
 type IMenuBaseProps = {
@@ -74,18 +81,24 @@ type PopoverBasicProps = IMenuBaseProps & {
 function PopoverBasics({article, like, dislike}: PopoverBasicProps): JSX.Element {
     const [liked, setLiked] = like;
     const [disliked, setDisliked] = dislike;
+    const {executeRecaptcha} = useGoogleReCaptcha();
     const handleRemark = useRequestResult();
 
     async function handleLike() {
         let result: RequestResult;
 
-        if (!liked) {
-            setLiked(true);
-            setDisliked(false);
-            result = await getResponseRemark(await remark('articles', article._id, 'like'));
+        if (executeRecaptcha) {
+            const token = await executeRecaptcha();
+            if (!liked) {
+                setLiked(true);
+                setDisliked(false);
+                result = await getResponseRemark(await remark('articles', article._id, token, 'like'));
+            } else {
+                setLiked(false);
+                result = await getResponseRemark(await remark('articles', article._id, token, 'none'));
+            }
         } else {
-            setLiked(false);
-            result = await getResponseRemark(await remark('articles', article._id, 'none'));
+            result = reCaptchaNotReady;
         }
 
         handleRemark(result);
@@ -98,13 +111,18 @@ function PopoverBasics({article, like, dislike}: PopoverBasicProps): JSX.Element
     async function handleDislike() {
         let result: RequestResult;
 
-        if (!disliked) {
-            setDisliked(true);
-            setLiked(false);
-            result = await getResponseRemark(await remark('articles', article._id, 'dislike'));
+        if (executeRecaptcha) {
+            const token = await executeRecaptcha();
+            if (!disliked) {
+                setDisliked(true);
+                setLiked(false);
+                result = await getResponseRemark(await remark('articles', article._id, token, 'dislike'));
+            } else {
+                setDisliked(false);
+                result = await getResponseRemark(await remark('articles', article._id, token, 'none'));
+            }
         } else {
-            setDisliked(false);
-            result = await getResponseRemark(await remark('articles', article._id, 'none'));
+            result = reCaptchaNotReady;
         }
 
         handleRemark(result);
@@ -310,7 +328,8 @@ export const getStaticProps: GetStaticProps<PageProps> = async () => {
 
     return {
         props: {
-            articles: unfolded
+            articles: unfolded,
+            recaptchaKey: process.env.RECAPTCHA_KEY_FRONTEND as string
         }
     }
 }
