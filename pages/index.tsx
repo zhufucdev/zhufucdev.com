@@ -18,6 +18,7 @@ import {RecentCard} from "../componenets/RecentCard";
 import {useTitle} from "../lib/useTitle";
 import {getUsers, User} from "../lib/db/user";
 import {ReCaptchaScope} from "../componenets/ReCaptchaScope";
+import {ReCaptchaPolicy} from "../componenets/ReCaptchaPolicy";
 
 const Home: NextPage<PageProps> = ({recents, inspirations: _inspirations, recaptchaKey}) => {
     const [draftOpen, setDraft] = useState(false);
@@ -73,6 +74,7 @@ const Home: NextPage<PageProps> = ({recents, inspirations: _inspirations, recapt
                 onClose={() => setDraft(false)}
                 onPosted={handleNewPost}
             />
+            <ReCaptchaPolicy sx={{textAlign: 'center'}}/>
             <Copyright/>
         </ReCaptchaScope>
     );

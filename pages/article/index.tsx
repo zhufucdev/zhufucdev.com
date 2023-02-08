@@ -61,7 +61,7 @@ const PostPage: NextPage<PageProps> = (props) => {
             onFabClick={() => router.push('/article/edit')}
         >
             <Content articles={props.articles}/>
-            <ReCaptchaPolicy/>
+            <ReCaptchaPolicy sx={{textAlign: 'center'}}/>
             <Copyright/>
         </Scaffold>
     </ReCaptchaScope>

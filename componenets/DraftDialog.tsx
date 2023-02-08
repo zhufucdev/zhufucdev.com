@@ -24,7 +24,6 @@ import {beginPost, postMessage, uploadImage} from "../lib/utility";
 import {ProgressSlider} from "./PrograssSlider";
 import {LazyAvatar} from "./LazyAvatar";
 import {useGoogleReCaptcha} from "react-google-recaptcha-v3";
-import {ReCaptchaPolicy} from "./ReCaptchaPolicy";
 
 import BulbIcon from "@mui/icons-material/LightbulbOutlined";
 import MessageIcon from "@mui/icons-material/MailOutline";
@@ -33,7 +32,6 @@ import RecentIcon from "@mui/icons-material/Podcasts";
 import ImageIcon from "@mui/icons-material/ImageOutlined"
 import {grey} from "@mui/material/colors";
 import {ImagesPopover} from "./ImagesPopover";
-import {ReCaptchaScope} from "./ReCaptchaScope";
 import {User} from "../lib/db/user";
 
 type DraftDialogProps = {
@@ -248,7 +246,6 @@ export function DraftDialog(props: DraftDialogProps): JSX.Element {
                     {chips}
                     {inputs}
                 </Stack>
-                <ReCaptchaPolicy variant="body2"/>
             </DialogContent>
             <DialogActions>
                 {user
@@ -318,7 +315,10 @@ export function DraftDialog(props: DraftDialogProps): JSX.Element {
         )
     } else {
         return (
-            <Dialog open={props.open} onClose={() => props.onClose()} keepMounted={false}>
+            <Dialog open={props.open}
+                    onClose={() => props.onClose()}
+                    keepMounted={false}
+            >
                 {content}
             </Dialog>
         )
