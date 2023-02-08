@@ -77,8 +77,8 @@ export async function fetchApi(url: string, body: any): Promise<Response> {
     return fetch(url, {method: 'POST', headers: {'content-type': 'application/json'}, body: JSON.stringify(body)});
 }
 
-export async function remark(type: Remarkable, id: any, mode: RemarkMode): Promise<Response> {
-    return fetch(`/api/remark/${type}/${mode}/${id}`)
+export async function remark(type: Remarkable, id: any, token: string, mode: RemarkMode): Promise<Response> {
+    return fetchApi(`/api/remark/${type}/${mode}/${id}`, {token});
 }
 
 export async function postMessage(type: MessageType, ref: string, message: MessageContent, token: string): Promise<Response> {

@@ -23,8 +23,9 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMoreOutlined";
 import LoginPopover from "./LoginPopover";
 import {LocalRecent} from "../pages";
 import {useRequestResult} from "../lib/useRequestResult";
-import {getResponseRemark} from "../lib/contract";
+import {getResponseRemark, reCaptchaNotReady} from "../lib/contract";
 import {MarkdownScope} from "./MarkdownScope";
+import {useGoogleReCaptcha} from "react-google-recaptcha-v3";
 
 interface ExpandMoreProps extends IconButtonProps {
     expand: boolean;
@@ -44,6 +45,7 @@ const ExpandMore = styled((props: ExpandMoreProps) => {
 export function RecentCard(props: { data: LocalRecent }) {
     const {data} = props;
     const {user, isLoading: isUserLoading} = useUser();
+    const {executeRecaptcha} = useGoogleReCaptcha();
     const imageUri = getImageUri(data.cover);
 
     const [like, setLike] = useState(false);
@@ -94,26 +96,34 @@ export function RecentCard(props: { data: LocalRecent }) {
     async function handleLike(event: React.MouseEvent<HTMLElement>) {
         if (!user) {
             setAnchor(event.currentTarget);
-        } else {
+        } else if (executeRecaptcha) {
+            const token = await executeRecaptcha();
             if (!like) {
-                const res = await remark("recents", data._id, "like");
+                const res = await remark("recents", data._id, token, "like");
                 handleLikeResult(await getResponseRemark(res));
             } else {
-                const res = await remark("recents", data._id, "none");
+                const res = await remark("recents", data._id, token, "none");
                 handleLikeResult(await getResponseRemark(res));
             }
+        } else {
+            handleLikeResult(reCaptchaNotReady);
         }
     }
 
     async function handleDislike(event: React.MouseEvent<HTMLElement>) {
         if (!user) {
             setAnchor(event.currentTarget);
-        } else if (!dislike) {
-            const res = await remark("recents", data._id, "dislike");
-            handleDislikeResult(await getResponseRemark(res));
+        } else if (executeRecaptcha) {
+            const token = await executeRecaptcha();
+            if (!dislike) {
+                const res = await remark("recents", data._id, token, "dislike");
+                handleDislikeResult(await getResponseRemark(res));
+            } else {
+                const res = await remark("recents", data._id, token, "none");
+                handleDislikeResult(await getResponseRemark(res));
+            }
         } else {
-            const res = await remark("recents", data._id, "none");
-            handleDislikeResult(await getResponseRemark(res));
+            handleDislikeResult(reCaptchaNotReady);
         }
     }
 

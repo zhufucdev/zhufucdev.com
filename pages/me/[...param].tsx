@@ -6,7 +6,7 @@ import {useRouter} from "next/router";
 import {MeHeader} from "../../componenets/MeHeader";
 import Typography from "@mui/material/Typography";
 import Divider from "@mui/material/Divider";
-import {ReactNode} from "react";
+import {ReactNode, useEffect, useState} from "react";
 import {getUser} from "../../lib/db/user";
 import PlaceHolder from "../../componenets/PlaceHolder";
 import {fromSafeUser, getSafeUser, SafeUser} from "../../lib/getSafeUser";
@@ -19,14 +19,19 @@ import Link from "next/link";
 import {isMe} from "../../lib/useUser";
 import {useTitle} from "../../lib/useTitle";
 import {ReCaptchaScope} from "../../componenets/ReCaptchaScope";
+import {ReCaptchaPolicy} from "../../componenets/ReCaptchaPolicy";
+import {Copyright} from "../../componenets/Copyright";
 
 function InspirationsTab(props: { data: RenderingInspiration[] }): JSX.Element {
-    const {data} = props;
+    const [data, setData] = useState(props.data);
+    useEffect(() => {
+        setData(props.data)
+    }, [props.data])
     if (data.length > 0) {
         return <Stack>
             {data.map(
                 (entry, index) => <Box key={entry._id}>
-                    <InspirationCardRoot data={entry}/>
+                    <InspirationCardRoot data={entry} onDeleted={() => setData(data.filter(e => e._id !== entry._id))}/>
                     {index < data.length - 1 && <Divider/>}
                 </Box>
             )}
@@ -63,7 +68,7 @@ export function QnaTab(): JSX.Element {
         <QnA question="你的代码怎么写得这么垃圾，根本没法用" answer="我不在乎，除非付给我钱"/>
         <Divider/>
         <QnA question="还会做什么"
-             answer="我会做视频，比如整一些文案、动画，简单的调色、调音，还会3D建模，虽然不怎么会。此外，我还会使用Arch Linux"/>
+             answer="我会做视频，比如整一些文案、动画，简单的调色、调音，还会3D建模。此外，我还会使用Arch Linux"/>
         <Divider/>
         <QnA question="怎么评价你自己" answer="没啥好说的，就是牛逼"/>
         <Divider/>
@@ -136,6 +141,8 @@ const TabbedMePage: NextPage<PageProps> = (props) => {
         return <ReCaptchaScope reCaptchaKey={props.reCaptchaKey}>
             <MeHeader user={fromSafeUser(props.owner)}/>
             <MeTabs section={(section || (aboutMe ? 'qna' : 'inspirations')) as TraceType} {...props}/>
+            <ReCaptchaPolicy sx={{textAlign: "center"}}/>
+            <Copyright/>
         </ReCaptchaScope>
     } else {
         return <NoUserHint id={id as string}/>

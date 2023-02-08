@@ -3,12 +3,14 @@ import {mergeWith, Remarkable, RemarkMode} from "../../../../../lib/db/remark";
 import {routeWithIronSession} from "../../../../../lib/session";
 import {validUser} from "../../../../../lib/db/token";
 import {getAndCheckUserPermission} from "../../../../../lib/db/user";
+import {verifyReCaptcha} from "../../../../../lib/utility";
 
 const invalidIDs = ['undefined', 'null', 'zhufucdev']
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
     const {type, id, mode} = req.query;
-    if (!type || !id || invalidIDs.includes(id as string)) {
+    const {token} = req.body;
+    if (!type || !id || invalidIDs.includes(id as string) || !token) {
         res.status(400).send('bad request');
         return;
     }
@@ -19,6 +21,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
     if (!await getAndCheckUserPermission(req.session.userID, "remark")) {
         res.status(403).send('not permitted to remark');
+        return;
+    }
+
+    if (!await verifyReCaptcha(token)) {
+        res.status(403).send('invalid reCAPTCHA');
         return;
     }
 

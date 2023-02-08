@@ -2,7 +2,7 @@ import type {NextPage} from "next";
 import * as React from "react";
 import {useState} from "react";
 import {Box, Button, Grid, Stack, Typography, useMediaQuery, useTheme} from "@mui/material";
-import {motion} from "framer-motion";
+import {AnimatePresence, motion} from "framer-motion";
 import NoRecentsIcon from "@mui/icons-material/WifiTetheringOffOutlined";
 import BulbIcon from "@mui/icons-material/LightbulbOutlined";
 import EditIcon from "@mui/icons-material/Edit";
@@ -16,23 +16,28 @@ import {DraftDialog} from "../componenets/DraftDialog";
 import {InspirationCard, RenderingInspiration} from "../componenets/InspirationCard";
 import {RecentCard} from "../componenets/RecentCard";
 import {useTitle} from "../lib/useTitle";
-import {getUsers} from "../lib/db/user";
+import {getUsers, User} from "../lib/db/user";
+import {ReCaptchaScope} from "../componenets/ReCaptchaScope";
 
-const Home: NextPage<PageProps> = ({recents, inspirations, recaptchaKey}) => {
+const Home: NextPage<PageProps> = ({recents, inspirations: _inspirations, recaptchaKey}) => {
     const [draftOpen, setDraft] = useState(false);
     useTitle('主页');
 
-    function handleNewPost(type: MessageType, id: string, raiser: UserID, content: MessageContent) {
+    const [inspirations, setInspirations] = useState(_inspirations);
+
+    function handleNewPost(type: MessageType, id: string, raiser: User, content: MessageContent) {
         switch (type) {
             case "inspiration":
                 inspirations.unshift({
                     _id: id,
-                    raiser,
+                    raiser: raiser._id,
                     body: content.body,
                     likes: [],
                     implemented: false,
-                    comments: []
+                    comments: [],
+                    raiserNick: raiser.nick
                 });
+                setInspirations(inspirations);
                 break;
             case "recent":
                 recents.pop();
@@ -49,7 +54,7 @@ const Home: NextPage<PageProps> = ({recents, inspirations, recaptchaKey}) => {
     }
 
     return (
-        <>
+        <ReCaptchaScope reCaptchaKey={recaptchaKey}>
             <Scaffold
                 spacing={2}
                 fabContent={
@@ -61,16 +66,15 @@ const Home: NextPage<PageProps> = ({recents, inspirations, recaptchaKey}) => {
                 onFabClick={() => setDraft(true)}
             >
                 <RecentCards key="recents" data={recents}/>
-                <InspirationCards key="inspirations" data={inspirations}/>
+                <InspirationCards key="inspirations" data={inspirations} setData={setInspirations}/>
             </Scaffold>
             <DraftDialog
                 open={draftOpen}
                 onClose={() => setDraft(false)}
-                recaptchaKey={recaptchaKey}
                 onPosted={handleNewPost}
             />
             <Copyright/>
-        </>
+        </ReCaptchaScope>
     );
 };
 
@@ -170,17 +174,28 @@ function RecentCards(props: { data: LocalRecent[] }): JSX.Element {
     }
 }
 
-function InspirationCards(props: { data: RenderingInspiration[] }): JSX.Element {
-    const {data} = props;
+function InspirationCards(props: { data: RenderingInspiration[], setData: (value: RenderingInspiration[]) => void }): JSX.Element {
+    const {data, setData} = props;
     const subtitle = <Caption key="subtitle-inspirations">灵感</Caption>;
 
     if (data.length > 0) {
         return (
-            <Stack spacing={1}>
+            <Stack spacing={1} component={motion.div} layout>
                 {subtitle}
-                {data.map((e) => (
-                    <InspirationCard data={e} key={e._id}/>
-                ))}
+                <AnimatePresence initial={false}>
+                    {data.map((e) => (
+                        <motion.div
+                            key={e._id}
+                            animate={{x: 0}}
+                            exit={{x: '100%', height: 0}}
+                        >
+                            <InspirationCard
+                                data={e}
+                                onDeleted={() => setData(data.filter(en => en._id !== e._id))}
+                            />
+                        </motion.div>
+                    ))}
+                </AnimatePresence>
             </Stack>
         );
     } else {

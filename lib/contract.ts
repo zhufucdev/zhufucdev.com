@@ -67,6 +67,12 @@ export async function getResponseRemark(res: Response): Promise<RequestResult> {
     }
 }
 
+export const reCaptchaNotReady = {
+    msg: '咋回事？',
+    respond: 'reCAPTCHA服务未就绪',
+    success: false
+}
+
 export function hasPermission(user: User, permit: PermissionID): boolean {
     if (user.permissions.includes("default")) {
         const defaultPermissions: PermissionID[] = [

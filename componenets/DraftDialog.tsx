@@ -34,15 +34,15 @@ import ImageIcon from "@mui/icons-material/ImageOutlined"
 import {grey} from "@mui/material/colors";
 import {ImagesPopover} from "./ImagesPopover";
 import {ReCaptchaScope} from "./ReCaptchaScope";
+import {User} from "../lib/db/user";
 
 type DraftDialogProps = {
     open: boolean,
     onClose: () => void,
-    recaptchaKey: string,
-    onPosted: (type: MessageType, id: any, raiser: UserID, content: MessageContent) => void
+    onPosted: (type: MessageType, id: any, raiser: User, content: MessageContent) => void
 };
 
-function RenderContent(props: DraftDialogProps): JSX.Element {
+export function DraftDialog(props: DraftDialogProps): JSX.Element {
     const theme = useTheme();
     const router = useRouter();
     const {user} = useProfile();
@@ -154,7 +154,7 @@ function RenderContent(props: DraftDialogProps): JSX.Element {
         setTimeout(() => {
             props.onClose();
             if (result.success) {
-                props.onPosted(type, result.respond, user!._id, content!);
+                props.onPosted(type, ref, user!, content!);
             }
             setTimeout(() => reset(result.success), 1000);
         }, 2000);
@@ -325,10 +325,3 @@ function RenderContent(props: DraftDialogProps): JSX.Element {
     }
 }
 
-export function DraftDialog(props: DraftDialogProps): JSX.Element {
-    return <>
-        <ReCaptchaScope reCaptchaKey={props.recaptchaKey}>
-            <RenderContent {...props}/>
-        </ReCaptchaScope>
-    </>
-}

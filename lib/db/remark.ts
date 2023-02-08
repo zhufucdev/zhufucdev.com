@@ -10,7 +10,7 @@ export interface WithDislikes {
 }
 
 export type Remarkable = 'recents' | 'inspirations' | 'articles'
-export type RemarkMode = 'like' | 'dislike' | 'none'
+export type RemarkMode = 'like' | 'dislike' | 'none' | 'implement'
 
 export async function mergeWith(collectionID: Remarkable, itemID: any,
                                 user: UserID, mode: RemarkMode): Promise<boolean> {
@@ -25,36 +25,51 @@ export async function mergeWith(collectionID: Remarkable, itemID: any,
         }
     }
 
-    if (mode === "like") {
-        requireRemoval("dislikes");
-        if (Array.isArray(origin.likes)) {
-            if (origin.likes.includes(user)) {
-                return true;
+    switch (mode) {
+        case "like":
+            requireRemoval("dislikes");
+            if (Array.isArray(origin.likes)) {
+                if (origin.likes.includes(user)) {
+                    return true;
+                }
+                origin.likes.push(user);
+            } else {
+                origin.likes = [user];
             }
-            origin.likes.push(user);
-        } else {
-            origin.likes = [user];
-        }
-    } else if (mode == "dislike") {
-        requireRemoval("likes");
-        if (Array.isArray(origin.dislikes)) {
-            if (origin.dislikes.includes(user)) {
-                return true;
+            return await updateLikeDislikes();
+        case "dislike":
+            requireRemoval("likes");
+            if (Array.isArray(origin.dislikes)) {
+                if (origin.dislikes.includes(user)) {
+                    return true;
+                }
+                origin.dislikes.push(user);
+            } else {
+                origin.dislikes = [user];
             }
-            origin.dislikes.push(user);
-        } else {
-            origin.dislikes = [user];
-        }
-    } else {
-        requireRemoval("likes");
-        requireRemoval("dislikes");
+            return await updateLikeDislikes();
+        case "none":
+            requireRemoval("likes");
+            requireRemoval("dislikes");
+            return await updateLikeDislikes();
+        case "implement":
+            const {ok} = await db.collection(collectionID).findOneAndUpdate(filter, {
+                $set: {
+                    implemented: !origin.implemented
+                }
+            })
+            return ok === 1;
     }
 
-    const {ok} = await db.collection(collectionID).findOneAndUpdate(filter, {
-        $set: {
-            likes: origin.likes,
-            dislikes: origin.dislikes
-        }
-    });
-    return ok == 1;
+    async function updateLikeDislikes() {
+        const {ok} = await db.collection(collectionID).findOneAndUpdate(filter, {
+            $set: {
+                likes: origin.likes,
+                dislikes: origin.dislikes
+            }
+        });
+        return ok == 1;
+    }
+
+    return false;
 }

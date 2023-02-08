@@ -21,7 +21,7 @@ export async function drop(type: Droppable, id: any, dropper: UserID): Promise<D
     const user = await getUser(dropper);
     if (!user) return notPermitted;
     const coll = await requireDatabase().collection(type);
-    const original = coll.findOne({_id: id});
+    const original = await coll.findOne({_id: id});
     if (!original) return notPermitted;
 
     function checkPermit(author: UserID): boolean {
