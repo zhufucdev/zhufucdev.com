@@ -10,6 +10,7 @@ declare global {
 
     type MessageType = 'inspiration' | 'recent' | 'pm' | 'issue';
     type Postable = 'articles' | MessageType;
+    type InspirationFlag = 'implemented' | 'not_planned' | 'sus' | 'none';
     type TraceType = 'inspirations' | 'qna' | 'issues';
     type MessageContent = { body: string, title?: string, image?: ImageID };
     type PermissionID =

@@ -1,11 +1,21 @@
 import type {NextPage} from "next";
 import * as React from "react";
 import {useState} from "react";
-import {Box, Button, Grid, Stack, Typography, useMediaQuery, useTheme} from "@mui/material";
+import {
+    Box,
+    Button,
+    Grid,
+    Stack,
+    Typography,
+    TypographyProps,
+    useMediaQuery,
+    useTheme
+} from "@mui/material";
 import {AnimatePresence, motion} from "framer-motion";
 import NoRecentsIcon from "@mui/icons-material/WifiTetheringOffOutlined";
 import BulbIcon from "@mui/icons-material/LightbulbOutlined";
 import EditIcon from "@mui/icons-material/Edit";
+import ContinueIcon from "@mui/icons-material/ArrowForward";
 
 import {getRecents, Recent} from "../lib/db/recent";
 import {getInspirations} from "../lib/db/inspiration";
@@ -19,6 +29,7 @@ import {useTitle} from "../lib/useTitle";
 import {getUsers, User} from "../lib/db/user";
 import {ReCaptchaScope} from "../componenets/ReCaptchaScope";
 import {ReCaptchaPolicy} from "../componenets/ReCaptchaPolicy";
+import Link from "next/link";
 
 const Home: NextPage<PageProps> = ({recents, inspirations: _inspirations, recaptchaKey}) => {
     const [draftOpen, setDraft] = useState(false);
@@ -34,7 +45,8 @@ const Home: NextPage<PageProps> = ({recents, inspirations: _inspirations, recapt
                     raiser: raiser._id,
                     body: content.body,
                     likes: [],
-                    implemented: false,
+                    flag: 'none',
+                    archived: false,
                     comments: [],
                     raiserNick: raiser.nick
                 });
@@ -82,10 +94,10 @@ const Home: NextPage<PageProps> = ({recents, inspirations: _inspirations, recapt
 
 export type LocalRecent = Omit<Recent, "time"> & { time: string };
 
-function Caption(props: { children: React.ReactElement | string }) {
+function Caption(props: TypographyProps) {
     const theme = useTheme()
     return (
-        <Typography mb={1} variant="subtitle2" color={theme.palette.primary.main}>
+        <Typography mb={1} variant="subtitle2" color={theme.palette.primary.main} {...props}>
             {props.children}
         </Typography>
     );
@@ -178,12 +190,11 @@ function RecentCards(props: { data: LocalRecent[] }): JSX.Element {
 
 function InspirationCards(props: { data: RenderingInspiration[], setData: (value: RenderingInspiration[]) => void }): JSX.Element {
     const {data, setData} = props;
-    const subtitle = <Caption key="subtitle-inspirations">灵感</Caption>;
 
     if (data.length > 0) {
         return (
             <Stack spacing={1} component={motion.div} layout sx={{overflowY: 'hidden'}}>
-                {subtitle}
+                <Caption key="subtitle-inspirations">灵感</Caption>
                 <AnimatePresence initial={false}>
                     {data.map((e) => (
                         <motion.div
@@ -194,16 +205,24 @@ function InspirationCards(props: { data: RenderingInspiration[], setData: (value
                             <InspirationCard
                                 data={e}
                                 onDeleted={() => setData(data.filter(en => en._id !== e._id))}
+                                onArchiveChanged={
+                                    (archived) => archived && setData(data.filter(en => en._id !== e._id))
+                                }
                             />
                         </motion.div>
                     ))}
                 </AnimatePresence>
+                <Box display="flex" flexDirection="row-reverse">
+                    <Button variant="text" component={Link} href="/inspiration">
+                        所有灵感 <ContinueIcon/>
+                    </Button>
+                </Box>
             </Stack>
         );
     } else {
         return (
             <Box>
-                {subtitle}
+                <Caption key="subtitle-inspirations">灵感</Caption>
                 <PlaceHolder icon={BulbIcon} title="未提供灵感"/>
             </Box>
         );
@@ -227,6 +246,7 @@ export async function getStaticProps(): Promise<StaticProps> {
     const unfoldedInspirations: RenderingInspiration[] = [];
     const users = await getUsers(inspirations.map(m => m.raiser));
     for (const meta of inspirations) {
+        if (meta.archived) continue;
         const user = users(meta.raiser);
         if (user)
             unfoldedInspirations.push({

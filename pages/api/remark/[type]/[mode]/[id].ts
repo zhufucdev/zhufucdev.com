@@ -29,7 +29,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         return;
     }
 
-    const success = await mergeWith(type as Remarkable, id as string, req.session.userID, mode as RemarkMode);
+    const success = await mergeWith(type as Remarkable,
+        id as string,
+        'likes',
+        req.session.userID,
+        mode as RemarkMode);
     if (success) {
         postMerge(type as Remarkable, res);
         res.send('success');

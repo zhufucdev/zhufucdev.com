@@ -60,10 +60,20 @@ async function messageRoute(req: NextApiRequest, res: NextApiResponse) {
     }
 
     if (succeeded) {
-        res.revalidate('/');
+        postMessage(type, res);
         res.send('success');
     } else {
         res.status(500).send('database not acknowledging');
+    }
+}
+
+async function postMessage(type: MessageType, res: NextApiResponse) {
+    switch (type) {
+        case "inspiration":
+            await res.revalidate('/inspirations');
+        case "recent":
+            await res.revalidate('/');
+            break;
     }
 }
 

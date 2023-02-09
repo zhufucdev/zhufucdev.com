@@ -67,6 +67,8 @@ type MyAppBarProps = {
 
 function MyAppBar(props: MyAppBarProps): JSX.Element {
     const theme = useTheme();
+    const router = useRouter();
+
     const {user, mutateUser, isLoading: isUserLoading} = useUser();
     const handleResult = useRequestResult();
     const [title] = useTitle();
@@ -83,6 +85,7 @@ function MyAppBar(props: MyAppBarProps): JSX.Element {
 
     const scrolled = useScrollTrigger({disableHysteresis: true, threshold: 0});
     const useSurfaceColor = theme.palette.mode === 'light' && !scrolled;
+    const menuItemColor = useSurfaceColor ? 'default' : 'inherit';
 
     return (
         <AppBar
@@ -96,7 +99,7 @@ function MyAppBar(props: MyAppBarProps): JSX.Element {
         >
             <Toolbar>
                 <IconButton
-                    color={useSurfaceColor ? "default" : "inherit"}
+                    color={menuItemColor}
                     aria-label="open drawer"
                     edge="start"
                     onClick={props.onToggleDrawer}
@@ -117,7 +120,7 @@ function MyAppBar(props: MyAppBarProps): JSX.Element {
                     <IconButton
                         onClick={ev => setUserMenuAnchor(ev.currentTarget)}
                         disabled={isUserLoading}
-                        color="inherit"
+                        color={menuItemColor}
                     >
                         {
                             user
@@ -158,7 +161,7 @@ function MyAppBar(props: MyAppBarProps): JSX.Element {
                                     href="/login"
                                     onClick={() => {
                                         dismissHandler()
-                                        localStorage.setItem('login_from', '/')
+                                        localStorage.setItem('login_from', router.pathname)
                                     }}>
                                     <ListItemIcon><LoginIcon fontSize="small"/></ListItemIcon>
                                     <ListItemText>登录</ListItemText>

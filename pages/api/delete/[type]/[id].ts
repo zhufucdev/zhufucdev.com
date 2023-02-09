@@ -38,6 +38,7 @@ async function postDrop(type: Droppable, id: any, res: NextApiResponse) {
             await res.revalidate('/article');
             break;
         case "recents":
+            await res.revalidate('/inspiration')
         case "inspirations":
             await res.revalidate('/');
             return;

@@ -5,7 +5,7 @@ export interface Comment {
     _id: CommentID;
     raiser: UserID;
     content: string;
-    belonging: any;
+    parent: any;
     time: Date;
     modified: boolean;
     children: CommentID[];
@@ -47,7 +47,7 @@ export async function addComment(
     const instance: Comment = {
         raiser, content,
         _id: nanoid(),
-        belonging: holder._id,
+        parent: holder._id,
         time: new Date(),
         modified: false,
         children: []

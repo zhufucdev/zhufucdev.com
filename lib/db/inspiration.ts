@@ -1,13 +1,13 @@
 import {db, requireDatabase} from "./database";
 import {WithLikes} from "./remark";
-import {nanoid} from "nanoid";
 import {WithComments} from "./comment";
 
 export interface Inspiration extends WithLikes, WithComments {
     _id: InspirationID;
     raiser: UserID;
     body: string;
-    implemented: boolean
+    flag: InspirationFlag;
+    archived: boolean;
 }
 
 const collectionID = "inspirations";
@@ -21,9 +21,13 @@ export async function getInspirations(): Promise<Inspiration[]> {
     find = find.reverse();
     return find.map(v => {
         return {
-            ...v,
+            _id: v._id,
+            body: v.body,
+            flag: v.flag ?? 'none',
+            raiser: v.raiser,
             likes: v.likes ?? [],
-            comments: v.comments ?? []
+            comments: v.comments ?? [],
+            archived: Boolean(v.archived)
         }
     })
 }
@@ -38,9 +42,10 @@ export async function addInspiration(id: InspirationID, raiser: UserID, body: st
     const value: Inspiration = {
         _id: id,
         raiser, body,
-        implemented: false,
+        flag: 'none',
         likes: [],
-        comments: []
+        comments: [],
+        archived: false
     };
     const insert = await collection.insertOne(value);
     return insert.acknowledged;
