@@ -1,4 +1,4 @@
-import {useUser} from "../lib/useUser";
+import {useProfileContext} from "../lib/useUser";
 import {cacheImage, getHumanReadableTime, getImageUri, remark} from "../lib/utility";
 import * as React from "react";
 import {useEffect, useState} from "react";
@@ -44,7 +44,7 @@ const ExpandMore = styled((props: ExpandMoreProps) => {
 
 export function RecentCard(props: { data: LocalRecent }) {
     const {data} = props;
-    const {user, isLoading: isUserLoading} = useUser();
+    const {user, isLoading: isUserLoading} = useProfileContext();
     const {executeRecaptcha} = useGoogleReCaptcha();
     const imageUri = getImageUri(data.cover);
 
@@ -80,8 +80,8 @@ export function RecentCard(props: { data: LocalRecent }) {
             setLike(false);
             setDislike(false);
         } else {
-            setLike(data.likes.includes(user));
-            setDislike(data.dislikes.includes(user));
+            setLike(data.likes.includes(user._id));
+            setDislike(data.dislikes.includes(user._id));
         }
     }, [user, isUserLoading]);
 

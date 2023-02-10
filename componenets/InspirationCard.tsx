@@ -1,5 +1,5 @@
 import {Inspiration} from "../lib/db/inspiration";
-import {useProfile} from "../lib/useUser";
+import {useProfileContext} from "../lib/useUser";
 import * as React from "react";
 import {useEffect, useMemo, useState} from "react";
 import {useRequestResult} from "../lib/useRequestResult";
@@ -11,7 +11,7 @@ import {
     IconButton,
     Menu, MenuItem,
     MenuList,
-    MenuProps,
+    MenuProps, Skeleton,
     Tooltip,
     Typography
 } from "@mui/material";
@@ -32,7 +32,6 @@ import {DeleteAlertDialog} from "./DeleteAlertDialog";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import {User} from "../lib/db/user";
-import {AnimatePresence, motion} from "framer-motion";
 
 export interface RenderingInspiration extends Inspiration {
     raiserNick?: string | undefined
@@ -45,11 +44,11 @@ interface InspirationCardProps {
     onArchiveChanged?: (archived: boolean) => void;
 }
 
-export function InspirationCardRoot(props: InspirationCardProps & {fullWidth?: boolean}): JSX.Element {
+export function InspirationCardRoot(props: InspirationCardProps & { fullWidth?: boolean }): JSX.Element {
     const {executeRecaptcha} = useGoogleReCaptcha();
     const {data} = props;
 
-    const {user, isLoading: isUserLoading} = useProfile();
+    const {user, isLoading: isUserLoading} = useProfileContext();
     const canModify = useMemo(() => {
         if (!user) return false;
         return hasPermission(user, 'modify')
@@ -110,17 +109,13 @@ export function InspirationCardRoot(props: InspirationCardProps & {fullWidth?: b
         switch (flag) {
             case "implemented":
                 return <Tooltip title="已实现">
-                    <span>
                     <ImplementedIcon/>
-                    </span>
                 </Tooltip>
             case "none":
                 return undefined
             case "not_planned":
                 return <Tooltip title="不设计划">
-                    <span>
                     <NotPlannedIcon/>
-                    </span>
                 </Tooltip>
             case "sus":
                 return "🤔"
@@ -145,29 +140,30 @@ export function InspirationCardRoot(props: InspirationCardProps & {fullWidth?: b
                             <ArchiveIcon/>
                         </Tooltip>
                     )}
-                    <Tooltip title="喜欢">
-                        <span>
-                        <IconButton onClick={handleLike} disabled={isUserLoading}>
-                            <FavoriteIcon color={liked ? 'error' : 'inherit'}/>
-                        </IconButton>
-                        </span>
-                    </Tooltip>
-                    <Typography variant="caption" style={{marginRight: 12}}>
-                        {likes}
-                    </Typography>
-                    <AnimatePresence>
-                        {canModify && (
-                            <Tooltip title="更多">
-                                <motion.div initial={{x: 100}} animate={{x: 0}}>
-                                <span>
-                                <IconButton onClick={ev => setMenuAnchor(ev.currentTarget)}>
-                                    <MoreIcon/>
+                    {isUserLoading
+                        ? <Skeleton variant="rectangular" width={120} height={24}/>
+                        : (<>
+                            <Tooltip title="喜欢">
+                            <span>
+                                <IconButton onClick={handleLike}>
+                                    <FavoriteIcon color={liked ? 'error' : 'inherit'}/>
                                 </IconButton>
-                                </span>
-                                </motion.div>
+                            </span>
                             </Tooltip>
-                        )}
-                    </AnimatePresence>
+                            <Typography variant="caption" style={{marginRight: canModify ? 0 : 12}}>
+                                {likes}
+                            </Typography>
+                            {canModify && (
+                                <Tooltip title="更多">
+                            <span>
+                            <IconButton onClick={ev => setMenuAnchor(ev.currentTarget)}>
+                                <MoreIcon/>
+                            </IconButton>
+                            </span>
+                                </Tooltip>
+                            )}
+                        </>)
+                    }
                 </Grid>
             </Grid>
         </CardActions>
@@ -327,7 +323,8 @@ function ContextMenu(props: MenuProps & InspirationCardProps & { user: User | un
                 </MenuItem>
                 <MenuItem onClick={handleArchive}>
                     <ListItemIcon>
-                        {processing === 'archive' ? <Processing/> : (props.archived ? <UnarchiveIcon/> : <ArchiveIcon/>)}
+                        {processing === 'archive' ? <Processing/> : (props.archived ? <UnarchiveIcon/> :
+                            <ArchiveIcon/>)}
                     </ListItemIcon>
                     <ListItemText>
                         {props.archived ? '取消归档' : '归档'}

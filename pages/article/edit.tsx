@@ -2,7 +2,7 @@ import {GetServerSideProps, NextPage} from "next";
 import dynamic from "next/dynamic";
 import {getArticle} from "../../lib/db/article";
 import {useTitle} from "../../lib/useTitle";
-import {useEffect, useRef, useState} from "react";
+import {useEffect, useMemo, useRef, useState} from "react";
 
 import {LocalCache, LocalImage, MarkdownScope} from "../../componenets/MarkdownScope";
 import {ImagesPopover} from "../../componenets/ImagesPopover";
@@ -25,7 +25,7 @@ import {
 } from "@mui/material";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
-import {lookupUser, useUser} from "../../lib/useUser";
+import {useProfileContext} from "../../lib/useUser";
 import {getResponseRemark, hasPermission} from "../../lib/contract";
 import {ReCaptchaScope} from "../../componenets/ReCaptchaScope";
 import PlaceHolder from "../../componenets/PlaceHolder";
@@ -50,25 +50,19 @@ const MDEditor = dynamic(
 
 const EditPage: NextPage<PageProps> = (props) => {
     useTitle(props.body ? '编辑文章' : '草拟文章');
-    const {user, isLoading} = useUser();
-    const [isPermitted, setPermission] = useState(true);
-
-    useEffect(() => {
+    const {user, isLoading} = useProfileContext();
+    const isPermitted = useMemo(() => {
         if (!isLoading) {
-            if (!user) {
-                setPermission(false);
-            } else {
-                lookupUser(user).then(u => {
-                    if (!u) {
-                        setPermission(false);
-                    } else {
-                        if (!hasPermission(u, 'post_article')) {
-                            setPermission(false);
-                        }
-                    }
-                })
+            if (!user) return false;
+            if (!hasPermission(user, 'post_article')) {
+                return false;
             }
         }
+        return true
+    }, [user, isLoading]);
+
+    useEffect(() => {
+
     }, [isLoading, user])
 
     return <ReCaptchaScope reCaptchaKey={props.reCaptchaKey}>
@@ -232,10 +226,12 @@ function PageContent(props: PageProps): JSX.Element {
 
     const storageIdentifier = props.article ? props.article._id : "new_article";
     let article: SafeArticle | undefined = props.article;
+
     function useSaved<T>(type: string, or: T | undefined) {
         const draft = localStorage.getItem(`${storageIdentifier}.${type}`) as T
         return useState<T | string>(draft ?? or ?? '');
     }
+
     const [title, setTitle] = useSaved('title', article?.title);
     const [forward, setForward] = useSaved('forward', article?.forward);
     const [cover, setCover] = useSaved<File | ImageID>('cover', article?.cover);

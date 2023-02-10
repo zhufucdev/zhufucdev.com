@@ -12,6 +12,7 @@ import {
     useTheme
 } from "@mui/material";
 import {AnimatePresence, motion} from "framer-motion";
+
 import NoRecentsIcon from "@mui/icons-material/WifiTetheringOffOutlined";
 import BulbIcon from "@mui/icons-material/LightbulbOutlined";
 import EditIcon from "@mui/icons-material/Edit";
@@ -208,6 +209,7 @@ function InspirationCards(props: { data: RenderingInspiration[], setData: (value
                                 onArchiveChanged={
                                     (archived) => archived && setData(data.filter(en => en._id !== e._id))
                                 }
+
                             />
                         </motion.div>
                     ))}

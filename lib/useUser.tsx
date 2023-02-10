@@ -1,5 +1,5 @@
 import useSWR from "swr";
-import {useEffect, useState} from "react";
+import React, {useContext, useEffect, useState} from "react";
 import {useRouter} from "next/router";
 import {User} from "./db/user";
 
@@ -9,7 +9,7 @@ async function fetcher(): Promise<UserID | undefined> {
 }
 
 /**
- * Hook to user profile of yourself
+ * Hook to user id of yourself
  * @param redirect to redirect to home page if not logged in or not
  */
 export function useUser(redirect: boolean = false) {
@@ -30,7 +30,11 @@ export async function lookupUser(id: UserID): Promise<User | undefined> {
 
 type ProfileCallback = {
     user: User | undefined,
-    isLoading: boolean
+    isLoading: boolean,
+}
+
+type SelfProfileCallback = ProfileCallback & {
+    mutateUser: (id?: string) => void
 }
 
 /**
@@ -60,11 +64,18 @@ export function useProfileOf(id?: UserID): ProfileCallback {
  * @returns undefined if the api is not ready,
  * null if the user doesn't exist, or what you want
  */
-export function useProfile(): ProfileCallback {
-    const {user: id, isLoading} = useUser();
+export function useProfile(): SelfProfileCallback {
+    const {user: id, isLoading, mutateUser} = useUser();
     const profile = useProfileOf(id);
 
-    return {user: profile.user, isLoading: isLoading || profile.isLoading};
+    return {user: profile.user, mutateUser, isLoading: isLoading || profile.isLoading};
+}
+
+/**
+ * Same as {@link useProfile}, but from context provider
+ */
+export function useProfileContext(): SelfProfileCallback {
+    return useContext(SelfContext);
 }
 
 export const myId = 'zhufucdev';
@@ -72,4 +83,12 @@ export const myId = 'zhufucdev';
 export function isMe(user: User | UserID): boolean {
     if (typeof user === 'string') return user === myId;
     return user._id === myId
+}
+
+const SelfContext = React.createContext<SelfProfileCallback>({user: undefined, mutateUser: () => {}, isLoading: false});
+
+export function SelfProfileProvider(props: SelfProfileCallback & {children: React.ReactNode}) {
+    return <SelfContext.Provider value={props}>
+        {props.children}
+    </SelfContext.Provider>
 }

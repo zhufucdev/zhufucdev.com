@@ -29,11 +29,12 @@ import styles from '../styles/Login.module.css';
 import {fetchApi} from "../lib/utility";
 import {useRouter} from "next/router";
 import {useGoogleReCaptcha} from "react-google-recaptcha-v3";
-import {userContract} from "../lib/contract";
+import {reCaptchaNotReady, userContract} from "../lib/contract";
 import {useRequestResult} from "../lib/useRequestResult";
 import {ReCaptchaPolicy} from "../componenets/ReCaptchaPolicy";
 import {useTitle} from "../lib/useTitle";
 import {ReCaptchaScope} from "../componenets/ReCaptchaScope";
+import {useUser} from "../lib/useUser";
 
 type Helper = { id?: string, pwd?: string, nick?: string, repwd?: string };
 type UserInfo = { id: string, pwd: string, token: string, nick?: string, repwd?: string };
@@ -106,13 +107,15 @@ function LoginUI() {
     const [helpers, setHelpers] = React.useState({id, pwd, nick, repwd} as Helper);
     const {executeRecaptcha} = useGoogleReCaptcha();
     const handleResult = useRequestResult(
-        () => {
+        (res, argument) => {
             const deferred = localStorage.getItem('login_from');
-            router.push(deferred ?? '/')
+            router.push(deferred ?? '/');
+            if (argument) mutateUser(argument as string);
         },
         () => setLoading(false)
     );
     const router = useRouter();
+    const {mutateUser} = useUser();
 
     const actionLogin = "登录", actionRegister = "注册";
 
@@ -146,7 +149,7 @@ function LoginUI() {
 
         const snapshot = {id, nick, pwd, repwd, token} as UserInfo;
         if (!snapshot.token) {
-            handleResult({success: false, msg: "reCaptcha未初始化"})
+            handleResult(reCaptchaNotReady)
             return;
         }
         if (!userContract.testID(snapshot.id) || !userContract.testPwd(snapshot.pwd)) return;
@@ -161,7 +164,7 @@ function LoginUI() {
         } else {
             res = await login(snapshot);
         }
-        handleResult(res);
+        handleResult(res, id);
     }
 
     useEffect(() => {

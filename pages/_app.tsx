@@ -43,7 +43,7 @@ import createEmotionCache from "../lib/emotionCache";
 import {CacheProvider, EmotionCache} from "@emotion/react";
 import Link from "next/link";
 import {SnackbarProvider} from "notistack";
-import {useUser} from "../lib/useUser";
+import {SelfProfileProvider, useProfile, useProfileContext} from "../lib/useUser";
 import {LazyAvatar} from "../componenets/LazyAvatar";
 import {fetchApi} from "../lib/utility";
 import {getResponseRemark} from "../lib/contract";
@@ -69,7 +69,7 @@ function MyAppBar(props: MyAppBarProps): JSX.Element {
     const theme = useTheme();
     const router = useRouter();
 
-    const {user, mutateUser, isLoading: isUserLoading} = useUser();
+    const {user, mutateUser, isLoading: isUserLoading} = useProfileContext();
     const handleResult = useRequestResult();
     const [title] = useTitle();
     const [userMenuAnchor, setUserMenuAnchor] = React.useState<HTMLElement>();
@@ -115,7 +115,7 @@ function MyAppBar(props: MyAppBarProps): JSX.Element {
                     sx={{flexGrow: 1}}>
                     {title || 'zhufucdev'}
                 </Typography>
-                <Tooltip title={isUserLoading ? "" : (user ? user : "未登录")}>
+                <Tooltip title={isUserLoading ? "" : (user ? user.nick : "未登录")}>
                     <span>
                     <IconButton
                         onClick={ev => setUserMenuAnchor(ev.currentTarget)}
@@ -124,7 +124,7 @@ function MyAppBar(props: MyAppBarProps): JSX.Element {
                     >
                         {
                             user
-                                ? <LazyAvatar userId={user} size={32} loading={isUserLoading}/>
+                                ? <LazyAvatar user={user} size={32} loading={isUserLoading}/>
                                 : <AccountIcon/>
                         }
                     </IconButton>
@@ -147,7 +147,7 @@ function MyAppBar(props: MyAppBarProps): JSX.Element {
                         {
                             user
                                 ? <>
-                                    <MenuItem component={Link} href={`/me/${user}`} onClick={dismissHandler}>
+                                    <MenuItem component={Link} href={`/me/${user._id}`} onClick={dismissHandler}>
                                         <ListItemIcon><AccountIcon fontSize="small"/></ListItemIcon>
                                         <ListItemText>我的主页</ListItemText>
                                     </MenuItem>
@@ -272,6 +272,7 @@ function MyBackdrop() {
 function MyApp({Component, pageProps, emotionCache = clientEmotionCache}: MyAppProps) {
     const router = useRouter();
     const [mobileOpen, setMobileOpen] = React.useState(false);
+    const selfProfile = useProfile();
 
     const handleDrawerToggle = () => {
         setMobileOpen(!mobileOpen);
@@ -291,59 +292,61 @@ function MyApp({Component, pageProps, emotionCache = clientEmotionCache}: MyAppP
                         <MyHead/>
                         <MyBackdrop/>
                         <SnackbarProvider>
-                            <Box sx={{display: "flex"}}>
-                                <CssBaseline/>
-                                <MyAppBar onToggleDrawer={handleDrawerToggle}/>
+                            <SelfProfileProvider {...selfProfile}>
+                                <Box sx={{display: "flex"}}>
+                                    <CssBaseline/>
+                                    <MyAppBar onToggleDrawer={handleDrawerToggle}/>
 
-                                <Box
-                                    component="nav"
-                                    sx={{width: {sm: drawerWidth}, flexShrink: {sm: 0}}}
-                                    aria-label="drawer content"
-                                >
-                                    <Drawer
-                                        variant="temporary"
-                                        open={mobileOpen}
-                                        onClose={handleDrawerToggle}
-                                        ModalProps={{
-                                            keepMounted: true, // Better open performance on mobile.
-                                        }}
+                                    <Box
+                                        component="nav"
+                                        sx={{width: {sm: drawerWidth}, flexShrink: {sm: 0}}}
+                                        aria-label="drawer content"
+                                    >
+                                        <Drawer
+                                            variant="temporary"
+                                            open={mobileOpen}
+                                            onClose={handleDrawerToggle}
+                                            ModalProps={{
+                                                keepMounted: true, // Better open performance on mobile.
+                                            }}
+                                            sx={{
+                                                display: {xs: "block", sm: "none"},
+                                                "& .MuiDrawer-paper": {
+                                                    boxSizing: "border-box",
+                                                    width: drawerWidth,
+                                                },
+                                            }}
+                                        >
+                                            <MyDrawerContent onItemClicked={handleDrawerToggle}/>
+                                        </Drawer>
+                                        <Drawer
+                                            variant="permanent"
+                                            sx={{
+                                                display: {xs: "none", sm: "block"},
+                                                "& .MuiDrawer-paper": {
+                                                    boxSizing: "border-box",
+                                                    width: drawerWidth,
+                                                },
+                                            }}
+                                            open
+                                        >
+                                            <MyDrawerContent onItemClicked={handleDrawerToggle}/>
+                                        </Drawer>
+                                    </Box>
+
+                                    <Box
                                         sx={{
-                                            display: {xs: "block", sm: "none"},
-                                            "& .MuiDrawer-paper": {
-                                                boxSizing: "border-box",
-                                                width: drawerWidth,
-                                            },
+                                            flexGrow: 1,
+                                            p: 3,
+                                            width: {sm: `calc(100% - ${drawerWidth}px)`},
                                         }}
                                     >
-                                        <MyDrawerContent onItemClicked={handleDrawerToggle}/>
-                                    </Drawer>
-                                    <Drawer
-                                        variant="permanent"
-                                        sx={{
-                                            display: {xs: "none", sm: "block"},
-                                            "& .MuiDrawer-paper": {
-                                                boxSizing: "border-box",
-                                                width: drawerWidth,
-                                            },
-                                        }}
-                                        open
-                                    >
-                                        <MyDrawerContent onItemClicked={handleDrawerToggle}/>
-                                    </Drawer>
+                                        <Toolbar/>
+                                        <Component {...pageProps} />
+                                    </Box>
                                 </Box>
-
-                                <Box
-                                    sx={{
-                                        flexGrow: 1,
-                                        p: 3,
-                                        width: {sm: `calc(100% - ${drawerWidth}px)`},
-                                    }}
-                                >
-                                    <Toolbar/>
-                                    <Component {...pageProps} />
-                                </Box>
-                            </Box>
-                            <Analytics/>
+                                <Analytics/>
+                            </SelfProfileProvider>
                         </SnackbarProvider>
                     </ContentsProvider>
                 </TitleProvider>

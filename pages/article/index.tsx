@@ -17,7 +17,7 @@ import Typography from "@mui/material/Typography";
 import ListItemText from "@mui/material/ListItemText";
 import {Copyright} from "../../componenets/Copyright";
 import {Scaffold} from "../../componenets/Scaffold";
-import {isMe, useProfile, useUser} from "../../lib/useUser";
+import {isMe, useProfileContext, useUser} from "../../lib/useUser";
 import {useRouter} from "next/router";
 import {useTitle} from "../../lib/useTitle";
 import {cacheImage, getHumanReadableTime, getImageUri, remark} from "../../lib/utility";
@@ -247,7 +247,7 @@ function ArticleCard(props: { data: RenderingArticle }): JSX.Element {
         if (data.cover)
             cacheImage(getImageUri(data.cover)).then(() => setCached(true));
     }, [data.cover]);
-    const self = useProfile();
+    const self = useProfileContext();
 
     function handlePopoverActivatorClick(ev: React.MouseEvent<HTMLElement>) {
         ev.preventDefault();

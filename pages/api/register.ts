@@ -35,7 +35,7 @@ async function registerRoute(req: NextApiRequest, res: NextApiResponse) {
     req.session.userID = id;
     req.session.accessToken = await generate(id);
     await req.session.save();
-    res.send('success');
+    res.send(id);
 }
 
 export default routeWithIronSession(registerRoute);

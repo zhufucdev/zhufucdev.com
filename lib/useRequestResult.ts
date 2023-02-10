@@ -1,10 +1,10 @@
 import {OptionsObject, useSnackbar} from "notistack";
 
-type ResultHandler = (res: RequestResult) => void;
+type ResultHandler<T> = (res: RequestResult, argument?: T) => void;
 
-export function useRequestResult(success?: () => void, error?: () => void): ResultHandler {
+export function useRequestResult<T>(success?: ResultHandler<T>, error?: ResultHandler<T>): ResultHandler<T> {
     const {enqueueSnackbar} = useSnackbar();
-    return (res) => {
+    return (res, argument = undefined) => {
         if (!res.success) {
             const options: OptionsObject = {
                 variant: "error",
@@ -22,10 +22,10 @@ export function useRequestResult(success?: () => void, error?: () => void): Resu
             } else {
                 enqueueSnackbar("未知错误", options)
             }
-            if (error) error()
+            if (error) error(res, argument)
 
         } else {
-            if (success) success()
+            if (success) success(res, argument)
         }
     }
 }

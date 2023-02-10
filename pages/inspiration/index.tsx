@@ -9,6 +9,7 @@ import NoInspirationIcon from "@mui/icons-material/LightbulbOutlined";
 import {Card, Grid} from "@mui/material";
 import {useEffect, useState} from "react";
 import {ReCaptchaScope} from "../../componenets/ReCaptchaScope";
+import {motion} from "framer-motion";
 
 const InspirationPage: NextPage<PageProps> = (props) => {
     useTitle('灵感');
@@ -16,7 +17,7 @@ const InspirationPage: NextPage<PageProps> = (props) => {
 
     if (data.length > 0) {
         return <ReCaptchaScope reCaptchaKey={props.reCaptchaKey}>
-            <Grid container spacing={1}>
+            <Grid container spacing={2} component={motion.div}>
                 {
                     data.map(e =>
                         <Grid item key={e._id} flexGrow={1}>

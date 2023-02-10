@@ -15,7 +15,7 @@ import {
     useTheme
 } from "@mui/material";
 import {useRouter} from "next/router";
-import {useProfile} from "../lib/useUser";
+import {useProfileContext} from "../lib/useUser";
 import {useRequestResult} from "../lib/useRequestResult";
 import * as React from "react";
 import {useEffect, useMemo, useState} from "react";
@@ -43,7 +43,7 @@ type DraftDialogProps = {
 export function DraftDialog(props: DraftDialogProps): JSX.Element {
     const theme = useTheme();
     const router = useRouter();
-    const {user} = useProfile();
+    const {user} = useProfileContext();
     const {executeRecaptcha} = useGoogleReCaptcha();
     const handleResult = useRequestResult(
         () => setPosted(true),
