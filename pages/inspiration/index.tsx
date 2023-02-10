@@ -40,7 +40,7 @@ function InspirationCard(props: { data: RenderingInspiration, onDeleted: () => v
         setFlag(props.data.flag)
     }, [props.data]);
     const color = recommendedColorFor(flag);
-    return <Card variant="outlined" sx={{backgroundColor: color}}>
+    return <Card variant="outlined" sx={{backgroundColor: color, minWidth: 300}}>
         <InspirationCardRoot
             data={props.data}
             onDeleted={props.onDeleted}
