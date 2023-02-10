@@ -193,7 +193,7 @@ function InspirationCards(props: { data: RenderingInspiration[], setData: (value
 
     if (data.length > 0) {
         return (
-            <Stack spacing={1} component={motion.div} layout sx={{overflowY: 'hidden'}}>
+            <Stack spacing={1} component={motion.div} layout sx={{overflowX: 'hidden'}}>
                 <Caption key="subtitle-inspirations">灵感</Caption>
                 <AnimatePresence initial={false}>
                     {data.map((e) => (
