@@ -31,8 +31,12 @@ import {getUsers, User} from "../lib/db/user";
 import {ReCaptchaScope} from "../componenets/ReCaptchaScope";
 import {ReCaptchaPolicy} from "../componenets/ReCaptchaPolicy";
 import Link from "next/link";
+import {listArticles} from "../lib/db/article";
+import {getSafeArticle} from "../lib/getSafeArticle";
+import {ArticleCard, RenderingArticle} from "../componenets/ArticleCard";
+import {HorizontallyScrollingStack} from "../componenets/HorizontallyScrollingStack";
 
-const Home: NextPage<PageProps> = ({recents, inspirations: _inspirations, recaptchaKey}) => {
+const Home: NextPage<PageProps> = ({recents, inspirations: _inspirations, articles, recaptchaKey}) => {
     const [draftOpen, setDraft] = useState(false);
     useTitle('主页');
 
@@ -80,6 +84,7 @@ const Home: NextPage<PageProps> = ({recents, inspirations: _inspirations, recapt
                 onFabClick={() => setDraft(true)}
             >
                 <RecentCards key="recents" data={recents}/>
+                <ArticleCards key="articles" data={articles}/>
                 <InspirationCards key="inspirations" data={inspirations} setData={setInspirations}/>
             </Scaffold>
             <DraftDialog
@@ -189,7 +194,10 @@ function RecentCards(props: { data: LocalRecent[] }): JSX.Element {
     }
 }
 
-function InspirationCards(props: { data: RenderingInspiration[], setData: (value: RenderingInspiration[]) => void }): JSX.Element {
+function InspirationCards(props: {
+    data: RenderingInspiration[],
+    setData: (value: RenderingInspiration[]) => void
+}): JSX.Element {
     const {data, setData} = props;
 
     if (data.length > 0) {
@@ -231,9 +239,21 @@ function InspirationCards(props: { data: RenderingInspiration[], setData: (value
     }
 }
 
+function ArticleCards(props: { data: RenderingArticle[] }) {
+
+    const {data} = props;
+    return <>
+        <Caption key="subtitle-articles">文章</Caption>
+        <HorizontallyScrollingStack spacing={1} direction="row" sx={{overflowX: 'auto'}}>
+            {data.map(v => <ArticleCard data={v} key={v._id} sx={{minWidth: 250}}/>)}
+        </HorizontallyScrollingStack>
+    </>
+}
+
 type PageProps = {
     recents: LocalRecent[];
     inspirations: RenderingInspiration[];
+    articles: RenderingArticle[];
     recaptchaKey: string;
 };
 
@@ -245,11 +265,15 @@ type StaticProps = {
 export async function getStaticProps(): Promise<StaticProps> {
     const recents = (await getRecents()).map((v) => ({...v, time: v.time.toISOString()}));
     const inspirations = await getInspirations();
+    const articles = (await listArticles()).slice(0, 3).map(getSafeArticle);
     const unfoldedInspirations: RenderingInspiration[] = [];
-    const users = await getUsers(inspirations.map(m => m.raiser));
+    const unfoldedArticles: RenderingArticle[] = [];
+    const authors = inspirations.map(m => m.raiser)
+        .concat(articles.map(v => v.author));
+    const author = await getUsers(authors);
     for (const meta of inspirations) {
         if (meta.archived) continue;
-        const user = users(meta.raiser);
+        const user = author(meta.raiser);
         if (user)
             unfoldedInspirations.push({
                 ...meta,
@@ -258,10 +282,21 @@ export async function getStaticProps(): Promise<StaticProps> {
         else
             unfoldedInspirations.push(meta)
     }
+    for (const meta of articles) {
+        const user = author(meta.author);
+        if (user) {
+            unfoldedArticles.push({
+                ...meta, authorNick: user.nick
+            })
+        } else {
+            unfoldedArticles.push(meta)
+        }
+    }
     return {
         props: {
             recents,
             inspirations: unfoldedInspirations,
+            articles: unfoldedArticles,
             recaptchaKey: process.env.RECAPTCHA_KEY_FRONTEND as string
         },
         revalidate: false
