@@ -43,6 +43,7 @@ export default routeWithIronSession(async (req, res) => {
         const meta = await addArticle(ref, req.session.userID!, title, cover, forward, body);
         if (meta) {
             await res.revalidate('/article');
+            await res.revalidate('/');
             res.send(meta._id)
         } else {
             res.status(500).send('database not acknowledging')
@@ -82,6 +83,7 @@ export default routeWithIronSession(async (req, res) => {
         const acknowledged = await updateArticle(ref, update);
         if (acknowledged) {
             await res.revalidate('/article');
+            await res.revalidate('/')
             res.revalidate(`/article/${ref}`);
             res.send('success');
         } else {
