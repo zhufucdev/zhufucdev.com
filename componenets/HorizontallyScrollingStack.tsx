@@ -24,7 +24,7 @@ export function HorizontallyScrollingStack(props: StackProps): JSX.Element {
         }
     }
 
-    const scrollingRef = useRef<HTMLDivElement>();
+    const scrollingRef = useRef<HTMLDivElement>(null);
     useEffect(() => {
         const ele = scrollingRef.current;
         if (!ele) return;
