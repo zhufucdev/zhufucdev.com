@@ -15,6 +15,7 @@ import {AnimatePresence, motion} from "framer-motion";
 
 import NoRecentsIcon from "@mui/icons-material/WifiTetheringOffOutlined";
 import BulbIcon from "@mui/icons-material/LightbulbOutlined";
+import NoArticleIcon from "@mui/icons-material/PsychologyOutlined";
 import EditIcon from "@mui/icons-material/Edit";
 import ContinueIcon from "@mui/icons-material/ArrowForward";
 
@@ -217,7 +218,6 @@ function InspirationCards(props: {
                                 onArchiveChanged={
                                     (archived) => archived && setData(data.filter(en => en._id !== e._id))
                                 }
-
                             />
                         </motion.div>
                     ))}
@@ -240,14 +240,22 @@ function InspirationCards(props: {
 }
 
 function ArticleCards(props: { data: RenderingArticle[] }) {
-
     const {data} = props;
-    return <>
-        <Caption key="subtitle-articles">文章</Caption>
-        <HorizontallyScrollingStack spacing={1} direction="row" sx={{overflowX: 'auto'}}>
-            {data.map(v => <ArticleCard data={v} key={v._id} sx={{minWidth: 250}}/>)}
-        </HorizontallyScrollingStack>
-    </>
+    if (data.length > 0) {
+        return <>
+            <Caption key="subtitle-articles">文章</Caption>
+            <HorizontallyScrollingStack spacing={1} direction="row" sx={{overflowX: 'auto'}}>
+                {data.map(v => <ArticleCard data={v} key={v._id} sx={{minWidth: 250}}/>)}
+            </HorizontallyScrollingStack>
+        </>
+    } else {
+        return (
+            <Box>
+                <Caption key="subtitle-inspirations">文章</Caption>
+                <PlaceHolder icon={NoArticleIcon} title="未更新文章"/>
+            </Box>
+        );
+    }
 }
 
 type PageProps = {

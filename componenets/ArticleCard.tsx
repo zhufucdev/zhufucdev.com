@@ -6,7 +6,8 @@ import {
     CardActionArea,
     CardContent,
     CardHeader,
-    CardMedia, CircularProgress,
+    CardMedia,
+    CircularProgress,
     IconButton,
     Menu, MenuItem,
     MenuList, MenuProps,
@@ -32,7 +33,7 @@ import LikeIcon from "@mui/icons-material/ThumbUp";
 import DislikeIcon from "@mui/icons-material/ThumbDown";
 
 export interface RenderingArticle extends SafeArticle {
-    authorNick?: string | undefined
+    authorNick?: string | undefined,
 }
 
 export function ArticleCard(props: { data: RenderingArticle, sx?: SxProps }): JSX.Element {
@@ -63,6 +64,11 @@ export function ArticleCard(props: { data: RenderingArticle, sx?: SxProps }): JS
                         </IconButton>
                     }
                 />
+                <CardContent sx={{pt: 0}}>
+                    <Typography variant="caption" color="text.secondary">
+                        由{data.authorNick ?? data.author}发布于{getHumanReadableTime(new Date(data.postTime))}
+                    </Typography>
+                </CardContent>
                 {data.cover &&
                     (coverCached ?
                             <CardMedia
@@ -72,11 +78,6 @@ export function ArticleCard(props: { data: RenderingArticle, sx?: SxProps }): JS
                                 style={{height: 140}}/>
                             : <Skeleton variant="rectangular" animation="wave" height={140}/>
                     )}
-                <CardContent sx={{pt: 0}}>
-                    <Typography variant="caption" color="text.secondary">
-                        由{data.authorNick ?? data.author}发布于{getHumanReadableTime(new Date(data.postTime))}
-                    </Typography>
-                </CardContent>
             </CardActionArea>
         </Card>
         {

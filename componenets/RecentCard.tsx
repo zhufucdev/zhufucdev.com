@@ -1,7 +1,6 @@
 import {useProfileContext} from "../lib/useUser";
 import {cacheImage, getHumanReadableTime, getImageUri, remark} from "../lib/utility";
 import * as React from "react";
-import {useEffect, useState} from "react";
 import {
     Card,
     CardActions,
@@ -26,6 +25,7 @@ import {useRequestResult} from "../lib/useRequestResult";
 import {getResponseRemark, reCaptchaNotReady} from "../lib/contract";
 import {MarkdownScope} from "./MarkdownScope";
 import {useGoogleReCaptcha} from "react-google-recaptcha-v3";
+import {useBottomAlign} from "../lib/useBottomAlign";
 
 interface ExpandMoreProps extends IconButtonProps {
     expand: boolean;
@@ -48,8 +48,8 @@ export function RecentCard(props: { data: LocalRecent }) {
     const {executeRecaptcha} = useGoogleReCaptcha();
     const imageUri = getImageUri(data.cover);
 
-    const [like, setLike] = useState(false);
-    const [dislike, setDislike] = useState(false);
+    const [like, setLike] = React.useState(false);
+    const [dislike, setDislike] = React.useState(false);
     const handleLikeResult = useRequestResult(
         () => {
             if (!like) {
@@ -75,7 +75,7 @@ export function RecentCard(props: { data: LocalRecent }) {
     const [imageCached, setCached] = React.useState(false);
 
     const [anchorEle, setAnchor] = React.useState<HTMLElement | null>(null);
-    useEffect(() => {
+    React.useEffect(() => {
         if (!user) {
             setLike(false);
             setDislike(false);
@@ -131,9 +131,11 @@ export function RecentCard(props: { data: LocalRecent }) {
         cacheImage(imageUri).then(() => setCached(true));
     });
 
+    const alignBtm = useBottomAlign<HTMLDivElement, HTMLDivElement, HTMLDivElement>();
+
     return (
         <>
-            <Card variant="outlined" sx={{borderRadius: 2}}>
+            <Card variant="outlined" sx={{borderRadius: 2, height: '100%'}} ref={alignBtm.parentRef}>
                 {imageCached ? (
                     <CardMedia
                         component="img"
@@ -146,7 +148,7 @@ export function RecentCard(props: { data: LocalRecent }) {
                     <Skeleton sx={{height: 140}} animation="wave" variant="rectangular"/>
                 )}
 
-                <CardContent>
+                <CardContent ref={alignBtm.contentRef}>
                     <Typography variant="h5" gutterBottom>
                         {data.title}
                     </Typography>
@@ -154,7 +156,8 @@ export function RecentCard(props: { data: LocalRecent }) {
                         {data.body}
                     </MarkdownScope>
                 </CardContent>
-                <CardActions disableSpacing className={styles.mWithoutTop}>
+                <CardActions disableSpacing className={styles.mWithoutTop} sx={{mt: `${alignBtm.actionMargin - 10}px`}}
+                             ref={alignBtm.actionRef}>
                     <Tooltip title="喜欢">
                         <span>
                         <IconButton aria-label="like" disabled={isUserLoading}
