@@ -13,6 +13,7 @@ import {ArticleHeader} from "../../componenets/ArticleHeader";
 import Box from "@mui/material/Box";
 import {useRef} from "react";
 import {useMediaQuery, useTheme} from "@mui/material";
+import {useTitle} from "../../lib/useTitle";
 
 type PageProps = {
     meta?: SafeArticle,
@@ -21,6 +22,8 @@ type PageProps = {
 }
 
 const ArticleApp: NextPage<PageProps> = ({meta, body, authorNick}) => {
+    useTitle({appbar: '文章', head: meta?.title ?? '文章'});
+
     if (meta) {
         if (body) {
             return <ArticleBody meta={meta} body={body} authorNick={authorNick}/>
@@ -41,7 +44,7 @@ function ArticleBody({meta, body, authorNick}: PageProps) {
     const articleRef = useRef<HTMLDivElement>(null);
 
     return <>
-        <ArticleHeader title={meta!.title} cover={meta!.cover} article={articleRef} />
+        <ArticleHeader title={meta!.title} cover={meta!.cover} article={articleRef}/>
         <Typography variant="body2" color="text.secondary">
             由{authorNick ?? meta!.author}发布于{getHumanReadableTime(new Date(meta!.postTime))}
         </Typography>

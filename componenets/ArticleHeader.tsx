@@ -1,6 +1,5 @@
-import React, {useEffect, useRef, useState} from "react";
+import React, {useCallback, useEffect, useState} from "react";
 import {useMediaQuery, useScrollTrigger, useTheme} from "@mui/material";
-import {useTitle} from "../lib/useTitle";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import {drawerWidth} from "../pages/_app";
@@ -10,26 +9,26 @@ import {motion} from "framer-motion";
 import List from "@mui/material/List";
 import {ContentsNodeComponent} from "./ContentsNodeComponent";
 import {Contents, ContentsNode, useContents} from "../lib/useContents";
+import {useTitle} from "../lib/useTitle";
 
 export function ArticleHeader(props: { cover: ImageID | undefined, title: string, article: React.RefObject<HTMLDivElement> }): JSX.Element {
     const theme = useTheme();
     const onLargeScreen = useMediaQuery(theme.breakpoints.up('sm'));
     const onWideScreen = useMediaQuery(theme.breakpoints.up('md'));
 
-    const titleRef = useRef<HTMLTitleElement>(null);
+    const titleRef = useCallback((node: HTMLTitleElement) => {
+        if (node) {
+            setTitleHeight(node.getBoundingClientRect().height);
+        }
+    }, []);
     const [titleHeight, setTitleHeight] = useState(0);
     const scrolled = useScrollTrigger({threshold: titleHeight, disableHysteresis: true});
-    const [, setTitle] = useTitle('文章')
-    useEffect(() => {
-        const title = titleRef.current;
-        if (!title) return;
-        setTitleHeight(title.getBoundingClientRect().top);
-    }, [titleRef]);
+    const [, setTitle] = useTitle({appbar: '文章', head: props.title});
     useEffect(() => {
         if (scrolled)
             setTitle(props.title);
         else
-            setTitle('文章')
+            setTitle({appbar: '文章', head: props.title});
     }, [scrolled, props.title]);
 
     const [contents, setContents] = useContents();

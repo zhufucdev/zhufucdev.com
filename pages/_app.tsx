@@ -4,7 +4,7 @@ import type {AppProps} from "next/app";
 
 import {useRouter} from "next/router";
 import * as React from "react";
-import {useEffect, useState} from "react";
+import {useEffect, useMemo, useState} from "react";
 
 import Box from "@mui/material/Box";
 import Drawer from "@mui/material/Drawer";
@@ -48,7 +48,7 @@ import {LazyAvatar} from "../componenets/LazyAvatar";
 import {fetchApi} from "../lib/utility";
 import {getResponseRemark} from "../lib/contract";
 import {useRequestResult} from "../lib/useRequestResult";
-import {TitleProvider, useTitle} from "../lib/useTitle";
+import {getTitle, TitleProvider, useTitle} from "../lib/useTitle";
 import {ContentsProvider, useContents} from "../lib/useContents";
 import {ContentsNodeComponent} from "../componenets/ContentsNodeComponent";
 
@@ -71,7 +71,8 @@ function MyAppBar(props: MyAppBarProps): JSX.Element {
 
     const {user, mutateUser, isLoading: isUserLoading} = useProfileContext();
     const handleResult = useRequestResult();
-    const [title] = useTitle();
+    const [_title] = useTitle();
+    const title = useMemo(() => getTitle(_title, false), [_title]);
     const [userMenuAnchor, setUserMenuAnchor] = React.useState<HTMLElement>();
 
     const handleLogout = async () => {
@@ -113,7 +114,7 @@ function MyAppBar(props: MyAppBarProps): JSX.Element {
                     color={useSurfaceColor ? "text.primary" : "inherit"}
                     component="div"
                     sx={{flexGrow: 1}}>
-                    {title || 'zhufucdev'}
+                    {title}
                 </Typography>
                 <Tooltip title={isUserLoading ? "" : (user ? user.nick : "未登录")}>
                     <span>
@@ -175,7 +176,8 @@ function MyAppBar(props: MyAppBarProps): JSX.Element {
 }
 
 function MyHead() {
-    const [title] = useTitle();
+    const [_title] = useTitle();
+    const title = useMemo(() => getTitle(_title, true), [_title])
     return <Head><title>{title}</title></Head>
 }
 
