@@ -10,7 +10,7 @@ import {ReCaptchaPolicy} from "../../componenets/ReCaptchaPolicy";
 import {Copyright} from "../../componenets/Copyright";
 
 const MePage: NextPage<PageProps> = (props) => {
-    useTitle('关于我');
+    useTitle(`关于 ${props.user.nick}`);
     return <ReCaptchaScope reCaptchaKey={props.reCaptchaKey}>
         <MeHeader user={fromSafeUser(props.user)}/>
         <MeTabs section="qna" owner={props.user}/>

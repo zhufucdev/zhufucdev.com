@@ -3,13 +3,13 @@ import {listArticles} from "../../lib/db/article";
 import {Grid} from "@mui/material";
 import {Copyright} from "../../componenets/Copyright";
 import {Scaffold} from "../../componenets/Scaffold";
-import {isMe, useUser} from "../../lib/useUser";
+import {isMe, myId, useUser} from "../../lib/useUser";
 import {useRouter} from "next/router";
 import {useTitle} from "../../lib/useTitle";
 import React from "react";
 import {getSafeArticle} from "../../lib/getSafeArticle";
 
-import {getUsers} from "../../lib/db/user";
+import {getUser, getUsers} from "../../lib/db/user";
 import PlaceHolder from "../../componenets/PlaceHolder";
 import EditIcon from "@mui/icons-material/EditOutlined";
 import NoArticleIcon from "@mui/icons-material/PsychologyOutlined";
@@ -20,12 +20,13 @@ import {ArticleCard, RenderingArticle} from "../../componenets/ArticleCard";
 type PageProps = {
     articles: RenderingArticle[],
     recaptchaKey: string,
+    myName: string,
 }
 
 const PostPage: NextPage<PageProps> = (props) => {
     const {user} = useUser();
     const router = useRouter();
-    useTitle('文章')
+    useTitle({appbar: '文章', head: `${props.myName}的博文`})
     return <ReCaptchaScope reCaptchaKey={props.recaptchaKey}>
         <Scaffold
             fabContent={user && isMe(user) && <>
@@ -72,11 +73,13 @@ export const getStaticProps: GetStaticProps<PageProps> = async () => {
         ...getSafeArticle(m),
         authorNick: users(m.author)!.nick
     } : getSafeArticle(m));
+    const me = await getUser(myId);
 
     return {
         props: {
             articles: unfolded,
-            recaptchaKey: process.env.RECAPTCHA_KEY_FRONTEND as string
+            recaptchaKey: process.env.RECAPTCHA_KEY_FRONTEND as string,
+            myName: me!.nick,
         }
     }
 }

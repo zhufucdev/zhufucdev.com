@@ -28,7 +28,7 @@ import {DraftDialog} from "../componenets/DraftDialog";
 import {InspirationCard, RenderingInspiration} from "../componenets/InspirationCard";
 import {RecentCard} from "../componenets/RecentCard";
 import {useTitle} from "../lib/useTitle";
-import {getUsers, User} from "../lib/db/user";
+import {getUser, getUsers, User} from "../lib/db/user";
 import {ReCaptchaScope} from "../componenets/ReCaptchaScope";
 import {ReCaptchaPolicy} from "../componenets/ReCaptchaPolicy";
 import Link from "next/link";
@@ -36,10 +36,11 @@ import {listArticles} from "../lib/db/article";
 import {getSafeArticle} from "../lib/getSafeArticle";
 import {ArticleCard, RenderingArticle} from "../componenets/ArticleCard";
 import {HorizontallyScrollingStack} from "../componenets/HorizontallyScrollingStack";
+import {myId} from "../lib/useUser";
 
-const Home: NextPage<PageProps> = ({recents, inspirations: _inspirations, articles, recaptchaKey}) => {
+const Home: NextPage<PageProps> = ({recents, inspirations: _inspirations, articles, recaptchaKey, myName}) => {
     const [draftOpen, setDraft] = useState(false);
-    useTitle('主页');
+    useTitle({appbar: '主页', head: `${myName}的博客`});
 
     const [inspirations, setInspirations] = useState(_inspirations);
 
@@ -263,6 +264,7 @@ type PageProps = {
     inspirations: RenderingInspiration[];
     articles: RenderingArticle[];
     recaptchaKey: string;
+    myName: string;
 };
 
 type StaticProps = {
@@ -279,6 +281,7 @@ export async function getStaticProps(): Promise<StaticProps> {
     const authors = inspirations.map(m => m.raiser)
         .concat(articles.map(v => v.author));
     const author = await getUsers(authors);
+    const me = await getUser(myId);
     for (const meta of inspirations) {
         if (meta.archived) continue;
         const user = author(meta.raiser);
@@ -305,7 +308,8 @@ export async function getStaticProps(): Promise<StaticProps> {
             recents,
             inspirations: unfoldedInspirations,
             articles: unfoldedArticles,
-            recaptchaKey: process.env.RECAPTCHA_KEY_FRONTEND as string
+            recaptchaKey: process.env.RECAPTCHA_KEY_FRONTEND as string,
+            myName: me!.nick,
         },
         revalidate: false
     };
