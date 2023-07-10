@@ -44,8 +44,10 @@ export function Scaffold(props: ScaffoldProps): JSX.Element {
 
             recentScroll = current;
         }
-        window.removeEventListener('scroll', scrollHandler);
         window.addEventListener('scroll', scrollHandler);
+        return () => {
+            window.removeEventListener('scroll', scrollHandler);
+        }
     }, [props.hideFabOnScroll]);
 
     return (

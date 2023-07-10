@@ -1,13 +1,13 @@
-import {routeWithIronSession} from "../../lib/session";
-import {validUser} from "../../lib/db/token";
-import {getUser} from "../../lib/db/user";
-import {hasPermission} from "../../lib/contract";
-import {readAll, verifyReCaptcha} from "../../lib/utility";
-import {addArticle, ArticleMeta, ArticleUpdate, getArticle, updateArticle} from "../../lib/db/article";
-import {validRef} from "./begin/[type]";
-import {notifyTargetDuplicated} from "../../lib/db/image";
+import {routeWithIronSession} from "../../../lib/session";
+import {validUser} from "../../../lib/db/token";
+import {getUser} from "../../../lib/db/user";
+import {hasPermission} from "../../../lib/contract";
+import {readAll, verifyReCaptcha} from "../../../lib/utility";
+import {addArticle, ArticleMeta, ArticleUpdate, getArticle, updateArticle} from "../../../lib/db/article";
+import {validRef} from "../begin/[type]";
+import {notifyTargetDuplicated} from "../../../lib/db/image";
 import {nanoid} from "nanoid";
-import {readTags, stringifyTags} from "../../lib/tagging";
+import {readTags, stringifyTags} from "../../../lib/tagging";
 
 export default routeWithIronSession(async (req, res) => {
     if (!await validUser(req)) {

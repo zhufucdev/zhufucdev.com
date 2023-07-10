@@ -38,6 +38,7 @@ import {ArticleCard, RenderingArticle} from "../componenets/ArticleCard";
 import {HorizontallyScrollingStack} from "../componenets/HorizontallyScrollingStack";
 import {myId} from "../lib/useUser";
 import {readTags} from "../lib/tagging";
+import {Caption} from "../componenets/Caption";
 
 const Home: NextPage<PageProps> = ({recents, inspirations: _inspirations, articles, recaptchaKey, myName}) => {
     const [draftOpen, setDraft] = useState(false);
@@ -102,15 +103,6 @@ const Home: NextPage<PageProps> = ({recents, inspirations: _inspirations, articl
 };
 
 export type LocalRecent = Omit<Recent, "time"> & { time: string };
-
-function Caption(props: TypographyProps) {
-    const theme = useTheme()
-    return (
-        <Typography mb={1} variant="subtitle2" color={theme.palette.primary.main} {...props}>
-            {props.children}
-        </Typography>
-    );
-}
 
 function RecentCards(props: { data: LocalRecent[] }): JSX.Element {
     const {data} = props;

@@ -1,13 +1,13 @@
 import {GetStaticProps, NextPage} from "next";
 import {listArticles} from "../../lib/db/article";
-import {Grid} from "@mui/material";
+import {Box, CircularProgress, Fade, Grid, Stack, Typography, useScrollTrigger} from "@mui/material";
 import {Copyright} from "../../componenets/Copyright";
 import {Scaffold} from "../../componenets/Scaffold";
 import {isMe, myId, useUser} from "../../lib/useUser";
 import {useRouter} from "next/router";
 import {useTitle} from "../../lib/useTitle";
-import React from "react";
-import {getSafeArticle} from "../../lib/getSafeArticle";
+import React, {useCallback, useEffect, useRef, useState} from "react";
+import {getSafeArticle, SafeArticle} from "../../lib/getSafeArticle";
 
 import {getUser, getUsers} from "../../lib/db/user";
 import PlaceHolder from "../../componenets/PlaceHolder";
@@ -17,6 +17,9 @@ import {ReCaptchaPolicy} from "../../componenets/ReCaptchaPolicy";
 import {ReCaptchaScope} from "../../componenets/ReCaptchaScope";
 import {ArticleCard, RenderingArticle} from "../../componenets/ArticleCard";
 import {readTags} from "../../lib/tagging";
+import useScroll from "../../lib/useScroll";
+import {motion} from "framer-motion";
+import {Caption} from "../../componenets/Caption";
 
 type PageProps = {
     articles: RenderingArticle[],
@@ -45,16 +48,58 @@ const PostPage: NextPage<PageProps> = (props) => {
 }
 
 function Content(props: { articles: RenderingArticle[] }): JSX.Element {
+    const [loadingProceeding, setProceedingLoading] = useState(false);
+    const [proceeding, setProceeding] = useState<SafeArticle[]>();
+    const scrolling = useScroll();
+
+    useEffect(() => {
+        if (proceeding) return;
+        if (scrolling.top + window.innerHeight - scrolling.height > 10) {
+            return;
+        }
+
+        setProceedingLoading(true);
+        fetch(`/api/article/proceeding`)
+            .then(res => res.json() as Promise<SafeArticle[]>)
+            .then(setProceeding)
+            .then(() => setTimeout(() => setProceedingLoading(false), 1000));
+    }, [scrolling]);
+
     if (props.articles.length > 0) {
-        return (
-            <Grid container spacing={2} key="grid">
-                {props.articles.map(data => (
+        return <Stack>
+            <Grid container spacing={2}>
+                {props.articles.map((data, i) => (
                     <Grid item key={data._id} flexGrow={1}>
                         <ArticleCard data={data}/>
                     </Grid>
                 ))}
             </Grid>
-        )
+            <Caption mt={2}>额外</Caption>
+            <Box display={loadingProceeding ? 'flex' : 'none'}
+                 mt={2}
+                 justifyContent="center"
+                 width="100%">
+                <CircularProgress/>
+            </Box>
+            <Grid container
+                  spacing={2}
+                  component={motion.div}
+                  animate={!loadingProceeding && proceeding ? 'shown' : 'hidden'}
+                  variants={{
+                      shown: {y: 0, opacity: 1},
+                      hidden: {y: -10, opacity: 0}
+                  }}
+                  transition={{ease: "easeInOut", duration: 0.2}}
+            >
+                {proceeding?.map(data => (
+                    <Grid item key={data._id} flexGrow={1}>
+                        <ArticleCard data={data}/>
+                    </Grid>
+                ))}
+            </Grid>
+            {(!loadingProceeding && proceeding && proceeding.length <= 0) &&
+                <PlaceHolder title="没有更多内容" icon={NoArticleIcon}/>}
+        </Stack>
     } else {
         return (
             <PlaceHolder icon={NoArticleIcon} title="未提供文章"/>
