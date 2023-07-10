@@ -123,7 +123,7 @@ export async function verifyReCaptcha(token: string): Promise<boolean> {
  * @param useAs what the image is used for
  * @param target present only if {@link useAs} is set to 'cover' or 'post'.
  * If so, the image will be automatically deleted if the cover is changed or
- * the post is deleted. Moreover, if using as 'avatar', image shall be deleted
+ * the post is deleted. Moreover, if using as 'avatar', image will be deleted
  * if the same user changes the avatar.
  */
 export async function uploadImage(file: Blob, token: string, useAs: ImageUse = 'save', target: string[] = []): Promise<Response> {

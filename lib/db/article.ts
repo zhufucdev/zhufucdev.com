@@ -1,11 +1,11 @@
 import {GridFSBucket, ObjectId} from "mongodb";
 import {requireDatabase} from "./database";
-import {nanoid} from "nanoid";
 import {Readable} from "stream";
 import {WithDislikes, WithLikes} from "./remark";
-import {attachImage} from "./image";
+import {attachImage, detachImage, notifyTargetRenamed} from "./image";
+import {stringifyTags, Tags, WithTags} from "../tagging";
 
-export interface ArticleMeta extends WithLikes, WithDislikes {
+export interface ArticleMeta extends WithLikes, WithDislikes, WithTags {
     _id: ArticleID;
     author: UserID;
     title: string;
@@ -30,7 +30,8 @@ export async function addArticle(
     title: string,
     cover: ImageID | undefined,
     forward: string,
-    body: string
+    body: string,
+    tags: Tags = {}
 ): Promise<ArticleMeta | undefined> {
     requireBucket();
     const stream = renderBucket.openUploadStream(title + ".md");
@@ -47,7 +48,7 @@ export async function addArticle(
         _id: id,
         file: fileId,
         postTime: new Date(),
-        likes: [], dislikes: []
+        likes: [], dislikes: [], tags: stringifyTags(tags)
     }
     if (cover) {
         store.cover = cover;
@@ -70,6 +71,7 @@ const transformer = (v: ArticleStore) => {
         postTime: v.postTime,
         likes: v.likes,
         dislikes: v.dislikes,
+        tags: v.tags ?? [],
         stream: () => requireBucket().openDownloadStream(v.file)
     } as Article;
     if (v.cover) {
@@ -109,10 +111,26 @@ export async function updateArticle(id: ArticleID, update: ArticleUpdate): Promi
         delete update.body;
     }
     if (update.cover) {
-
+        original.cover && detachImage(original.cover, original._id);
+        attachImage(update.cover, original._id);
+    }
+    if (update._id && update._id !== id) {
+        if (!await changeId(original, update._id)) {
+            return false;
+        }
+        id = update._id;
     }
     const res = await db.collection<ArticleStore>(collectionId).findOneAndUpdate({_id: id}, {$set: update});
     return res.ok === 1
+}
+
+async function changeId(original: ArticleStore, target: ArticleID): Promise<boolean> {
+    notifyTargetRenamed(original._id, target);
+    const db = requireDatabase().collection<ArticleStore>(collectionId);
+    db.findOneAndDelete({_id: original._id});
+    await db.findOneAndDelete({_id: target}); // avoid id duplication
+    const res = await db.insertOne({...original, _id: target});
+    return res.acknowledged;
 }
 
 function requireBucket(): GridFSBucket {

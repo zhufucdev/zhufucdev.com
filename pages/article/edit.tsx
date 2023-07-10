@@ -42,33 +42,39 @@ import {getSafeArticle, SafeArticle} from "../../lib/getSafeArticle";
 import {ICommand} from "@uiw/react-md-editor";
 import * as commands from "@uiw/react-md-editor/lib/commands";
 import {nanoid} from "nanoid";
+import TagInputField from "../../componenets/TagInputField";
+import {readTags, Tag, TagKey} from "../../lib/tagging";
 
 const MDEditor = dynamic(
     () => import("@uiw/react-md-editor"),
     {ssr: false}
 );
 
+type Permission = 'none' | 'create' | 'modify' | 'pr' | 'modify-pr';
 const EditPage: NextPage<PageProps> = (props) => {
     useTitle(props.body ? '编辑文章' : '草拟文章');
     const {user, isLoading} = useProfileContext();
-    const isPermitted = useMemo(() => {
+    const permission = useMemo<Permission>(() => {
         if (!isLoading) {
-            if (!user) return false;
-            if (!hasPermission(user, 'post_article')) {
-                return false;
+            if (!user) return 'none';
+            if (!props.article) {
+                if (hasPermission(user, 'post_article')) return 'create';
+                else return 'none';
             }
+            if (hasPermission(user, 'modify')) return 'modify';
+            if (hasPermission(user, 'edit_own_post') && props.article.author === user._id) {
+                const tags = readTags(props.article);
+                return tags["pr-from"] ? 'modify-pr' : 'modify';
+            }
+            if (hasPermission(user, 'pr_article') && props.article?.author !== user._id) return 'pr';
         }
-        return true
+        return 'none'
     }, [user, isLoading]);
-
-    useEffect(() => {
-
-    }, [isLoading, user])
 
     return <ReCaptchaScope reCaptchaKey={props.reCaptchaKey}>
         {
-            isPermitted ?
-                <PageContent {...props}/>
+            permission !== 'none' ?
+                <PageContent {...props} permission={permission}/>
                 : <PlaceHolder icon={LockedIcon} title="做得好，下次别做了"/>
         }
     </ReCaptchaScope>
@@ -94,18 +100,22 @@ function BackButton(props: ButtonProps): JSX.Element {
     )
 }
 
-type MetadataProps = {
+interface MetadataProps {
     title: string,
     forward: string,
     cover?: File | ImageID,
+    tags: Tag[],
+    hardcodedTags: Tag[],
     onTitleChanged: (title: string) => void,
     onForwardChanged: (forward: string) => void,
     onCoverChanged: (target: ImageID | File) => void,
+    onTagChanged: (tags: Tag[]) => void,
     setter: (incremental: number) => void
 }
 
 function MetadataStepContent(props: MetadataProps): JSX.Element {
     const [anchor, setAnchor] = useState<HTMLElement>();
+
     return <>
         <Stack spacing={2}>
             <Typography>如何吸引观众眼球</Typography>
@@ -132,6 +142,9 @@ function MetadataStepContent(props: MetadataProps): JSX.Element {
                 onChange={ev => props.onForwardChanged(ev.currentTarget.value)}
                 inputMode="text"
                 variant="filled"/>
+
+            <Typography>网站如何管理这篇文章</Typography>
+            <TagInputField tags={props.tags} hardcoded={props.hardcodedTags} onChanged={props.onTagChanged}/>
             <Box mb={2}>
                 <BackButton disabled/>
                 <ContinueButton disabled={!props.title || !props.forward} setter={props.setter}/>
@@ -220,24 +233,59 @@ function MyEditor({value, preload, onChange, onUploadImage}: EditorProps): JSX.E
     )
 }
 
-function PageContent(props: PageProps): JSX.Element {
+interface ContentProps extends PageProps {
+    permission: Permission
+}
+
+function PageContent(props: ContentProps): JSX.Element {
     const router = useRouter();
     const {executeRecaptcha} = useGoogleReCaptcha();
 
     const storageIdentifier = props.article ? props.article._id : "new_article";
     let article: SafeArticle | undefined = props.article;
 
-    function useSaved<T>(type: string, or: T | undefined) {
-        const draft = localStorage.getItem(`${storageIdentifier}.${type}`) as T
-        return useState<T | string>(draft ?? or ?? '');
+    function useSaved<T>(type: string, or: T) {
+        const draft =
+            typeof localStorage === 'object'
+                ? localStorage.getItem(`${storageIdentifier}.${type}`) as T
+                : undefined;
+        return useState<T>(draft ?? or);
     }
 
-    const [title, setTitle] = useSaved('title', article?.title);
-    const [forward, setForward] = useSaved('forward', article?.forward);
-    const [cover, setCover] = useSaved<File | ImageID>('cover', article?.cover);
-    const [value, setValue] = useSaved('body', props.body);
-    const [preload, setPreload] = useState<LocalImage>({});
+    const hardcodedTags = useMemo(() => {
+        switch (props.permission) {
+            case "none":
+            case "modify":
+            case "create":
+                return [];
+            case "pr":
+                return [new Tag(TagKey.Hidden), new Tag(TagKey.PrFrom, article!._id)]
+            case "modify-pr":
+                const tags = article ? readTags(article) : {};
+                return [new Tag(TagKey.Hidden), new Tag(TagKey.PrFrom, tags["pr-from"] as string)]
+        }
+    }, [props.permission, article]);
 
+    function useTags() {
+        let draft: Tag[] | undefined = undefined;
+        if (typeof localStorage === 'object') {
+            const read = localStorage.getItem(`${storageIdentifier}.tags`);
+            if (read) {
+                draft = (JSON.parse(read) as string[]).map(Tag.readTag);
+            } else {
+                draft = article?.tags?.map(Tag.readTag)?.filter(t => !hardcodedTags.find(h => h.key == t.key));
+            }
+        }
+        return useState(draft ?? []);
+    }
+
+    const [title, setTitle] = useSaved('title', article?.title ?? '');
+
+    const [forward, setForward] = useSaved('forward', article?.forward ?? '');
+    const [cover, setCover] = useSaved<File | ImageID>('cover', article?.cover ?? '');
+    const [value, setValue] = useSaved('body', props.body ?? '');
+    const [preload, setPreload] = useState<LocalImage>({});
+    const [tags, setTags] = useTags();
     function saveFunc(type: string, content: () => string): () => void {
         const id = storageIdentifier;
         return () => {
@@ -253,7 +301,7 @@ function PageContent(props: PageProps): JSX.Element {
             localStorage.setItem(storageIdentifier + ".cover", cover)
         }
     }, [cover]);
-
+    useEffect(saveFunc('tags', () => JSON.stringify(tags.map(v => v.toString()))), [tags]);
 
     const [activeStep, setActiveStep] = useState(0);
     const lastStep = 2;
@@ -262,7 +310,7 @@ function PageContent(props: PageProps): JSX.Element {
     const [progress, setProgress] = useState(-1);
     const handleResult = useRequestResult(
         () => {
-            ['cover', 'title', 'ref', 'body'].forEach(v => localStorage.removeItem(`${storageIdentifier}.${v}`));
+            ['cover', 'title', 'ref', 'body', 'tags'].forEach(v => localStorage.removeItem(`${storageIdentifier}.${v}`));
             router.push('/article');
         },
         () => {
@@ -283,9 +331,9 @@ function PageContent(props: PageProps): JSX.Element {
         if (stop) return;
 
         const token = await executeRecaptcha();
-        let body: any = {ref, title, forward, token, cover, body: source};
+        let body: any = {ref, title, forward, token, cover, body: source, tags: tags.map(t => t.toString())};
         if (article) {
-            const original = article
+            const original = article;
             body.edit = true;
             body.id = original._id;
             if (body.title === original.title) {
@@ -306,6 +354,11 @@ function PageContent(props: PageProps): JSX.Element {
         handleResult(await getResponseRemark(res));
     }
 
+    /**
+     * Preceding steps of article uploading, which is basically image uploading
+     * @param ref id to the article
+     * @return some object containing the refactored passage body
+     */
     async function presubmit(ref: string): Promise<{ source: string, cover?: string, stop?: boolean }> {
         let coverId: string | undefined = article?.cover;
         const preloadKeys = Object.getOwnPropertyNames(preload);
@@ -336,6 +389,7 @@ function PageContent(props: PageProps): JSX.Element {
             const res = await uploadImage(image, token, 'post', [ref]);
             const remark = await getResponseRemark(res);
             if (!remark.success) {
+                // upload failure
                 handleResult(remark);
                 return {
                     source: '',
@@ -386,6 +440,9 @@ function PageContent(props: PageProps): JSX.Element {
                         onForwardChanged={setForward}
                         cover={cover}
                         onCoverChanged={setCover}
+                        tags={tags}
+                        hardcodedTags={hardcodedTags}
+                        onTagChanged={setTags}
                     />
                 </StepContent>
             </Step>

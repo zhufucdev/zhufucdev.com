@@ -16,6 +16,7 @@ import NoArticleIcon from "@mui/icons-material/PsychologyOutlined";
 import {ReCaptchaPolicy} from "../../componenets/ReCaptchaPolicy";
 import {ReCaptchaScope} from "../../componenets/ReCaptchaScope";
 import {ArticleCard, RenderingArticle} from "../../componenets/ArticleCard";
+import {readTags} from "../../lib/tagging";
 
 type PageProps = {
     articles: RenderingArticle[],
@@ -63,11 +64,13 @@ function Content(props: { articles: RenderingArticle[] }): JSX.Element {
 
 export const getStaticProps: GetStaticProps<PageProps> = async () => {
     const articles = await listArticles()
-        .then(list => list.sort(
-            (a, b) =>
-                Math.log(b.likes.length + 1) - Math.log(b.dislikes.length + 1)
-                - Math.log(a.likes.length + 1) + Math.log(a.dislikes.length + 1)
-        ));
+        .then(list =>
+            list.filter(meta => !readTags(meta).hidden)
+                .sort(
+                    (a, b) =>
+                        Math.log(b.likes.length + 1) - Math.log(b.dislikes.length + 1)
+                        - Math.log(a.likes.length + 1) + Math.log(a.dislikes.length + 1)
+                ));
     const users = await getUsers(articles.map(m => m.author));
     const unfolded: RenderingArticle[] = articles.map(m => users(m.author) ? {
         ...getSafeArticle(m),

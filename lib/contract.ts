@@ -78,6 +78,7 @@ export function hasPermission(user: User, permit: PermissionID): boolean {
         const defaultPermissions: PermissionID[] = [
             "raise_issue",
             "raise_inspiration",
+            "pr_article",
             "send_pm",
             "comment",
             "remark",

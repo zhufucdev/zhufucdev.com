@@ -23,6 +23,7 @@ import {getResponseRemark, hasPermission, reCaptchaNotReady} from "../lib/contra
 import {useSnackbar} from "notistack";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import EditIcon from "@mui/icons-material/EditOutlined";
+import PrIcon from "@mui/icons-material/DriveFileRenameOutline";
 import ListItemText from "@mui/material/ListItemText";
 import DeleteIcon from "@mui/icons-material/DeleteOutline";
 import {DeleteAlertDialog} from "./DeleteAlertDialog";
@@ -105,13 +106,18 @@ function PopoverMenu(props: IMenuProps): JSX.Element {
     const canEdit = useMemo(
         () =>
             (props.user
-                && (hasPermission(props.user, 'post_article')
-                    && hasPermission(props.user, 'edit_own_post')
+                && (hasPermission(props.user, 'edit_own_post')
                     && props.article.author === props.user._id
                     || hasPermission(props.user, 'modify')
                 )) === true,
         [props.user]
     );
+    const canPr = useMemo(
+        () =>
+            (props.user
+                && hasPermission(props.user, 'pr_article')),
+        [props.user]
+    )
     const like = useState(false);
     const dislike = useState(false);
     const [deleting, setDeleting] = useState(false);
@@ -152,7 +158,7 @@ function PopoverMenu(props: IMenuProps): JSX.Element {
 
     const [toDelete, setToDelete] = useState(false);
 
-    if (!canEdit) {
+    if (!canEdit && !canPr) {
         return (
             <Menu {...props}>
                 <MenuList>
@@ -160,6 +166,19 @@ function PopoverMenu(props: IMenuProps): JSX.Element {
                 </MenuList>
             </Menu>
         );
+    }
+    if (!canEdit && canPr && props.article.author !== props.user?._id) {
+        return (
+            <Menu {...props}>
+                <MenuList>
+                    <MenuItem onClick={() => router.push(`/article/edit?id=${props.article._id}`)}>
+                        <ListItemIcon><PrIcon/></ListItemIcon>
+                        <ListItemText>拉取请求</ListItemText>
+                    </MenuItem>
+                    <PopoverBasics {...props} like={like} dislike={dislike}/>
+                </MenuList>
+            </Menu>
+        )
     }
     return <>
         <Menu {...props}>

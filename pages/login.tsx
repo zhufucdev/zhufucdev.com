@@ -148,15 +148,22 @@ function LoginUI() {
         const token = await handleRecaptchaVerify();
 
         const snapshot = {id, nick, pwd, repwd, token} as UserInfo;
+        if (!userContract.testID(snapshot.id) || !userContract.testPwd(snapshot.pwd)) {
+            updateHelpers({id: '用户不存在'});
+            setLoading(false);
+            return;
+        }
+        if (!snapshot.nick) snapshot.nick = snapshot.id;
+        if (registering
+            && (snapshot.repwd === undefined || !testRepwd(snapshot.repwd) || !userContract.testNick(snapshot.nick))) {
+            setLoading(false);
+            return;
+
+        }
         if (!snapshot.token) {
             handleResult(reCaptchaNotReady)
             return;
         }
-        if (!userContract.testID(snapshot.id) || !userContract.testPwd(snapshot.pwd)) return;
-        if (!snapshot.nick) snapshot.nick = snapshot.id;
-        if (registering
-            && (snapshot.repwd === undefined || !testRepwd(snapshot.repwd) || !userContract.testNick(snapshot.nick)))
-            return;
 
         let res: RequestResult;
         if (registering) {

@@ -37,6 +37,7 @@ import {getSafeArticle} from "../lib/getSafeArticle";
 import {ArticleCard, RenderingArticle} from "../componenets/ArticleCard";
 import {HorizontallyScrollingStack} from "../componenets/HorizontallyScrollingStack";
 import {myId} from "../lib/useUser";
+import {readTags} from "../lib/tagging";
 
 const Home: NextPage<PageProps> = ({recents, inspirations: _inspirations, articles, recaptchaKey, myName}) => {
     const [draftOpen, setDraft] = useState(false);
@@ -275,7 +276,7 @@ type StaticProps = {
 export async function getStaticProps(): Promise<StaticProps> {
     const recents = (await getRecents()).map((v) => ({...v, time: v.time.toISOString()}));
     const inspirations = await getInspirations();
-    const articles = (await listArticles()).slice(0, 3).map(getSafeArticle);
+    const articles = (await listArticles()).filter(meta => !readTags(meta).hidden).slice(0, 3).map(getSafeArticle);
     const unfoldedInspirations: RenderingInspiration[] = [];
     const unfoldedArticles: RenderingArticle[] = [];
     const authors = inspirations.map(m => m.raiser)

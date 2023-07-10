@@ -75,8 +75,8 @@ export async function listImages(): Promise<ImageMeta[]> {
  * @param content the file buffer
  * @param uploader who uploads
  * @param use how the image should be used.
- * If an image is used as avatar or cover, it will be deleted once the user's avatar is changed
- * , the post is deleted or its cover is replaced.
+ * If an image is used as avatar or cover, it will be deleted once the user's avatar is changed,
+ * his post is deleted or its cover replaced.
  * @param target only present when {@link use} is set to 'post' or 'cover',
  * indicating what posts is this image attached to.
  * @returns {@link AbstractImage} if the upload was successful, or undefined
@@ -209,6 +209,35 @@ export async function notifyTargetDropped(target: string) {
         }
         // @ts-ignore
     }, {$pull: {target: target}})
+}
+
+/***
+ * Declare that some post bas been copied
+ * @param original the post
+ * @param duplication the copy
+ * @return if any change has been made
+ */
+export async function notifyTargetDuplicated(original: string, duplication: string): Promise<boolean> {
+    const imagesInvolved = (await listImages()).filter(meta => meta.target?.includes(original));
+    for (const img of imagesInvolved) {
+        await attachImage(img._id, duplication);
+    }
+    return imagesInvolved.length > 0;
+}
+
+/***
+ * Declare that some post has been renamed
+ * @param original the post
+ * @param target the new name
+ * @return if any change has been made
+ */
+export async function notifyTargetRenamed(original: string, target: string): Promise<boolean> {
+    const imagesInvolved = (await listImages()).filter(meta => meta.target?.includes(original));
+    for (const img of imagesInvolved) {
+        await attachImage(img._id, target);
+        await detachImage(img._id, original);
+    }
+    return imagesInvolved.length > 0;
 }
 
 declare global {

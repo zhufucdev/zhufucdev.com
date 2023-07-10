@@ -18,6 +18,7 @@ declare global {
         | "raise_issue"
         | "raise_recent"
         | "post_article"
+        | "pr_article"
         | "send_pm"
         | "comment"
         | "remark"

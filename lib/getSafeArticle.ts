@@ -10,7 +10,8 @@ export function getSafeArticle(source: Article): SafeArticle {
         forward: source.forward,
         likes: source.likes,
         dislikes: source.dislikes,
-        postTime: source.postTime.toISOString()
+        postTime: source.postTime.toISOString(),
+        tags: source.tags,
     }
     if (source.cover) {
         data.cover = source.cover;
