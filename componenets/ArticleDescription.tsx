@@ -3,7 +3,7 @@ import {getHumanReadableTime} from "../lib/utility";
 import React from "react";
 import {RenderingArticle} from "./ArticleCard";
 import {TagKey, TagKeyUtil} from "../lib/tagging";
-import {getLanguageName, languageNameOf} from "../lib/translation";
+import {getLanguageName} from "../lib/translation";
 
 export function ArticleDescription({data}: { data: RenderingArticle }) {
     let des = `由${data.authorNick ?? data.author}发布于${getHumanReadableTime(new Date(data.postTime))}`;
@@ -22,11 +22,11 @@ export function ArticleDescription({data}: { data: RenderingArticle }) {
                 append(TagKeyUtil.getDisplayName(key as TagKey));
                 break;
             case TagKey.Language:
-                const lang = getLanguageName(data)
+                const lang = getLanguageName(data.tags.lang as string)
                 if (lang) append(TagKeyUtil.getDisplayName(TagKey.Language), lang)
                 break;
             case TagKey.TranslatedFrom:
-                const lang_ = languageNameOf[data.tags["t-from"] as string];
+                const lang_ = getLanguageName(data.tags["t-from"] as string);
                 if (lang_) append(TagKeyUtil.getDisplayName(TagKey.TranslatedFrom), lang_)
         }
     }
