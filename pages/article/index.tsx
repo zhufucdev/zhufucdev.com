@@ -50,9 +50,10 @@ function Content(props: { articles: RenderingArticle[] }): JSX.Element {
     const [proceeding, setProceeding] = useState<SafeArticle[]>();
     const scrolling = useScroll();
     const theme = useTheme();
+    const {user} = useUser();
 
     useEffect(() => {
-        if (proceeding) return;
+        if (proceeding || !user) return;
         if (scrolling.height <= 0) return;
         if (window.innerHeight <= scrolling.height && scrolling.height - scrolling.top - window.innerHeight > 10) {
             return;
@@ -64,7 +65,7 @@ function Content(props: { articles: RenderingArticle[] }): JSX.Element {
             .then(getRenderingArticle)
             .then(setProceeding)
             .finally(() => setTimeout(() => setProceedingLoading(false), 1000))
-    }, [scrolling]);
+    }, [scrolling, user]);
 
     if (props.articles.length > 0) {
         return <Stack>
