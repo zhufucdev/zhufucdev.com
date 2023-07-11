@@ -45,7 +45,6 @@ const ArticleApp: NextPage<PageProps> = ({meta, body}) => {
     useEffect(() => {
         if (!options || !options.current) return;
         const targetId = meta!.altLangs![options.current];
-        if (targetId === meta?._id) return;
         router.push(`/article/${targetId}`)
     }, [options]);
 
