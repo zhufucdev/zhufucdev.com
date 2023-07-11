@@ -80,8 +80,8 @@ export function ContentsNodeComponent(props: ContentsNodeComponentProps) {
                 setCurrentTitle(nodesUnfolded[from].id);
             }
 
-            window.removeEventListener('scroll', scrollHandler);
             window.addEventListener('scroll', scrollHandler);
+            return () => window.removeEventListener('scroll', scrollHandler);
         }
     }, [indent]);
 
