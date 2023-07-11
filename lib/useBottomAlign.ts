@@ -28,7 +28,6 @@ export function useBottomAlign<R extends HTMLElement, C extends HTMLElement, A e
     const [actionMargin, setActionMargin] = React.useState(0);
     React.useEffect(() => {
         const margin = rootBtm - textBtm - actionH;
-        console.log(rootBtm, textBtm, actionH)
         setActionMargin(margin);
     }, [rootBtm, textBtm, actionH]);
 
