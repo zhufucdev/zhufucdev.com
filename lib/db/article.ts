@@ -6,6 +6,7 @@ import {attachImage, detachImage, notifyTargetRenamed} from "./image";
 import {readTags, TagKey, Tags, WithTags} from "../tagging";
 import {User} from "./user";
 import {hasPermission} from "../contract";
+import {nanoid} from "nanoid";
 
 export interface ArticleMeta extends WithLikes, WithDislikes, WithTags {
     _id: ArticleID;
@@ -63,6 +64,29 @@ export async function addArticle(
     } else {
         return undefined;
     }
+}
+
+export async function duplicateArticle(origin: ArticleID): Promise<ArticleStore | undefined> {
+    const db = requireDatabase().collection<ArticleStore>(collectionId);
+    const doc = await db.findOne({_id: origin});
+    if (!doc) return undefined;
+
+    requireBucket();
+    const ds = renderBucket.openDownloadStream(doc.file);
+    const us = renderBucket.openUploadStream(doc.title + ".md");
+    doc.file = us.id;
+    ds.pipe(us, {end: true});
+
+    await new Promise<void>((accept) => {
+        ds.once('end', () => {
+            accept();
+        });
+    });
+
+    doc._id = nanoid();
+    const res = await db.insertOne(doc);
+    if (!res.acknowledged) return undefined;
+    return doc;
 }
 
 const transformer = (v: ArticleStore) => {

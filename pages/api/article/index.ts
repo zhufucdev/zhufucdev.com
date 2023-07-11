@@ -3,7 +3,7 @@ import {validUser} from "../../../lib/db/token";
 import {getUser} from "../../../lib/db/user";
 import {hasPermission} from "../../../lib/contract";
 import {readAll, verifyReCaptcha} from "../../../lib/utility";
-import {addArticle, ArticleMeta, ArticleUpdate, getArticle, updateArticle} from "../../../lib/db/article";
+import {addArticle, ArticleMeta, ArticleUpdate, duplicateArticle, getArticle, updateArticle} from "../../../lib/db/article";
 import {validRef} from "../begin/[type]";
 import {notifyTargetDuplicated} from "../../../lib/db/image";
 import {nanoid} from "nanoid";
@@ -79,26 +79,39 @@ export default routeWithIronSession(async (req, res) => {
         const update: ArticleUpdate = {
             title, forward, body, cover, tags
         }
+        const tagStruct = Array.isArray(tags) ? readTags(tags) : {};
 
         if (canEdit) {
             // to modify one's own stuff or to administrate
-            if (Array.isArray(tags)) {
-                const constructed = readTags(tags);
-                const prFrom = constructed["pr-from"];
-                if (!canModify) {
-                    // modifying one's own pull request
-                    if (!prFrom) {
-                        res.status(403).send('not permitted');
-                        return
-                    }
-                    constructed["pr-from"] = prFrom;
-                    constructed.hidden = true;
-                    update.tags = stringifyTags(constructed);
-                } else if (prFrom && !constructed.hidden && !constructed["t-from"]) {
-                    // merging the pr
-                    update._id = prFrom as string;
-                    update.author = (await getArticle(prFrom as string))?.author;
+            if (tagStruct["t-from"] && !original.tags["t-from"]) {
+                // to add a new translation
+                const origin = await getArticle(tagStruct["t-from"] as string);
+                if (!origin) {
+                    res.status(404).send('origin not found');
+                    return
                 }
+                const copy = await duplicateArticle(origin._id);
+                if (!copy) {
+                    res.status(500).send('failed to duplicate doc');
+                    return
+                }
+                ref = copy._id;
+            }
+
+            const prFrom = tagStruct["pr-from"];
+            if (!canModify) {
+                // modifying one's own pull request
+                if (!prFrom) {
+                    res.status(403).send('not permitted');
+                    return
+                }
+                tagStruct["pr-from"] = prFrom;
+                tagStruct.hidden = true;
+                update.tags = stringifyTags(tagStruct);
+            } else if (prFrom && !tagStruct.hidden && !tagStruct["t-from"]) {
+                // merging the pr
+                update._id = prFrom as string;
+                update.author = (await getArticle(prFrom as string))?.author;
             }
 
             for (let key in update) {
@@ -123,7 +136,6 @@ export default routeWithIronSession(async (req, res) => {
                 res.status(400).send('bad request');
                 return
             }
-            const tagStruct = readTags(tags);
 
             let pr: ArticleMeta = {...original, author: req.session.userID!, _id: nanoid()};
             for (const key in update) {
