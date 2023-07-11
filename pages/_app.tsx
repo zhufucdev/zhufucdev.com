@@ -4,7 +4,7 @@ import type {AppProps} from "next/app";
 
 import {useRouter} from "next/router";
 import * as React from "react";
-import {useEffect, useMemo, useState} from "react";
+import {useEffect, useMemo, useRef, useState} from "react";
 
 import Box from "@mui/material/Box";
 import Drawer from "@mui/material/Drawer";
@@ -24,13 +24,14 @@ import AccountIcon from "@mui/icons-material/AccountCircleOutlined";
 import LogoutIcon from "@mui/icons-material/LogoutOutlined";
 import LoginIcon from "@mui/icons-material/LoginOutlined";
 import ArticleIcon from "@mui/icons-material/ArticleOutlined";
+import LanguageIcon from "@mui/icons-material/LanguageOutlined";
 
 import {
     Backdrop,
     IconButton, LinearProgress,
     Menu,
     MenuItem,
-    MenuList,
+    MenuList, Popover,
     ThemeOptions,
     Tooltip,
     useMediaQuery,
@@ -51,6 +52,9 @@ import {useRequestResult} from "../lib/useRequestResult";
 import {getTitle, TitleProvider, useTitle} from "../lib/useTitle";
 import {ContentsProvider, useContents} from "../lib/useContents";
 import {ContentsNodeComponent} from "../componenets/ContentsNodeComponent";
+import LanguageSelect from "../componenets/LanguageSelect";
+import {LanguageOptions, LanguageProvider, useLanguage} from "../lib/useLanguage";
+import {defaultLang, getLanguageName} from "../lib/translation";
 
 export const drawerWidth = 240;
 
@@ -74,6 +78,7 @@ function MyAppBar(props: MyAppBarProps): JSX.Element {
     const [_title] = useTitle();
     const title = useMemo(() => getTitle(_title, false), [_title]);
     const [userMenuAnchor, setUserMenuAnchor] = React.useState<HTMLElement>();
+    const [langOptions, setLangOptions, setTargetLang] = useLanguage();
 
     const handleLogout = async () => {
         const res = await fetchApi('/api/login', {logout: true});
@@ -116,6 +121,16 @@ function MyAppBar(props: MyAppBarProps): JSX.Element {
                     sx={{flexGrow: 1}}>
                     {title}
                 </Typography>
+                {langOptions
+                    && <LanguageSelect
+                        current={langOptions.current ?? defaultLang}
+                        available={langOptions.available}
+                        sx={{
+                            mr: 2,
+                            [theme.breakpoints.down('md')]: {display: 'none'}
+                        }}
+                        onLanguageSwitched={setTargetLang}/>}
+                {langOptions && <LanguageSwitch options={langOptions} onSwitched={setTargetLang}/>}
                 <Tooltip title={isUserLoading ? "" : (user ? user.nick : "未登录")}>
                     <span>
                     <IconButton
@@ -181,18 +196,53 @@ function MyHead() {
     return <Head><title>{title}</title></Head>
 }
 
+function LanguageSwitch(props: { options: LanguageOptions, onSwitched: (target: string) => void }) {
+    const theme = useTheme();
+    const [open, setOpen] = useState(false);
+    const icon = useRef(null);
+
+    return <>
+        <Tooltip title="语言">
+        <span>
+            <IconButton sx={{[theme.breakpoints.up('md')]: {display: 'none'}}}
+                        onClick={() => setOpen(true)}
+                        ref={icon}>
+                <LanguageIcon/>
+            </IconButton>
+        </span>
+        </Tooltip>
+        <Popover open={open}
+                 onClose={() => setOpen(false)}
+                 anchorEl={icon.current}
+                 transformOrigin={{
+                     vertical: 'top',
+                     horizontal: 'right'
+                 }}
+                 anchorOrigin={{
+                     vertical: 'bottom',
+                     horizontal: 'right'
+                 }}
+        >
+            <List>
+                {props.options.available.map(code =>
+                    <ListItemButton
+                        key={code}
+                        onClick={() => {
+                            setOpen(false);
+                            props.onSwitched(code)
+                        }}
+                        selected={props.options.current === code}>
+                        {getLanguageName(code)}
+                    </ListItemButton>
+                )}
+            </List>
+        </Popover>
+    </>
+}
+
 function MyDrawerContent(props: { onItemClicked: () => void }) {
     const router = useRouter();
     const [root, setContents] = useContents();
-
-    useEffect(() => {
-        router.events.on('routeChangeStart', () => {
-            setContents({
-                target: '',
-                nodes: []
-            })
-        })
-    }, [router]);
 
     return <>
         <Toolbar/>
@@ -258,12 +308,15 @@ function MyBackdrop() {
             setProgress(100);
         }
 
-        router.events.off('routeChangeStart', onHandler);
-        router.events.off('routeChangeComplete', offHandler);
-        router.events.off('routeChangeError', offHandler);
         router.events.on('routeChangeStart', onHandler);
         router.events.on('routeChangeComplete', offHandler);
         router.events.on('routeChangeError', offHandler);
+
+        return () => {
+            router.events.off('routeChangeStart', onHandler);
+            router.events.off('routeChangeComplete', offHandler);
+            router.events.off('routeChangeError', offHandler);
+        }
     }, [router]);
 
     return <Backdrop open={transiting} unmountOnExit sx={{zIndex: 10000, transitionDelay: '400ms'}}>
@@ -295,59 +348,61 @@ function MyApp({Component, pageProps, emotionCache = clientEmotionCache}: MyAppP
                         <MyBackdrop/>
                         <SnackbarProvider>
                             <SelfProfileProvider {...selfProfile}>
-                                <Box sx={{display: "flex"}}>
-                                    <CssBaseline/>
-                                    <MyAppBar onToggleDrawer={handleDrawerToggle}/>
+                                <LanguageProvider>
+                                    <Box sx={{display: "flex"}}>
+                                        <CssBaseline/>
+                                        <MyAppBar onToggleDrawer={handleDrawerToggle}/>
 
-                                    <Box
-                                        component="nav"
-                                        sx={{width: {sm: drawerWidth}, flexShrink: {sm: 0}}}
-                                        aria-label="drawer content"
-                                    >
-                                        <Drawer
-                                            variant="temporary"
-                                            open={mobileOpen}
-                                            onClose={handleDrawerToggle}
-                                            ModalProps={{
-                                                keepMounted: true, // Better open performance on mobile.
-                                            }}
+                                        <Box
+                                            component="nav"
+                                            sx={{width: {sm: drawerWidth}, flexShrink: {sm: 0}}}
+                                            aria-label="drawer content"
+                                        >
+                                            <Drawer
+                                                variant="temporary"
+                                                open={mobileOpen}
+                                                onClose={handleDrawerToggle}
+                                                ModalProps={{
+                                                    keepMounted: true, // Better open performance on mobile.
+                                                }}
+                                                sx={{
+                                                    display: {xs: "block", sm: "none"},
+                                                    "& .MuiDrawer-paper": {
+                                                        boxSizing: "border-box",
+                                                        width: drawerWidth,
+                                                    },
+                                                }}
+                                            >
+                                                <MyDrawerContent onItemClicked={handleDrawerToggle}/>
+                                            </Drawer>
+                                            <Drawer
+                                                variant="permanent"
+                                                sx={{
+                                                    display: {xs: "none", sm: "block"},
+                                                    "& .MuiDrawer-paper": {
+                                                        boxSizing: "border-box",
+                                                        width: drawerWidth,
+                                                    },
+                                                }}
+                                                open
+                                            >
+                                                <MyDrawerContent onItemClicked={handleDrawerToggle}/>
+                                            </Drawer>
+                                        </Box>
+
+                                        <Box
                                             sx={{
-                                                display: {xs: "block", sm: "none"},
-                                                "& .MuiDrawer-paper": {
-                                                    boxSizing: "border-box",
-                                                    width: drawerWidth,
-                                                },
+                                                flexGrow: 1,
+                                                p: 3,
+                                                width: {sm: `calc(100% - ${drawerWidth}px)`},
                                             }}
                                         >
-                                            <MyDrawerContent onItemClicked={handleDrawerToggle}/>
-                                        </Drawer>
-                                        <Drawer
-                                            variant="permanent"
-                                            sx={{
-                                                display: {xs: "none", sm: "block"},
-                                                "& .MuiDrawer-paper": {
-                                                    boxSizing: "border-box",
-                                                    width: drawerWidth,
-                                                },
-                                            }}
-                                            open
-                                        >
-                                            <MyDrawerContent onItemClicked={handleDrawerToggle}/>
-                                        </Drawer>
+                                            <Toolbar/>
+                                            <Component {...pageProps} />
+                                        </Box>
                                     </Box>
-
-                                    <Box
-                                        sx={{
-                                            flexGrow: 1,
-                                            p: 3,
-                                            width: {sm: `calc(100% - ${drawerWidth}px)`},
-                                        }}
-                                    >
-                                        <Toolbar/>
-                                        <Component {...pageProps} />
-                                    </Box>
-                                </Box>
-                                <Analytics/>
+                                    <Analytics/>
+                                </LanguageProvider>
                             </SelfProfileProvider>
                         </SnackbarProvider>
                     </ContentsProvider>

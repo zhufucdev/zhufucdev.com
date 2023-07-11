@@ -94,7 +94,7 @@ export default routeWithIronSession(async (req, res) => {
                     constructed["pr-from"] = prFrom;
                     constructed.hidden = true;
                     update.tags = stringifyTags(constructed);
-                } else if (prFrom && !constructed.hidden) {
+                } else if (prFrom && !constructed.hidden && !constructed["t-from"]) {
                     // merging the pr
                     update._id = prFrom as string;
                     update.author = (await getArticle(prFrom as string))?.author;

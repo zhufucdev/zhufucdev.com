@@ -1,9 +1,9 @@
-import {GridFSBucket, ObjectId} from "mongodb";
+import {Filter, GridFSBucket, ObjectId} from "mongodb";
 import {requireDatabase} from "./database";
 import {Readable} from "stream";
 import {WithDislikes, WithLikes} from "./remark";
 import {attachImage, detachImage, notifyTargetRenamed} from "./image";
-import {readTags, WithTags} from "../tagging";
+import {readTags, TagKey, Tags, WithTags} from "../tagging";
 import {User} from "./user";
 import {hasPermission} from "../contract";
 
@@ -83,12 +83,33 @@ const transformer = (v: ArticleStore) => {
     return data;
 };
 
-export async function listArticles(): Promise<Article[]> {
+export async function listArticles(criteria?: Partial<ArticleMeta>): Promise<Article[]> {
     requireDatabase();
+
+    let filter: Filter<ArticleStore>;
+    let tagsCriteria: Tags = {};
+    if (criteria) {
+        filter = criteria;
+        if (criteria.tags) {
+            tagsCriteria = criteria.tags;
+            delete criteria.tags;
+        }
+    } else {
+        filter = {};
+    }
+
     return (await db.collection<ArticleStore>(collectionId)
-        .find()
+        .find(filter)
         .map(transformer)
         .toArray())
+        .filter((meta: Article) => {
+            for (const key in tagsCriteria) {
+                if (meta.tags[key as TagKey] !== tagsCriteria[key as TagKey]) {
+                    return false;
+                }
+            }
+            return true;
+        })
         .reverse()
 }
 
@@ -168,7 +189,7 @@ export class ArticleUtil {
             && (hasPermission(user, 'modify') || meta.author == user._id)
     }
 
-    public static public(): (meta: ArticleMeta) => boolean {
-        return meta => !meta.tags.hidden
+    public static publicList(): (meta: ArticleMeta) => boolean {
+        return meta => !meta.tags.hidden && !meta.tags["t-from"]
     }
 }

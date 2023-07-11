@@ -113,7 +113,7 @@ function Content(props: { articles: RenderingArticle[] }): JSX.Element {
 export const getStaticProps: GetStaticProps<PageProps> = async () => {
     const articles = await listArticles()
         .then(list =>
-            list.filter(ArticleUtil.public())
+            list.filter(ArticleUtil.publicList())
                 .sort(
                     (a, b) =>
                         Math.log(b.likes.length + 1) - Math.log(b.dislikes.length + 1)

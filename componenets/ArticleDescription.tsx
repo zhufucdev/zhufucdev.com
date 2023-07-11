@@ -26,8 +26,7 @@ export function ArticleDescription({data}: { data: RenderingArticle }) {
                 if (lang) append(TagKeyUtil.getDisplayName(TagKey.Language), lang)
                 break;
             case TagKey.TranslatedFrom:
-                const lang_ = getLanguageName(data.tags["t-from"] as string);
-                if (lang_) append(TagKeyUtil.getDisplayName(TagKey.TranslatedFrom), lang_)
+                append(TagKeyUtil.getDisplayName(TagKey.TranslatedFrom), data.tags["t-from"] as string)
         }
     }
     return <Typography variant="caption" color="text.secondary">{des}</Typography>

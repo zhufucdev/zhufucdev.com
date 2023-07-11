@@ -1,10 +1,9 @@
 import {Stack} from "@mui/material";
-import {ResponsiveStyleValue} from "@mui/system";
 import {AnimatedActionFab} from "./AnimatedActionFab";
 import React, {useEffect, useState} from "react";
 
 type ScaffoldProps = {
-    spacing: ResponsiveStyleValue<number | string>,
+    spacing: number | string,
     fabContent?: React.ReactNode,
     hideFabOnScroll?: boolean,
     children: React.ReactNode,

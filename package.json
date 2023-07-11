@@ -40,10 +40,12 @@
     "webp-converter": "^2.3.3"
   },
   "devDependencies": {
-    "@types/bcrypt": "^5.0.0",
+    "@emotion/cache": "^11.11.0",
+    "@mui/system": "^5.13.7",
     "@mui/types": "^7.2.4",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^14.0.0",
+    "@types/bcrypt": "^5.0.0",
     "@types/node": "18.11.18",
     "@types/react": "18.0.26",
     "@types/react-dom": "18.0.10",

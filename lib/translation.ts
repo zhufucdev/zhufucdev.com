@@ -3,3 +3,5 @@ export function getLanguageName(code: string | undefined): string | undefined {
     const lookup = new Intl.DisplayNames([code], {type: 'language'});
     return lookup.of(code);
 }
+
+export const defaultLang = 'zh-CN';

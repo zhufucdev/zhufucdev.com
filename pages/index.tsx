@@ -30,7 +30,7 @@ import {getUser, getUsers, User} from "../lib/db/user";
 import {ReCaptchaScope} from "../componenets/ReCaptchaScope";
 import {ReCaptchaPolicy} from "../componenets/ReCaptchaPolicy";
 import Link from "next/link";
-import {listArticles} from "../lib/db/article";
+import {ArticleUtil, listArticles} from "../lib/db/article";
 import {getSafeArticle} from "../lib/getSafeArticle";
 import {ArticleCard, RenderingArticle} from "../componenets/ArticleCard";
 import {HorizontallyScrollingStack} from "../componenets/HorizontallyScrollingStack";
@@ -266,7 +266,7 @@ type StaticProps = {
 export async function getStaticProps(): Promise<StaticProps> {
     const recents = (await getRecents()).map((v) => ({...v, time: v.time.toISOString()}));
     const inspirations = await getInspirations();
-    const articles = (await listArticles()).filter(meta => !meta.tags.hidden).slice(0, 3).map(getSafeArticle);
+    const articles = (await listArticles()).filter(ArticleUtil.publicList()).slice(0, 3).map(getSafeArticle);
     const unfoldedInspirations: RenderingInspiration[] = [];
     const unfoldedArticles: RenderingArticle[] = [];
     const authors = inspirations.map(m => m.raiser)
@@ -288,7 +288,7 @@ export async function getStaticProps(): Promise<StaticProps> {
         const user = author(meta.author);
         if (user) {
             unfoldedArticles.push({
-                ...meta, authorNick: user.nick
+                ...meta, authorNick: user.nick, altLangs: {}
             })
         } else {
             unfoldedArticles.push(meta)
