@@ -1,5 +1,5 @@
 import React, {useEffect, useMemo, useState} from "react";
-import {cacheImage, getHumanReadableTime, getImageUri, remark} from "../lib/utility";
+import {cacheImage, getImageUri, remark} from "../lib/utility";
 import {useProfileContext} from "../lib/useUser";
 import {
     Card,
@@ -9,13 +9,15 @@ import {
     CardMedia,
     CircularProgress,
     IconButton,
-    Menu, MenuItem,
-    MenuList, MenuProps,
-    Skeleton, SxProps
+    Menu,
+    MenuItem,
+    MenuList,
+    MenuProps,
+    Skeleton,
+    SxProps
 } from "@mui/material";
 import Link from "next/link";
 import DropdownMenuIcon from "@mui/icons-material/MoreVertOutlined";
-import Typography from "@mui/material/Typography";
 import LoginPopover from "./LoginPopover";
 import {SafeArticle} from "../lib/getSafeArticle";
 import {useRouter} from "next/router";
@@ -32,6 +34,7 @@ import {useGoogleReCaptcha} from "react-google-recaptcha-v3";
 import {useRequestResult} from "../lib/useRequestResult";
 import LikeIcon from "@mui/icons-material/ThumbUp";
 import DislikeIcon from "@mui/icons-material/ThumbDown";
+import {ArticleDescription} from "./ArticleDescription";
 
 export interface RenderingArticle extends SafeArticle {
     authorNick?: string | undefined,
@@ -66,9 +69,7 @@ export function ArticleCard(props: { data: RenderingArticle, sx?: SxProps }): JS
                     }
                 />
                 <CardContent sx={{pt: 0}}>
-                    <Typography variant="caption" color="text.secondary">
-                        由{data.authorNick ?? data.author}发布于{getHumanReadableTime(new Date(data.postTime))}
-                    </Typography>
+                    <ArticleDescription data={data}/>
                 </CardContent>
                 {data.cover &&
                     (coverCached ?

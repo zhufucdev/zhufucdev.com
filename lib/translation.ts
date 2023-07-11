@@ -1,12 +1,16 @@
-import {readTags, TagKey, WithTags} from "./tagging";
+import {WithTags} from "./tagging";
 
 const defaultLang = 'zh-CN';
 
 export function getLanguage(tagged: WithTags): string {
-    return (readTags(tagged)[TagKey.Language] ?? defaultLang) as string;
+    return (tagged.tags.lang ?? defaultLang) as string;
 }
 
-export const languageNameOf = {
+export function getLanguageName(tagged: WithTags): string {
+    return languageNameOf[getLanguage(tagged)];
+}
+
+export const languageNameOf: {[key: string]: string} = {
     "af": "Afrikaans",
     "af-ZA": "Afrikaans (South Africa)",
     "ar": "Arabic",

@@ -14,19 +14,20 @@ import Box from "@mui/material/Box";
 import {useRef} from "react";
 import {useMediaQuery, useTheme} from "@mui/material";
 import {useTitle} from "../../lib/useTitle";
+import {ArticleDescription} from "../../componenets/ArticleDescription";
+import {RenderingArticle} from "../../componenets/ArticleCard";
 
 type PageProps = {
-    meta?: SafeArticle,
-    authorNick?: string,
+    meta?: RenderingArticle,
     body?: string
 }
 
-const ArticleApp: NextPage<PageProps> = ({meta, body, authorNick}) => {
+const ArticleApp: NextPage<PageProps> = ({meta, body}) => {
     useTitle({appbar: '文章', head: meta?.title ?? '文章'});
 
     if (meta) {
         if (body) {
-            return <ArticleBody meta={meta} body={body} authorNick={authorNick}/>
+            return <ArticleBody meta={meta!} body={body}/>
         } else {
             return <>
                 <Typography variant="h3">{meta?.title}</Typography>
@@ -38,16 +39,14 @@ const ArticleApp: NextPage<PageProps> = ({meta, body, authorNick}) => {
     }
 }
 
-function ArticleBody({meta, body, authorNick}: PageProps) {
+function ArticleBody({meta, body}: PageProps) {
     const theme = useTheme();
     const onLargeScreen = useMediaQuery(theme.breakpoints.up('md'));
     const articleRef = useRef<HTMLDivElement>(null);
 
     return <>
         <ArticleHeader title={meta!.title} cover={meta!.cover} article={articleRef}/>
-        <Typography variant="body2" color="text.secondary">
-            由{authorNick ?? meta!.author}发布于{getHumanReadableTime(new Date(meta!.postTime))}
-        </Typography>
+        <ArticleDescription data={meta!}/>
         <Box ref={articleRef} sx={{width: onLargeScreen ? 'calc(100% - 240px)' : '100%'}}>
             <MarkdownScope>{body}</MarkdownScope>
         </Box>
@@ -62,9 +61,8 @@ export const getStaticProps: GetStaticProps<PageProps> = async (context) => {
     const body = stream && (await readAll(stream)).toString();
     const props: PageProps = {};
     if (meta) {
-        props.meta = getSafeArticle(meta);
         const user = await getUser(meta.author);
-        if (user) props.authorNick = user.nick;
+        props.meta = {...getSafeArticle(meta), authorNick: user?.nick};
     }
     if (body) {
         props.body = body;
