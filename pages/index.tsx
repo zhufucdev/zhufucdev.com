@@ -6,8 +6,6 @@ import {
     Button,
     Grid,
     Stack,
-    Typography,
-    TypographyProps,
     useMediaQuery,
     useTheme
 } from "@mui/material";
@@ -268,7 +266,7 @@ type StaticProps = {
 export async function getStaticProps(): Promise<StaticProps> {
     const recents = (await getRecents()).map((v) => ({...v, time: v.time.toISOString()}));
     const inspirations = await getInspirations();
-    const articles = (await listArticles()).filter(meta => !readTags(meta).hidden).slice(0, 3).map(getSafeArticle);
+    const articles = (await listArticles()).filter(meta => !meta.tags.hidden).slice(0, 3).map(getSafeArticle);
     const unfoldedInspirations: RenderingInspiration[] = [];
     const unfoldedArticles: RenderingArticle[] = [];
     const authors = inspirations.map(m => m.raiser)

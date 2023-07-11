@@ -43,7 +43,7 @@ import {ICommand} from "@uiw/react-md-editor";
 import * as commands from "@uiw/react-md-editor/lib/commands";
 import {nanoid} from "nanoid";
 import TagInputField from "../../componenets/TagInputField";
-import {readTags, Tag, TagKey} from "../../lib/tagging";
+import {readTags, Tag, TagKey, TagKeyUtil} from "../../lib/tagging";
 
 const MDEditor = dynamic(
     () => import("@uiw/react-md-editor"),
@@ -63,8 +63,7 @@ const EditPage: NextPage<PageProps> = (props) => {
             }
             if (hasPermission(user, 'modify')) return 'modify';
             if (hasPermission(user, 'edit_own_post') && props.article.author === user._id) {
-                const tags = readTags(props.article);
-                return tags["pr-from"] ? 'modify-pr' : 'modify';
+                return props.article.tags["pr-from"] ? 'modify-pr' : 'modify';
             }
             if (hasPermission(user, 'pr_article') && props.article?.author !== user._id) return 'pr';
         }
@@ -261,7 +260,7 @@ function PageContent(props: ContentProps): JSX.Element {
             case "pr":
                 return [new Tag(TagKey.Hidden), new Tag(TagKey.PrFrom, article!._id)]
             case "modify-pr":
-                const tags = article ? readTags(article) : {};
+                const tags = article?.tags ?? {};
                 return [new Tag(TagKey.Hidden), new Tag(TagKey.PrFrom, tags["pr-from"] as string)]
         }
     }, [props.permission, article]);
@@ -272,8 +271,11 @@ function PageContent(props: ContentProps): JSX.Element {
             const read = localStorage.getItem(`${storageIdentifier}.tags`);
             if (read) {
                 draft = (JSON.parse(read) as string[]).map(Tag.readTag);
-            } else {
-                draft = article?.tags?.map(Tag.readTag)?.filter(t => !hardcodedTags.find(h => h.key == t.key));
+            } else if (article) {
+                draft = [];
+                for (const key in article.tags) {
+                    draft.push(new Tag(key as TagKey, (article.tags as any)[key] as any))
+                }
             }
         }
         return useState(draft ?? []);

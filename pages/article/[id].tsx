@@ -1,5 +1,5 @@
 import {GetStaticPaths, GetStaticProps, NextPage} from "next";
-import {getArticle, listArticles} from "../../lib/db/article";
+import {ArticleUtil, getArticle, listArticles} from "../../lib/db/article";
 import {getSafeArticle, SafeArticle} from "../../lib/getSafeArticle";
 import Typography from "@mui/material/Typography";
 import {MarkdownScope} from "../../componenets/MarkdownScope";
@@ -75,7 +75,7 @@ export const getStaticProps: GetStaticProps<PageProps> = async (context) => {
 export const getStaticPaths: GetStaticPaths = async () => {
     const articles = await listArticles();
     return {
-        paths: articles.map(meta => ({params: {id: meta._id}})),
+        paths: articles.filter(ArticleUtil.public()).map(meta => ({params: {id: meta._id}})),
         fallback: 'blocking'
     }
 };

@@ -45,7 +45,7 @@ export default routeWithIronSession(async (req, res) => {
             res.status(400).send('bad request');
             return
         }
-        const meta = await addArticle(ref, req.session.userID!, title, cover, forward, body, readTags({tags}));
+        const meta = await addArticle(ref, req.session.userID!, title, cover, forward, body, tags);
         if (meta) {
             await res.revalidate('/article');
             await res.revalidate('/');
@@ -83,18 +83,18 @@ export default routeWithIronSession(async (req, res) => {
         if (canEdit) {
             // to modify one's own stuff or to administrate
             if (Array.isArray(tags)) {
-                const restructured = readTags({tags});
-                const prFrom = restructured["pr-from"];
+                const constructed = readTags(tags);
+                const prFrom = constructed["pr-from"];
                 if (!canModify) {
                     // modifying one's own pull request
                     if (!prFrom) {
                         res.status(403).send('not permitted');
                         return
                     }
-                    restructured["pr-from"] = prFrom;
-                    restructured.hidden = true;
-                    update.tags = stringifyTags(restructured);
-                } else if (prFrom && !restructured.hidden) {
+                    constructed["pr-from"] = prFrom;
+                    constructed.hidden = true;
+                    update.tags = stringifyTags(constructed);
+                } else if (prFrom && !constructed.hidden) {
                     // merging the pr
                     update._id = prFrom as string;
                     update.author = (await getArticle(prFrom as string))?.author;
@@ -123,7 +123,7 @@ export default routeWithIronSession(async (req, res) => {
                 res.status(400).send('bad request');
                 return
             }
-            const tagStruct = readTags({tags});
+            const tagStruct = readTags(tags);
 
             let pr: ArticleMeta = {...original, author: req.session.userID!, _id: nanoid()};
             for (const key in update) {
@@ -138,11 +138,11 @@ export default routeWithIronSession(async (req, res) => {
             }
 
             const meta =
-                await addArticle(pr._id, pr.author, pr.title, pr.cover, pr.forward, body, {
+                await addArticle(pr._id, pr.author, pr.title, pr.cover, pr.forward, body, stringifyTags({
                     ...tagStruct,
                     'pr-from': original._id,
                     'hidden': true
-                });
+                }));
             notifyTargetDuplicated(original._id, pr._id);
             if (meta) {
                 res.send(meta._id)

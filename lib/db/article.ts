@@ -3,7 +3,9 @@ import {requireDatabase} from "./database";
 import {Readable} from "stream";
 import {WithDislikes, WithLikes} from "./remark";
 import {attachImage, detachImage, notifyTargetRenamed} from "./image";
-import {stringifyTags, Tags, WithTags} from "../tagging";
+import {readTags, WithTags} from "../tagging";
+import {User} from "./user";
+import {hasPermission} from "../contract";
 
 export interface ArticleMeta extends WithLikes, WithDislikes, WithTags {
     _id: ArticleID;
@@ -14,8 +16,9 @@ export interface ArticleMeta extends WithLikes, WithDislikes, WithTags {
     postTime: Date;
 }
 
-interface ArticleStore extends ArticleMeta {
-    file: ObjectId
+interface ArticleStore extends Omit<ArticleMeta, "tags"> {
+    file: ObjectId;
+    tags: string[]
 }
 
 export interface Article extends ArticleMeta {
@@ -31,8 +34,8 @@ export async function addArticle(
     cover: ImageID | undefined,
     forward: string,
     body: string,
-    tags: Tags = {}
-): Promise<ArticleMeta | undefined> {
+    tags: string[] = []
+): Promise<ArticleStore | undefined> {
     requireBucket();
     const stream = renderBucket.openUploadStream(title + ".md");
     try {
@@ -48,7 +51,7 @@ export async function addArticle(
         _id: id,
         file: fileId,
         postTime: new Date(),
-        likes: [], dislikes: [], tags: stringifyTags(tags)
+        likes: [], dislikes: [], tags
     }
     if (cover) {
         store.cover = cover;
@@ -71,7 +74,7 @@ const transformer = (v: ArticleStore) => {
         postTime: v.postTime,
         likes: v.likes,
         dislikes: v.dislikes,
-        tags: v.tags ?? [],
+        tags: readTags(v.tags) ?? [],
         stream: () => requireBucket().openDownloadStream(v.file)
     } as Article;
     if (v.cover) {
@@ -95,7 +98,8 @@ export async function getArticle(id: ArticleID): Promise<Article | undefined> {
     return transformer(meta);
 }
 
-export type ArticleUpdate = Partial<ArticleMeta & { body: string }>;
+export type ArticleUpdate = Partial<ArticleMeta & { body: string, tags: string[] }>;
+
 export async function updateArticle(id: ArticleID, update: ArticleUpdate): Promise<boolean> {
     const original = await requireDatabase().collection<ArticleStore>(collectionId).findOne({_id: id});
     if (!original) return false;
@@ -156,4 +160,15 @@ function writeBody(stream: NodeJS.WritableStream, body: string) {
 
 declare global {
     var renderBucket: GridFSBucket
+}
+
+export class ArticleUtil {
+    public static proceedingFor(user: User): (meta: ArticleMeta) => boolean {
+        return meta => meta.tags.hidden === true
+            && (hasPermission(user, 'modify') || meta.author == user._id)
+    }
+
+    public static public(): (meta: ArticleMeta) => boolean {
+        return meta => !meta.tags.hidden
+    }
 }

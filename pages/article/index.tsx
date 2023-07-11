@@ -1,25 +1,23 @@
 import {GetStaticProps, NextPage} from "next";
-import {listArticles} from "../../lib/db/article";
-import {Box, CircularProgress, Fade, Grid, Stack, Typography, useScrollTrigger} from "@mui/material";
+import {ArticleUtil, listArticles} from "../../lib/db/article";
+import {Box, CircularProgress, Grid, Stack} from "@mui/material";
 import {Copyright} from "../../componenets/Copyright";
 import {Scaffold} from "../../componenets/Scaffold";
-import {isMe, myId, useUser} from "../../lib/useUser";
+import {isMe, lookupUser, myId, useUser} from "../../lib/useUser";
 import {useRouter} from "next/router";
 import {useTitle} from "../../lib/useTitle";
-import React, {useCallback, useEffect, useRef, useState} from "react";
-import {getSafeArticle, SafeArticle} from "../../lib/getSafeArticle";
+import React, {useEffect, useState} from "react";
+import {motion} from "framer-motion";
+import EditIcon from "@mui/icons-material/EditOutlined";
 
+import {getSafeArticle, SafeArticle} from "../../lib/getSafeArticle";
 import {getUser, getUsers} from "../../lib/db/user";
 import PlaceHolder from "../../componenets/PlaceHolder";
-import EditIcon from "@mui/icons-material/EditOutlined";
 import NoArticleIcon from "@mui/icons-material/PsychologyOutlined";
 import {ReCaptchaPolicy} from "../../componenets/ReCaptchaPolicy";
 import {ReCaptchaScope} from "../../componenets/ReCaptchaScope";
 import {ArticleCard, RenderingArticle} from "../../componenets/ArticleCard";
-import {readTags} from "../../lib/tagging";
 import useScroll from "../../lib/useScroll";
-import {motion} from "framer-motion";
-import {Caption} from "../../componenets/Caption";
 
 type PageProps = {
     articles: RenderingArticle[],
@@ -54,35 +52,39 @@ function Content(props: { articles: RenderingArticle[] }): JSX.Element {
 
     useEffect(() => {
         if (proceeding) return;
-        if (scrolling.top + window.innerHeight - scrolling.height > 10) {
+        if (scrolling.height <= 0) return;
+        if (window.innerHeight <= scrolling.height && scrolling.height - scrolling.top - window.innerHeight > 10) {
             return;
         }
 
         setProceedingLoading(true);
-        fetch(`/api/article/proceeding`)
-            .then(res => res.json() as Promise<SafeArticle[]>)
-            .then(setProceeding)
-            .then(() => setTimeout(() => setProceedingLoading(false), 1000));
+        const list =
+            fetch(`/api/article/proceeding`)
+                .then(res => res.json() as Promise<SafeArticle[]>)
+                .then(getRenderingArticle)
+                .then(setProceeding)
+                .finally(() => setTimeout(() => setProceedingLoading(false), 1000))
     }, [scrolling]);
 
     if (props.articles.length > 0) {
         return <Stack>
             <Grid container spacing={2}>
-                {props.articles.map((data, i) => (
+                {props.articles.map((data) => (
                     <Grid item key={data._id} flexGrow={1}>
                         <ArticleCard data={data}/>
                     </Grid>
                 ))}
             </Grid>
-            <Caption mt={2}>额外</Caption>
-            <Box display={loadingProceeding ? 'flex' : 'none'}
-                 mt={2}
-                 justifyContent="center"
-                 width="100%">
-                <CircularProgress/>
-            </Box>
+            {loadingProceeding
+                && <Box display="flex"
+                        justifyContent="center"
+                        mt={2}
+                        width="100%">
+                    <CircularProgress/>
+                </Box>}
             <Grid container
                   spacing={2}
+                  mt={0}
                   component={motion.div}
                   animate={!loadingProceeding && proceeding ? 'shown' : 'hidden'}
                   variants={{
@@ -99,6 +101,7 @@ function Content(props: { articles: RenderingArticle[] }): JSX.Element {
             </Grid>
             {(!loadingProceeding && proceeding && proceeding.length <= 0) &&
                 <PlaceHolder title="没有更多内容" icon={NoArticleIcon}/>}
+            <Box height={16}/>
         </Stack>
     } else {
         return (
@@ -110,7 +113,7 @@ function Content(props: { articles: RenderingArticle[] }): JSX.Element {
 export const getStaticProps: GetStaticProps<PageProps> = async () => {
     const articles = await listArticles()
         .then(list =>
-            list.filter(meta => !readTags(meta).hidden)
+            list.filter(ArticleUtil.public())
                 .sort(
                     (a, b) =>
                         Math.log(b.likes.length + 1) - Math.log(b.dislikes.length + 1)
@@ -133,3 +136,16 @@ export const getStaticProps: GetStaticProps<PageProps> = async () => {
 }
 
 export default PostPage;
+
+async function getRenderingArticle(meta: SafeArticle[]): Promise<RenderingArticle[]> {
+    let nicknameOf: { [key: string]: string } = {};
+    const result: RenderingArticle[] = [];
+    for (const article of meta) {
+        let nickname: string | undefined = nicknameOf[article.author];
+        if (!nickname) {
+            nickname = (await lookupUser(article.author))?.nick;
+        }
+        result.push({...article, authorNick: nickname})
+    }
+    return result;
+}

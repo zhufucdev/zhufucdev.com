@@ -1,5 +1,5 @@
 export interface WithTags {
-    tags: string[]
+    tags: Tags
 }
 
 export type Tags = { [key in TagKey]?: string | boolean }
@@ -16,7 +16,7 @@ const nameOfTag: Tags = {
     't-from': '翻译自',
     'pr-from': '拉取请求',
     lang: '语言',
-    hidden: '隐藏',
+    hidden: '私享',
     coauthor: '第二作者'
 }
 
@@ -64,11 +64,19 @@ export class Tag {
     }
 }
 
-export function readTags(obj: WithTags): Tags {
+export function readTags(tags: string[]): Tags {
+    if (typeof tags === 'undefined') {
+        return {}
+    }
+
     let result: Tags = {};
-    for (const tag of obj.tags) {
+    for (const tag of tags) {
         const {key, value} = Tag.readTag(tag);
-        result[key] = value
+        if (result[key]) {
+            result[key] += `,${value}`;
+        } else {
+            result[key] = value
+        }
     }
     return result
 }
