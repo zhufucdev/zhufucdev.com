@@ -10,8 +10,9 @@ import List from "@mui/material/List";
 import {ContentsNodeComponent} from "./ContentsNodeComponent";
 import {Contents, ContentsNode, useContents} from "../lib/useContents";
 import {useTitle} from "../lib/useTitle";
+import {RenderingArticle} from "./ArticleCard";
 
-export function ArticleHeader(props: { cover: ImageID | undefined, title: string, article: React.RefObject<HTMLDivElement> }): JSX.Element {
+export function ArticleHeader(props: { meta: RenderingArticle, article: React.RefObject<HTMLDivElement> }): JSX.Element {
     const theme = useTheme();
     const onLargeScreen = useMediaQuery(theme.breakpoints.up('sm'));
     const onWideScreen = useMediaQuery(theme.breakpoints.up('md'));
@@ -23,13 +24,13 @@ export function ArticleHeader(props: { cover: ImageID | undefined, title: string
     }, []);
     const [titleHeight, setTitleHeight] = useState(0);
     const scrolled = useScrollTrigger({threshold: titleHeight, disableHysteresis: true});
-    const [, setTitle] = useTitle({appbar: '文章', head: props.title});
+    const [, setTitle] = useTitle({appbar: '文章', head: props.meta.title});
     useEffect(() => {
         if (scrolled)
-            setTitle(props.title);
+            setTitle(props.meta.title);
         else
-            setTitle({appbar: '文章', head: props.title});
-    }, [scrolled, props.title]);
+            setTitle({appbar: '文章', head: props.meta.title});
+    }, [scrolled, props.meta.title]);
 
     const [contents, setContents] = useContents();
 
@@ -40,11 +41,11 @@ export function ArticleHeader(props: { cover: ImageID | undefined, title: string
         }
 
         setContents(generateNodeTree(props.article.current));
-    }, [props.article]);
+    }, [props.article, props.meta]);
 
     return <>
         {
-            props.cover
+            props.meta.cover
             && <Box
                 sx={{
                     position: 'absolute',
@@ -62,7 +63,7 @@ export function ArticleHeader(props: { cover: ImageID | undefined, title: string
                     background: `linear-gradient(180deg, transparent 70%, ${theme.palette.background.default} 100%)`
                 }}/>
                 <LazyImage
-                    src={getImageUri(props.cover)}
+                    src={getImageUri(props.meta.cover)}
                     alt="文章封面"
                     style={{
                         width: '100%',
@@ -72,11 +73,11 @@ export function ArticleHeader(props: { cover: ImageID | undefined, title: string
                 />
             </Box>
         }
-        <Typography variant="h3" ref={titleRef} mt={props.cover ? 10 : 0}>{props.title}</Typography>
+        <Typography variant="h3" ref={titleRef} mt={props.meta.cover ? 10 : 0}>{props.meta.title}</Typography>
 
         {onWideScreen && contents &&
             <motion.div
-                animate={{y: scrolled || !Boolean(props.cover) ? 0 : 180}}
+                animate={{y: scrolled || !Boolean(props.meta.cover) ? 0 : 180}}
                 style={{
                     width: 240,
                     position: 'fixed',

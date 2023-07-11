@@ -38,7 +38,7 @@ import {ArticleDescription} from "./ArticleDescription";
 
 export interface RenderingArticle extends SafeArticle {
     authorNick?: string | undefined,
-    altLangs: { [key: string]: string }
+    altLangs?: { [key: string]: string }
 }
 
 export function ArticleCard(props: { data: RenderingArticle, sx?: SxProps }): JSX.Element {

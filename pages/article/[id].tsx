@@ -29,7 +29,7 @@ const ArticleApp: NextPage<PageProps> = ({meta, body}) => {
     useTitle({appbar: '文章', head: meta?.title ?? '文章'});
     const router = useRouter();
     const languageList = useMemo(() => {
-        if (!meta) return [];
+        if (!meta || !meta.altLangs) return [];
         const list: string[] = [];
         for (const key in meta.altLangs) {
             list.push(key);
@@ -44,7 +44,9 @@ const ArticleApp: NextPage<PageProps> = ({meta, body}) => {
 
     useEffect(() => {
         if (!options || !options.current) return;
-        router.push(`/article/${meta!.altLangs[options.current]}`)
+        const targetId = meta!.altLangs![options.current];
+        if (targetId === meta?._id) return;
+        router.push(`/article/${targetId}`)
     }, [options]);
 
     if (meta) {
@@ -70,7 +72,7 @@ function ArticleBody({meta, body}: PageProps) {
     const articleRef = useRef<HTMLDivElement>(null);
 
     return <>
-        <ArticleHeader title={meta!.title} cover={meta!.cover} article={articleRef}/>
+        <ArticleHeader meta={meta!} article={articleRef}/>
         <ArticleDescription data={meta!}/>
         <Box ref={articleRef} sx={{width: onLargeScreen ? 'calc(100% - 240px)' : '100%'}}>
             <MarkdownScope>{body}</MarkdownScope>
