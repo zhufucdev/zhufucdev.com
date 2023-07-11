@@ -16,7 +16,6 @@
     "@jest/globals": "^29.6.1",
     "@mui/icons-material": "^5.13.7",
     "@mui/material": "^5.13.7",
-    "@types/bcrypt": "^5.0.0",
     "@uiw/react-md-editor": "^3.23.3",
     "@vercel/analytics": "^0.1.11",
     "bcrypt": "^5.1.0",
@@ -41,6 +40,8 @@
     "webp-converter": "^2.3.3"
   },
   "devDependencies": {
+    "@types/bcrypt": "^5.0.0",
+    "@mui/types": "^7.2.4",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^14.0.0",
     "@types/node": "18.11.18",
