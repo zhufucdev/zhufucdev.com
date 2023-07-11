@@ -129,7 +129,10 @@ export default function TagInputField(props: Props) {
                 {optionsFiltered.map(
                     v => (
                         <ListItemButton key={String(v.key)}
-                                        onClick={() => props.onChanged(props.tags.concat(new Tag(v.key)))}>
+                                        onClick={() => {
+                                            setInputBuffer('');
+                                            props.onChanged(props.tags.concat(new Tag(v.key)));
+                                        }}>
                             <ListItemText>{v.name}</ListItemText>
                             <Typography variant="caption" ml={1}>{v.key}</Typography>
                         </ListItemButton>
