@@ -1,11 +1,11 @@
 import SvgIcon from "@mui/material/SvgIcon";
-import { Grid, Typography } from "@mui/material";
+import {Grid, SxProps, ThemeOptions, Typography} from "@mui/material";
 import React from "react";
 
-function PlaceHolder(props: { icon: typeof SvgIcon, title: string }) {
+function PlaceHolder(props: { icon: typeof SvgIcon, title: string, sx?: SxProps }) {
   const { icon, title } = props;
   return (
-    <Grid container justifyContent="center" alignItems="center">
+    <Grid container justifyContent="center" alignItems="center" sx={props.sx}>
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         {
           React.createElement(icon, {

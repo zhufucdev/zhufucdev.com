@@ -100,7 +100,7 @@ function Content(props: { articles: RenderingArticle[] }): JSX.Element {
                 ))}
             </Grid>
             {(!loadingProceeding && proceeding && proceeding.length <= 0) &&
-                <PlaceHolder title="没有更多内容" icon={NoArticleIcon}/>}
+                <PlaceHolder title="没有更多内容" icon={NoArticleIcon} sx={{mt: 2}}/>}
             <Box height={16}/>
         </Stack>
     } else {
