@@ -1,6 +1,6 @@
 import {GetStaticProps, NextPage} from "next";
 import {ArticleUtil, listArticles} from "../../lib/db/article";
-import {Box, CircularProgress, Grid, Stack} from "@mui/material";
+import {Box, CircularProgress, Grid, Stack, useTheme} from "@mui/material";
 import {Copyright} from "../../componenets/Copyright";
 import {Scaffold} from "../../componenets/Scaffold";
 import {isMe, lookupUser, myId, useUser} from "../../lib/useUser";
@@ -49,6 +49,7 @@ function Content(props: { articles: RenderingArticle[] }): JSX.Element {
     const [loadingProceeding, setProceedingLoading] = useState(false);
     const [proceeding, setProceeding] = useState<SafeArticle[]>();
     const scrolling = useScroll();
+    const theme = useTheme();
 
     useEffect(() => {
         if (proceeding) return;
@@ -58,12 +59,11 @@ function Content(props: { articles: RenderingArticle[] }): JSX.Element {
         }
 
         setProceedingLoading(true);
-        const list =
-            fetch(`/api/article/proceeding`)
-                .then(res => res.json() as Promise<SafeArticle[]>)
-                .then(getRenderingArticle)
-                .then(setProceeding)
-                .finally(() => setTimeout(() => setProceedingLoading(false), 1000))
+        fetch(`/api/article/proceeding`)
+            .then(res => res.json() as Promise<SafeArticle[]>)
+            .then(getRenderingArticle)
+            .then(setProceeding)
+            .finally(() => setTimeout(() => setProceedingLoading(false), 1000))
     }, [scrolling]);
 
     if (props.articles.length > 0) {
@@ -95,7 +95,7 @@ function Content(props: { articles: RenderingArticle[] }): JSX.Element {
             >
                 {proceeding?.map(data => (
                     <Grid item key={data._id} flexGrow={1}>
-                        <ArticleCard data={data}/>
+                        <ArticleCard data={data} sx={{borderColor: theme.palette.warning.main}}/>
                     </Grid>
                 ))}
             </Grid>
