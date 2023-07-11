@@ -6,7 +6,6 @@ import {
     PopoverProps,
     Skeleton,
     Stack,
-    Typography,
     useMediaQuery,
     useTheme
 } from "@mui/material";
@@ -17,7 +16,7 @@ import CheckedIcon from "@mui/icons-material/CheckCircleOutline";
 import {LazyImage} from "./LazyImage";
 import {getImageUri} from "../lib/utility";
 import UploadIcon from "@mui/icons-material/UploadFile";
-import ErrorIcon from "@mui/icons-material/Error";
+import {useSnackbar} from "notistack";
 
 type ImagesPopoverProps = PopoverProps & {
     selected: ImageID | 'upload' | undefined,
@@ -35,6 +34,7 @@ export function ImagesPopover(props: ImagesPopoverProps): JSX.Element {
     const [loaded, setLoaded] = useState(false);
     const [upload, setUpload] = useState('');
     const [failMsg, setFailMsg] = useState('');
+    const snackbar = useSnackbar();
     useEffect(() => {
         if (!user) return;
         (async () => {
@@ -49,6 +49,11 @@ export function ImagesPopover(props: ImagesPopoverProps): JSX.Element {
             setLoaded(true);
         })();
     }, [user]);
+
+    useEffect(() => {
+        if (!props.open || !failMsg) return;
+        snackbar.enqueueSnackbar(failMsg, {variant: 'error'});
+    }, [props.open]);
 
     const generateGrid = useCallback(
         (length: number, producer: (i: number) => JSX.Element) => {
@@ -182,16 +187,7 @@ export function ImagesPopover(props: ImagesPopoverProps): JSX.Element {
 
     return (
         <Popover {...props}>
-            {failMsg
-                ? <Box width="30vw" height="30vw" sx={{display: 'flex'}}
-                       justifyContent="center" alignItems="center"
-                       flexDirection="column"
-                       padding={2}
-                >
-                    <ErrorIcon color="error"/>
-                    <Typography variant="body1">{failMsg}</Typography>
-                </Box>
-                : <Stack spacing={2} m={1}>
+            {<Stack spacing={2} m={1}>
                     {loaded
                         ? generateGrid(
                             images.length + 1,

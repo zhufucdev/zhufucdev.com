@@ -43,7 +43,7 @@ import {ICommand} from "@uiw/react-md-editor";
 import * as commands from "@uiw/react-md-editor/lib/commands";
 import {nanoid} from "nanoid";
 import TagInputField from "../../componenets/TagInputField";
-import {readTags, Tag, TagKey, TagKeyUtil} from "../../lib/tagging";
+import {Tag, TagKey} from "../../lib/tagging";
 
 const MDEditor = dynamic(
     () => import("@uiw/react-md-editor"),
@@ -160,7 +160,6 @@ function MetadataStepContent(props: MetadataProps): JSX.Element {
             onSelectUpload={props.onCoverChanged}
             selected={typeof props.cover === 'string' ? props.cover : 'upload'}
             onClose={() => setAnchor(undefined)}
-            filter={meta => meta.use === 'save'}
         />
     </>
 }
