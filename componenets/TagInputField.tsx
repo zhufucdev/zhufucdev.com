@@ -23,16 +23,18 @@ interface InputProps extends Props {
     setFocused: (v: boolean) => void;
     inputBuffer: string;
     setInputBuffer: (v: string) => void;
+    invalidTags: Tag[];
 }
 
 interface ChipProps {
     tag: Tag,
     hardcoded?: boolean,
     onValueChanged?: (newValue: string) => void;
-    onDelete?: () => void
+    onDelete?: () => void,
+    error?: boolean
 }
 
-function ChipInput({tag, hardcoded, onValueChanged, onDelete}: ChipProps) {
+function ChipInput({tag, hardcoded, onValueChanged, onDelete, error}: ChipProps) {
     let label: JSX.Element;
 
     if (!hardcoded) {
@@ -61,7 +63,7 @@ function ChipInput({tag, hardcoded, onValueChanged, onDelete}: ChipProps) {
         </Box>
     }
 
-    return <Chip label={label} onDelete={onDelete}/>
+    return <Chip label={label} onDelete={onDelete} color={error ? "error" : undefined}/>
 }
 
 function InputImpl(props: InputProps): JSX.Element {
@@ -71,6 +73,7 @@ function InputImpl(props: InputProps): JSX.Element {
             (e, i) =>
                 <ChipInput key={e.key}
                            tag={e}
+                           error={props.invalidTags.includes(e)}
                            onValueChanged={(newValue) => {
                                e.value = newValue
                                props.onChanged(
@@ -93,6 +96,8 @@ export default function TagInputField(props: Props) {
     const wrapperRef = useRef<HTMLElement>(null);
     const [inputBuffer, setInputBuffer] = useState('');
     const [isFocused, setFocused] = useState(false);
+    const invalid = useMemo(() => props.tags.filter(tag => !tag.valid()), [props.tags]);
+
     useEffect(() => {
         if (!wrapperRef.current) {
             return
@@ -119,8 +124,11 @@ export default function TagInputField(props: Props) {
 
     return <Box>
         <FilledInput components={{Input: InputImpl}}
-                     inputProps={{...props, setFocused, inputBuffer, setInputBuffer}}
-                     ref={wrapperRef} fullWidth/>
+                     inputProps={{...props, setFocused, inputBuffer, setInputBuffer, invalidTags: invalid}}
+                     ref={wrapperRef}
+                     error={invalid.length > 0}
+                     fullWidth/>
+        <Typography hidden={invalid.length <= 0} color="error" variant="caption">无效标签</Typography>
         <Popover open={isFocused && optionsFiltered.length > 0}
                  disableRestoreFocus disableAutoFocus anchorEl={wrapperRef.current}
                  anchorOrigin={{

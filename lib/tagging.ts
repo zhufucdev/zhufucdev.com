@@ -56,6 +56,33 @@ export class Tag {
         return typeof this.value === 'string';
     }
 
+    valid(): boolean {
+        switch (this.key) {
+            case TagKey.Hidden:
+            case TagKey.Private:
+                if (typeof this.value !== 'boolean') {
+                    return false
+                }
+                break;
+            case TagKey.Language:
+            case TagKey.TranslatedFrom:
+                try {
+                    const lookup = new Intl.DisplayNames(['en'], {type: 'language'});
+                    if (!lookup.of(this.value as string)) {
+                        return false;
+                    }
+                } catch (e) {
+                    return false;
+                }
+            case TagKey.Coauthor:
+            case TagKey.PrFrom:
+                if (typeof this.value !== 'string' || !this.value) {
+                    return false;
+                }
+        }
+        return true
+    }
+
     public static readTag(str: string): Tag {
         if (str.includes(':')) {
             const [key, value] = str.split(':', 2);
@@ -98,4 +125,15 @@ export function stringifyTags(tags: Tags): string[] {
         }
     }
     return result;
+}
+
+
+export function checkTagsIntegrity(target: Tags): boolean {
+    for (const key in target) {
+        const tag = new Tag(key as TagKey, target[key as TagKey] as any);
+        if (!tag.valid()) {
+            return false
+        }
+    }
+    return true
 }

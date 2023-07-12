@@ -7,7 +7,7 @@ import {addArticle, ArticleMeta, ArticleUpdate, duplicateArticle, getArticle, up
 import {validRef} from "../begin/[type]";
 import {notifyTargetDuplicated} from "../../../lib/db/image";
 import {nanoid} from "nanoid";
-import {readTags, stringifyTags} from "../../../lib/tagging";
+import {checkTagsIntegrity, readTags, stringifyTags} from "../../../lib/tagging";
 
 export default routeWithIronSession(async (req, res) => {
     if (!await validUser(req)) {
@@ -80,6 +80,11 @@ export default routeWithIronSession(async (req, res) => {
             title, forward, body, cover, tags
         }
         const tagStruct = Array.isArray(tags) ? readTags(tags) : {};
+
+        if (!checkTagsIntegrity(tagStruct)) {
+            res.status(400).send('tag is invalid');
+            return
+        }
 
         if (canEdit) {
             const prFrom = tagStruct["pr-from"];
