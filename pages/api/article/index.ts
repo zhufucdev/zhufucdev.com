@@ -124,6 +124,9 @@ export default routeWithIronSession(async (req, res) => {
             if (acknowledged) {
                 res.revalidate(`/article/${ref}`);
                 res.revalidate(`/article/${update._id}`);
+                if (tagStruct["t-from"]) {
+                    res.revalidate(`/article/${tagStruct["t-from"]}`)
+                }
                 await res.revalidate('/article');
                 await res.revalidate('/')
                 res.send('success');
