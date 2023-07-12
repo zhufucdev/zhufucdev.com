@@ -10,10 +10,12 @@ import List from "@mui/material/List";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemText from "@mui/material/ListItemText";
 import {Tag, TagKey, TagKeyUtil} from "../lib/tagging";
+import {ArticleMeta} from "../lib/db/article";
 
 interface Props {
     tags: Tag[];
     hardcoded: Tag[];
+    context?: Partial<ArticleMeta>;
     onChanged: (newValue: Tag[]) => void;
 }
 
@@ -131,7 +133,8 @@ export default function TagInputField(props: Props) {
                         <ListItemButton key={String(v.key)}
                                         onClick={() => {
                                             setInputBuffer('');
-                                            props.onChanged(props.tags.concat(new Tag(v.key)));
+                                            props.onChanged(props.tags.concat(
+                                                onTagAppend(v.key, props.context)));
                                         }}>
                             <ListItemText>{v.name}</ListItemText>
                             <Typography variant="caption" ml={1}>{v.key}</Typography>
@@ -141,4 +144,15 @@ export default function TagInputField(props: Props) {
             </List>
         </Popover>
     </Box>
+}
+
+function onTagAppend(key: TagKey, context?: Partial<ArticleMeta>): Tag {
+    if (!context) return new Tag(key);
+
+    switch (key) {
+        case TagKey.TranslatedFrom:
+            return new Tag(TagKey.TranslatedFrom, context._id ?? '');
+        default:
+            return new Tag(key);
+    }
 }

@@ -1,6 +1,6 @@
 import {GetServerSideProps, NextPage} from "next";
 import dynamic from "next/dynamic";
-import {getArticle} from "../../lib/db/article";
+import {ArticleMeta, getArticle} from "../../lib/db/article";
 import {useTitle} from "../../lib/useTitle";
 import {useEffect, useMemo, useRef, useState} from "react";
 
@@ -105,6 +105,7 @@ interface MetadataProps {
     cover?: File | ImageID,
     tags: Tag[],
     hardcodedTags: Tag[],
+    context?: Partial<ArticleMeta>,
     onTitleChanged: (title: string) => void,
     onForwardChanged: (forward: string) => void,
     onCoverChanged: (target: ImageID | File) => void,
@@ -143,7 +144,10 @@ function MetadataStepContent(props: MetadataProps): JSX.Element {
                 variant="filled"/>
 
             <Typography>网站如何管理这篇文章</Typography>
-            <TagInputField tags={props.tags} hardcoded={props.hardcodedTags} onChanged={props.onTagChanged}/>
+            <TagInputField tags={props.tags}
+                           hardcoded={props.hardcodedTags}
+                           context={props.context}
+                           onChanged={props.onTagChanged}/>
             <Box mb={2}>
                 <BackButton disabled/>
                 <ContinueButton disabled={!props.title || !props.forward} setter={props.setter}/>
@@ -281,7 +285,6 @@ function PageContent(props: ContentProps): JSX.Element {
     }
 
     const [title, setTitle] = useSaved('title', article?.title ?? '');
-
     const [forward, setForward] = useSaved('forward', article?.forward ?? '');
     const [cover, setCover] = useSaved<File | ImageID>('cover', article?.cover ?? '');
     const [value, setValue] = useSaved('body', props.body ?? '');
@@ -445,6 +448,7 @@ function PageContent(props: ContentProps): JSX.Element {
                         tags={tags}
                         hardcodedTags={hardcodedTags}
                         onTagChanged={setTags}
+                        context={{...article, postTime: undefined}}
                     />
                 </StepContent>
             </Step>

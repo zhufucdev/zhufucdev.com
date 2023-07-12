@@ -1,5 +1,5 @@
 import {GetStaticPaths, GetStaticProps, NextPage} from "next";
-import {Article, ArticleUtil, getArticle, listArticles} from "../../lib/db/article";
+import {ArticleUtil, getArticle, listArticles} from "../../lib/db/article";
 import {getSafeArticle} from "../../lib/getSafeArticle";
 import Typography from "@mui/material/Typography";
 import {MarkdownScope} from "../../componenets/MarkdownScope";
