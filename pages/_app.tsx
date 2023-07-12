@@ -55,6 +55,7 @@ import {ContentsNodeComponent} from "../componenets/ContentsNodeComponent";
 import LanguageSelect from "../componenets/LanguageSelect";
 import {LanguageOptions, LanguageProvider, useLanguage} from "../lib/useLanguage";
 import {defaultLang, getLanguageName} from "../lib/translation";
+import {Caption} from "../componenets/Caption";
 
 export const drawerWidth = 240;
 
@@ -223,6 +224,7 @@ function LanguageSwitch(props: { options: LanguageOptions, onSwitched: (target: 
                      horizontal: 'right'
                  }}
         >
+            <Caption noWrap mt={2} mb={-1} ml={2} mr={2}>在其他语言中查看</Caption>
             <List>
                 {props.options.available.map(code =>
                     <ListItemButton
