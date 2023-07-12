@@ -65,7 +65,6 @@ export class Tag {
                 }
                 break;
             case TagKey.Language:
-            case TagKey.TranslatedFrom:
                 try {
                     const lookup = new Intl.DisplayNames(['en'], {type: 'language'});
                     if (!lookup.of(this.value as string)) {
@@ -74,6 +73,7 @@ export class Tag {
                 } catch (e) {
                     return false;
                 }
+            case TagKey.TranslatedFrom:
             case TagKey.Coauthor:
             case TagKey.PrFrom:
                 if (typeof this.value !== 'string' || !this.value) {
