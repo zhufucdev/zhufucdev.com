@@ -257,10 +257,10 @@ function PageContent(props: ContentProps): JSX.Element {
             case "create":
                 return [];
             case "pr":
-                return [new Tag(TagKey.Hidden), new Tag(TagKey.PrFrom, article!._id)]
+                return [new Tag(TagKey.Private), new Tag(TagKey.PrFrom, article!._id)]
             case "modify-pr":
                 const tags = article?.tags ?? {};
-                return [new Tag(TagKey.Hidden), new Tag(TagKey.PrFrom, tags["pr-from"] as string)]
+                return [new Tag(TagKey.Private), new Tag(TagKey.PrFrom, tags["pr-from"] as string)]
         }
     }, [props.permission, article]);
 
@@ -332,7 +332,8 @@ function PageContent(props: ContentProps): JSX.Element {
         if (stop) return;
 
         const token = await executeRecaptcha();
-        let body: any = {ref, title, forward, token, cover, body: source, tags: tags.map(t => t.toString())};
+        let body: any = {ref, title, forward, token, cover, body: source,
+            tags: tags.concat(hardcodedTags).map(t => t.toString())};
         if (article) {
             const original = article;
             body.edit = true;

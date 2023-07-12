@@ -82,8 +82,10 @@ export default routeWithIronSession(async (req, res) => {
         const tagStruct = Array.isArray(tags) ? readTags(tags) : {};
 
         if (canEdit) {
+            const prFrom = tagStruct["pr-from"];
+
             // to modify one's own stuff or to administrate
-            if (tagStruct["t-from"] && !original.tags["t-from"]) {
+            if (tagStruct["t-from"] && !original.tags["t-from"] && !prFrom) {
                 // to add a new translation
                 const origin = await getArticle(tagStruct["t-from"] as string);
                 if (!origin) {
@@ -98,7 +100,6 @@ export default routeWithIronSession(async (req, res) => {
                 ref = copy._id;
             }
 
-            const prFrom = tagStruct["pr-from"];
             if (!canModify) {
                 // modifying one's own pull request
                 if (!prFrom) {
@@ -106,12 +107,11 @@ export default routeWithIronSession(async (req, res) => {
                     return
                 }
                 tagStruct["pr-from"] = prFrom;
-                tagStruct.hidden = true;
+                tagStruct.private = true;
                 update.tags = stringifyTags(tagStruct);
-            } else if (prFrom && !tagStruct.hidden && !tagStruct["t-from"]) {
+            } else if (prFrom && !tagStruct.private && !tagStruct["t-from"]) {
                 // merging the pr
                 update._id = prFrom as string;
-                update.author = (await getArticle(prFrom as string))?.author;
             }
 
             for (let key in update) {
@@ -153,7 +153,7 @@ export default routeWithIronSession(async (req, res) => {
                 await addArticle(pr._id, pr.author, pr.title, pr.cover, pr.forward, body, stringifyTags({
                     ...tagStruct,
                     'pr-from': original._id,
-                    'hidden': true
+                    private: true
                 }));
             notifyTargetDuplicated(original._id, pr._id);
             if (meta) {

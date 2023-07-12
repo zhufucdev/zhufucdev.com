@@ -209,11 +209,27 @@ declare global {
 
 export class ArticleUtil {
     public static proceedingFor(user: User): (meta: ArticleMeta) => boolean {
-        return meta => meta.tags.hidden === true
+        return meta => (meta.tags.hidden === true || meta.tags.private === true)
             && (hasPermission(user, 'modify') || meta.author == user._id)
     }
 
     public static publicList(): (meta: ArticleMeta) => boolean {
-        return meta => !meta.tags.hidden && !meta.tags["t-from"]
+        return meta => !meta.tags.hidden && !meta.tags.private
+    }
+
+    public static async languageVariants(meta: ArticleMeta): Promise<ArticleMeta[]> {
+        let origin: ArticleMeta | undefined;
+        if (meta.tags["t-from"]) {
+            origin = await getArticle(meta.tags["t-from"] as string);
+        } else {
+            origin = meta;
+        }
+        if (origin) {
+            return (await listArticles({tags: {"t-from": origin._id}}) as ArticleMeta[])
+                .filter(meta => !meta.tags.private)
+                .concat(origin);
+        } else {
+            return []
+        }
     }
 }

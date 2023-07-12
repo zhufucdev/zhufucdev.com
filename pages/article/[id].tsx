@@ -87,22 +87,11 @@ export const getStaticProps: GetStaticProps<PageProps> = async (context) => {
     const props: PageProps = {};
     if (meta) {
         const user = await getUser(meta.author);
-        let variants: Article[] = [];
-        if (meta.tags["t-from"]) {
-            const origin = await getArticle(meta.tags["t-from"] as string);
-            if (origin) {
-                variants = await listArticles({tags: {"t-from": origin._id}});
-                variants.push(origin);
-            }
-        } else {
-            variants = await listArticles({tags: {"t-from": meta._id}});
-            variants.push(meta);
-        }
-
         const altLangs: { [key: string]: string } = {};
-        variants.forEach(v => {
-            altLangs[(v.tags.lang ?? defaultLang) as string] = v._id;
-        })
+        (await ArticleUtil.languageVariants(meta))
+            .forEach(v => {
+                altLangs[(v.tags.lang ?? defaultLang) as string] = v._id;
+            });
 
         props.meta = {...getSafeArticle(meta), authorNick: user?.nick, altLangs};
     }
