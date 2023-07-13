@@ -10,7 +10,7 @@ export default routeWithIronSession(async (req, res) => {
     }
 
     if (!await validUser(req)) {
-        res.status(403).send('unauthorized');
+        res.status(401).send('unauthorized');
         return
     }
 
