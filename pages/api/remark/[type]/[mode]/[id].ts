@@ -1,5 +1,5 @@
 import {NextApiRequest, NextApiResponse} from "next";
-import {mergeWith, Remarkable, RemarkMode} from "../../../../../lib/db/remark";
+import {asRemarkable, mergeWith, Remarkable, RemarkMode} from "../../../../../lib/db/remark";
 import {routeWithIronSession} from "../../../../../lib/session";
 import {validUser} from "../../../../../lib/db/token";
 import {getAndCheckUserPermission} from "../../../../../lib/db/user";
@@ -10,7 +10,8 @@ const invalidIDs = ['undefined', 'null', 'zhufucdev']
 async function handler(req: NextApiRequest, res: NextApiResponse) {
     const {type, id, mode} = req.query;
     const {token} = req.body;
-    if (!type || !id || invalidIDs.includes(id as string) || !token) {
+    const remarkable = asRemarkable(type as string);
+    if (!remarkable || !id || invalidIDs.includes(id as string) || !token) {
         res.status(400).send('bad request');
         return;
     }
@@ -29,7 +30,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         return;
     }
 
-    const success = await mergeWith(type as Remarkable,
+    const success = await mergeWith(
+        remarkable,
         id as string,
         'likes',
         req.session.userID,
