@@ -10,11 +10,15 @@ import {
 import Link from "next/link";
 import {useRouter} from "next/router";
 
-export default function LoginPopover(props: PopoverProps) {
+interface Props extends PopoverProps {
+    callback?: string
+}
+
+export default function LoginPopover(props: Props) {
     const router = useRouter();
 
     function handleLoginRequest() {
-        localStorage.setItem('login_from', router.pathname);
+        localStorage.setItem('login_from', props.callback ?? router.asPath);
     }
 
     return (

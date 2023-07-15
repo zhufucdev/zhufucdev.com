@@ -7,8 +7,9 @@ import {readTags, TagKey, Tags, WithTags} from "../tagging";
 import {User} from "./user";
 import {hasPermission} from "../contract";
 import {nanoid} from "nanoid";
+import {WithComments} from "./comment";
 
-export interface ArticleMeta extends WithLikes, WithDislikes, WithTags {
+export interface ArticleMeta extends WithLikes, WithDislikes, WithTags, WithComments {
     _id: ArticleID;
     author: UserID;
     title: string;
@@ -52,7 +53,7 @@ export async function addArticle(
         _id: id,
         file: fileId,
         postTime: new Date(),
-        likes: [], dislikes: [], tags
+        likes: [], dislikes: [], comments: [], tags
     }
     if (cover) {
         store.cover = cover;
@@ -96,9 +97,10 @@ const transformer = (v: ArticleStore) => {
         title: v.title,
         forward: v.forward,
         postTime: v.postTime,
-        likes: v.likes,
-        dislikes: v.dislikes,
+        likes: v.likes ?? [],
+        dislikes: v.dislikes ?? [],
         tags: readTags(v.tags) ?? [],
+        comments: v.comments ?? [],
         stream: () => requireBucket().openDownloadStream(v.file)
     } as Article;
     if (v.cover) {

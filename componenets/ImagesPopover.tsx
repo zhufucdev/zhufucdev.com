@@ -1,4 +1,4 @@
-import {useUser} from "../lib/useUser";
+import {useProfileContext} from "../lib/useUser";
 import {
     Box,
     ButtonBase,
@@ -26,7 +26,7 @@ type ImagesPopoverProps = PopoverProps & {
 };
 
 export function ImagesPopover(props: ImagesPopoverProps): JSX.Element {
-    const {user} = useUser();
+    const {user} = useProfileContext();
     const theme = useTheme();
     const smallScreen = useMediaQuery(theme.breakpoints.down('sm'));
 

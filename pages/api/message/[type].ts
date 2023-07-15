@@ -13,7 +13,7 @@ async function messageRoute(req: NextApiRequest, res: NextApiResponse) {
         return;
     }
 
-    const {type} = req.query as {type: MessageType};
+    const {type} = req.query as { type: MessageType };
     const {token, ref} = req.body;
     const body = req.body.body.trim();
     if (!type || typeof body !== 'string' || !body || !token) {
@@ -39,6 +39,7 @@ async function messageRoute(req: NextApiRequest, res: NextApiResponse) {
         }
         return r;
     }
+
     let succeeded: boolean;
     switch (type) {
         case "inspiration":

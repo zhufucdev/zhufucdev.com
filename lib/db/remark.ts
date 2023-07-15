@@ -2,16 +2,27 @@ import {db, requireDatabase} from "./database";
 
 export interface WithLikes {
     likes: UserID[],
-
 }
 
 export interface WithDislikes {
     dislikes: UserID[]
 }
 
-export type Remarkable = 'recents' | 'inspirations' | 'articles'
+export type Remarkable = 'recents' | 'inspirations' | 'articles' | 'comments'
 export type RemarkMode = 'like' | 'dislike' | 'none' | 'implemented' | 'not_planned' | 'sus' | 'archived'
 export type RemarkPosition = 'likes' | 'flag' | 'archive'
+
+export function asRemarkable(name: string): Remarkable | undefined {
+    switch (name) {
+        case 'recents':
+        case 'inspirations':
+        case 'articles':
+        case 'comments':
+            return name
+        default:
+            return undefined
+    }
+}
 
 export async function mergeWith(collectionID: Remarkable, itemID: any, where: RemarkPosition,
                                 user: UserID, mode: RemarkMode): Promise<boolean> {

@@ -1,4 +1,5 @@
 import stream from "stream";
+import { Commentable } from "./db/comment";
 import {Remarkable, RemarkMode} from "./db/remark";
 
 export function getHumanReadableTime(time: Date): string {
@@ -86,6 +87,13 @@ export async function postMessage(type: MessageType, ref: string, message: Messa
     return fetchApi(
         `/api/message/${type}`,
         type === 'recent' ? {...message, body, token, ref} : {body, token, ref}
+    )
+}
+
+export async function postComment(type: Commentable, target: string, body: string, token: string): Promise<Response> {
+    return fetchApi(
+        `/api/comment/${type}/${target}`,
+        {body, token}
     )
 }
 

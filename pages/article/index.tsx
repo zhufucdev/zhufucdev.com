@@ -3,7 +3,7 @@ import {ArticleUtil, listArticles} from "../../lib/db/article";
 import {Box, CircularProgress, Grid, Stack, useTheme} from "@mui/material";
 import {Copyright} from "../../componenets/Copyright";
 import {Scaffold} from "../../componenets/Scaffold";
-import {isMe, lookupUser, myId, useUser} from "../../lib/useUser";
+import {lookupUser, myId, useProfileContext, useUser} from "../../lib/useUser";
 import {useRouter} from "next/router";
 import {useTitle} from "../../lib/useTitle";
 import React, {useEffect, useState} from "react";
@@ -18,6 +18,7 @@ import {ReCaptchaPolicy} from "../../componenets/ReCaptchaPolicy";
 import {ReCaptchaScope} from "../../componenets/ReCaptchaScope";
 import {ArticleCard, RenderingArticle} from "../../componenets/ArticleCard";
 import useScroll from "../../lib/useScroll";
+import {hasPermission} from "../../lib/contract";
 
 type PageProps = {
     articles: RenderingArticle[],
@@ -26,12 +27,12 @@ type PageProps = {
 }
 
 const PostPage: NextPage<PageProps> = (props) => {
-    const {user} = useUser();
+    const {user} = useProfileContext();
     const router = useRouter();
     useTitle({appbar: '文章', head: `${props.myName}的博文`})
     return <ReCaptchaScope reCaptchaKey={props.recaptchaKey}>
         <Scaffold
-            fabContent={user && isMe(user) && <>
+            fabContent={user && hasPermission(user, 'post_article') && <>
                 <EditIcon sx={{mr: 1}}/>
                 草拟
             </>}

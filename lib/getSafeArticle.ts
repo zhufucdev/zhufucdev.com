@@ -12,6 +12,7 @@ export function getSafeArticle(source: Article): SafeArticle {
         dislikes: source.dislikes,
         postTime: source.postTime.toISOString(),
         tags: source.tags,
+        comments: source.comments
     }
     if (source.cover) {
         data.cover = source.cover;

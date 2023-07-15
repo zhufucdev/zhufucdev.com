@@ -3,6 +3,7 @@ import {validUser} from "../../../../lib/db/token";
 import {canDrop, drop, Droppable} from "../../../../lib/db/drop";
 import {NextApiResponse} from "next";
 import {notifyTargetDropped} from "../../../../lib/db/image";
+import {Comment} from "../../../../lib/db/comment";
 
 export default routeWithIronSession(async (req, res) => {
     const {type, id} = req.query;
@@ -17,10 +18,10 @@ export default routeWithIronSession(async (req, res) => {
     }
 
     if (canDrop(type)) {
-        const {acknowledged, permitted} = await drop(type as Droppable, id, req.session.userID!);
+        const {acknowledged, permitted, original} = await drop(type as Droppable, id, req.session.userID!);
         if (acknowledged) {
             res.send('success');
-            postDrop(type as Droppable, id, res);
+            postDrop(type as Droppable, original!, id, res);
         } else if (permitted) {
             res.status(500).send('database not acknowledging')
         } else {
@@ -31,16 +32,29 @@ export default routeWithIronSession(async (req, res) => {
     }
 });
 
-async function postDrop(type: Droppable, id: any, res: NextApiResponse) {
+async function postDrop(type: Droppable, dropped: any, id: any, res: NextApiResponse) {
     await notifyTargetDropped(id);
     switch (type) {
         case "articles":
             await res.revalidate('/article');
             break;
         case "recents":
-            await res.revalidate('/inspiration')
+            await res.revalidate('/inspiration');
+            break;
+        case "comments":
+            const comment = dropped as Comment
+            if (comment.parent) {
+                switch (comment.parentType) {
+                    case "articles":
+                        await res.revalidate(`/article/${comment.parent}`);
+                        break;
+                    case "comments":
+                        await res.revalidate(`/comment/${comment.parent}`);
+                        break
+                }
+            }
+            break;
         case "inspirations":
             await res.revalidate('/');
-            return;
     }
 }

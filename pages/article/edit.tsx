@@ -74,7 +74,7 @@ const EditPage: NextPage<PageProps> = (props) => {
         {
             permission !== 'none' ?
                 <PageContent {...props} permission={permission}/>
-                : <PlaceHolder icon={LockedIcon} title="做得好，下次别做了"/>
+                : <PlaceHolder icon={LockedIcon} title="没有权限"/>
         }
     </ReCaptchaScope>
 }
