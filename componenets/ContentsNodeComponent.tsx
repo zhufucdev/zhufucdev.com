@@ -33,57 +33,58 @@ export function ContentsNodeComponent(props: ContentsNodeComponentProps) {
         // an optimums algorithm to find the current header:
         // - single event handler
         // - cache
-        if (!indent) {
-            // this is a root node
-            const nodesUnfolded: ContentsNodeState[] = [];
-
-            function unfold(node: ContentsNodeState) {
-                if (!ContentsRootNode.isNodeRoot(node))
-                    nodesUnfolded.push(node)
-                node.children.forEach(unfold);
-            }
-
-            unfold(node);
-
-            let from = 0, lastScrolling = 0;
-
-            function findAppropriateNode(from: number, reverse: boolean): number {
-                function getDistance(index: number) {
-                    return Math.abs(nodesUnfolded[index].element.getBoundingClientRect().y)
-                }
-
-                let min = getDistance(from);
-                let i;
-                if (reverse) {
-                    for (i = from - 1; i >= 0; i--) {
-                        const curr = getDistance(i);
-                        if (curr > min) {
-                            return i + 1;
-                        }
-                    }
-                    return 0;
-                } else {
-                    for (i = from + 1; i < nodesUnfolded.length; i++) {
-                        const curr = getDistance(i);
-                        if (curr > min) {
-                            return i - 1;
-                        }
-                    }
-                    return nodesUnfolded.length - 1;
-                }
-            }
-
-            function scrollHandler() {
-                const curr = window.scrollY;
-                from = findAppropriateNode(from, curr < lastScrolling);
-                lastScrolling = curr;
-                setCurrentTitle(nodesUnfolded[from].id);
-            }
-
-            window.addEventListener('scroll', scrollHandler);
-            return () => window.removeEventListener('scroll', scrollHandler);
+        if (indent) {
+            return
         }
-    }, [indent]);
+        // this is a root node
+        const nodesUnfolded: ContentsNodeState[] = [];
+
+        function unfold(node: ContentsNodeState) {
+            if (!ContentsRootNode.isNodeRoot(node))
+                nodesUnfolded.push(node)
+            node.children.forEach(unfold);
+        }
+
+        unfold(node);
+
+        let from = 0, lastScrolling = 0;
+
+        function findAppropriateNode(from: number, reverse: boolean): number {
+            function getDistance(index: number) {
+                return Math.abs(nodesUnfolded[index].element.getBoundingClientRect().y)
+            }
+
+            let min = getDistance(from);
+            let i;
+            if (reverse) {
+                for (i = from - 1; i >= 0; i--) {
+                    const curr = getDistance(i);
+                    if (curr > min) {
+                        return i + 1;
+                    }
+                }
+                return 0;
+            } else {
+                for (i = from + 1; i < nodesUnfolded.length; i++) {
+                    const curr = getDistance(i);
+                    if (curr > min) {
+                        return i - 1;
+                    }
+                }
+                return nodesUnfolded.length - 1;
+            }
+        }
+
+        function scrollHandler() {
+            const curr = window.scrollY;
+            from = findAppropriateNode(from, curr < lastScrolling);
+            lastScrolling = curr;
+            setCurrentTitle(nodesUnfolded[from].id);
+        }
+
+        window.addEventListener('scroll', scrollHandler);
+        return () => window.removeEventListener('scroll', scrollHandler);
+    }, [indent, node]);
 
     const selected = useMemo(() => props.node.id === props.current, [props.current]);
 
