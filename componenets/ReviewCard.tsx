@@ -1,12 +1,12 @@
-import { WithLikes } from "../lib/db/remark";
-import { Commentable, WithComments } from "../lib/db/comment";
-import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
-import { useProfileContext } from "../lib/useUser";
-import { ElementType, ReactNode } from "react";
-import { getResponseRemark, reCaptchaNotReady } from "../lib/contract";
+import {WithLikes} from "../lib/db/remark";
+import {Commentable, WithComments} from "../lib/db/comment";
+import {useGoogleReCaptcha} from "react-google-recaptcha-v3";
+import {useProfileContext} from "../lib/useUser";
+import {ElementType, ReactNode} from "react";
+import {getResponseRemark, reCaptchaNotReady} from "../lib/contract";
 import * as React from "react";
-import { useRequestResult } from "../lib/useRequestResult";
-import { fetchApi, postComment } from "../lib/utility";
+import {useRequestResult} from "../lib/useRequestResult";
+import {fetchApi, postComment} from "../lib/utility";
 import {
     Card,
     CardActions,
@@ -28,12 +28,13 @@ import CommentIcon from "@mui/icons-material/CommentOutlined";
 import ReplyIcon from "@mui/icons-material/Reply";
 
 import LoginPopover from "./LoginPopover";
-import { LazyAvatar } from "./LazyAvatar";
-import { useRouter } from "next/router";
-import AdaptiveDialog, { AdaptiveDialogProps } from "./AdaptiveDialog";
-import { RenderingComment } from "./CommentCard";
-import { ChatInputField } from "./ChatInputField";
-import { CommentUtil } from "../lib/comment";
+import {LazyAvatar} from "./LazyAvatar";
+import {useRouter} from "next/router";
+import AdaptiveDialog, {AdaptiveDialogProps} from "./AdaptiveDialog";
+import {RenderingComment} from "./CommentCard";
+import {ChatInputField} from "./ChatInputField";
+import {CommentUtil} from "../lib/comment";
+import Box from "@mui/material/Box";
 
 export interface RenderingReview extends WithLikes, WithComments {
     _id: string;
@@ -59,10 +60,10 @@ export function ReviewCardRoot<M extends MenuProps>(
         onContextMenu?: (show: boolean) => void;
     },
 ) {
-    const { executeRecaptcha } = useGoogleReCaptcha();
-    const { data } = props;
+    const {executeRecaptcha} = useGoogleReCaptcha();
+    const {data} = props;
 
-    const { user, isLoading: isUserLoading } = useProfileContext();
+    const {user, isLoading: isUserLoading} = useProfileContext();
     const router = useRouter();
 
     const [anchor, setAnchor] = React.useState<HTMLElement | null>(null);
@@ -102,7 +103,7 @@ export function ReviewCardRoot<M extends MenuProps>(
             const token = await executeRecaptcha();
             const res = await fetchApi(
                 `/api/remark/${props.collectionId}/${mode}/${data._id}`,
-                { token },
+                {token},
             );
             handleLikeRes(await getResponseRemark(res));
         } else {
@@ -128,7 +129,7 @@ export function ReviewCardRoot<M extends MenuProps>(
 
     return (
         <>
-            <CardContent sx={{ paddingBottom: 0, overflowWrap: "anywhere" }}>
+            <CardContent sx={{paddingBottom: 0, overflowWrap: "anywhere"}}>
                 {data.body}
             </CardContent>
             <CardActions>
@@ -154,7 +155,7 @@ export function ReviewCardRoot<M extends MenuProps>(
                             <>
                                 <Tooltip title="回复">
                                     <IconButton onClick={handleReply}>
-                                        <ReplyIcon />
+                                        <ReplyIcon/>
                                     </IconButton>
                                 </Tooltip>
                                 {!props.commentSectionDisabled && (
@@ -162,7 +163,7 @@ export function ReviewCardRoot<M extends MenuProps>(
                                         <IconButton
                                             onClick={handleCommentSection}
                                         >
-                                            <CommentIcon />
+                                            <CommentIcon/>
                                         </IconButton>
                                     </Tooltip>
                                 )}
@@ -175,7 +176,7 @@ export function ReviewCardRoot<M extends MenuProps>(
                                 </Tooltip>
                                 <Typography
                                     variant="caption"
-                                    sx={{ mr: !props.contextMenu ? 2 : 0 }}
+                                    sx={{mr: !props.contextMenu ? 2 : 0}}
                                 >
                                     {likes}
                                 </Typography>
@@ -189,7 +190,7 @@ export function ReviewCardRoot<M extends MenuProps>(
                                                 setMenuAnchor(ev.currentTarget);
                                             }}
                                         >
-                                            <MoreIcon />
+                                            <MoreIcon/>
                                         </IconButton>
                                     </Tooltip>
                                 )}
@@ -203,8 +204,8 @@ export function ReviewCardRoot<M extends MenuProps>(
                 open={anchor != null}
                 anchorEl={anchor}
                 onClose={handlePopoverClose}
-                anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-                transformOrigin={{ vertical: "top", horizontal: "right" }}
+                anchorOrigin={{vertical: "bottom", horizontal: "right"}}
+                transformOrigin={{vertical: "top", horizontal: "right"}}
             />
 
             <ReplyDialog
@@ -247,11 +248,11 @@ export function ReviewCard(props: ReviewCardPropsCompat) {
     return (
         <Grid container>
             <Grid item mr={1} ml={1}>
-                <LazyAvatar userId={props.raiser} link />
+                <LazyAvatar userId={props.raiser} link/>
             </Grid>
 
             <Grid item flexGrow={props.grow !== false ? 1 : 0} mt={1}>
-                <Card {...props} sx={{ ...props.sx, borderRadius: 2 }}>
+                <Card {...props} sx={{...props.sx, borderRadius: 2}}>
                     {props.children}
                 </Card>
                 {props.belowCard}
@@ -266,9 +267,9 @@ interface ReplyProps extends Omit<AdaptiveDialogProps, "children"> {
     toType: Commentable;
 }
 
-function ReplyDialog({ onReplied, to, toType, ...others }: ReplyProps) {
-    const { executeRecaptcha } = useGoogleReCaptcha();
-    const { user } = useProfileContext();
+function ReplyDialog({onReplied, to, toType, ...others}: ReplyProps) {
+    const {executeRecaptcha} = useGoogleReCaptcha();
+    const {user} = useProfileContext();
 
     const [buf, setBuf] = React.useState("");
     const [sending, setSending] = React.useState(false);
@@ -282,7 +283,7 @@ function ReplyDialog({ onReplied, to, toType, ...others }: ReplyProps) {
         others.onClose();
         onReplied?.call(
             {},
-            CommentUtil.create(user!, buf, { id: to._id, type: toType }, id),
+            CommentUtil.create(user!, buf, {id: to._id, type: toType}, id),
         );
     });
     const bubbleColor = React.useMemo(
@@ -313,7 +314,7 @@ function ReplyDialog({ onReplied, to, toType, ...others }: ReplyProps) {
         const res = await postComment(toType, to._id, buf, token);
         if (res.ok) {
             const id = await res.text();
-            handleResult({ success: true }, id);
+            handleResult({success: true}, id);
         } else {
             handleResult(await getResponseRemark(res));
         }
@@ -327,14 +328,12 @@ function ReplyDialog({ onReplied, to, toType, ...others }: ReplyProps) {
                 <ReviewCard
                     raiser={to.raiser}
                     grow={false}
-                    sx={{ background: bubbleColor }}
+                    sx={{background: bubbleColor}}
                     elevation={0}
                 >
-                    <CardContent
-                        sx={{ paddingBottom: 0, overflowWrap: "anywhere" }}
-                    >
+                    <Box sx={{p: 2, overflowWrap: "anywhere"}}>
                         {to.body}
-                    </CardContent>
+                    </Box>
                 </ReviewCard>
                 <ChatInputField
                     value={buf}
@@ -344,7 +343,7 @@ function ReplyDialog({ onReplied, to, toType, ...others }: ReplyProps) {
                     revealed
                     revealingStart="center"
                     sendDisabled={sendDisabled}
-                    sx={{ mt: 2 }}
+                    sx={{mt: 2}}
                     error={error}
                 />
             </DialogContent>
