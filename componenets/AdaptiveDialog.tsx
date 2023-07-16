@@ -54,6 +54,9 @@ export default function AdaptiveDialog(props: AdaptiveDialogProps) {
                 open={props.open}
                 onClose={() => props.onClose()}
                 keepMounted={false}
+                PaperProps={{
+                    sx: { minWidth: "400px" },
+                }}
             >
                 {props.children}
             </Dialog>

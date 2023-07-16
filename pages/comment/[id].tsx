@@ -11,7 +11,7 @@ import { getSafeComment } from "../../lib/getSafeComment";
 import NoCommentIcon from "@mui/icons-material/CommentsDisabledOutlined";
 import Stack from "@mui/material/Stack";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Box, Divider } from "@mui/material";
 import { useTitle } from "../../lib/useTitle";
 
@@ -21,10 +21,14 @@ interface PageProps {
 }
 
 const CommentPage: NextPage<PageProps> = (props: PageProps) => {
-    useTitle('评论的回复')
+    useTitle("评论的评论");
     const router = useRouter();
     const [current, setCurrent] = useState(props.current);
     const [children, setChildren] = useState(props.children);
+    useEffect(() => {
+        setCurrent(props.current);
+        setChildren(props.children);
+    }, [props.current]);
 
     function handleDelete(target: RenderingComment) {
         if (!current) return;
@@ -70,7 +74,7 @@ const CommentPage: NextPage<PageProps> = (props: PageProps) => {
                     onEdited={handleEdit}
                     commentSectionDisabled={true}
                 />
-                {children.length > 0 && <Divider/>}
+                {children.length > 0 && <Divider />}
                 {children.map((v, index) => (
                     <Box key={v._id}>
                         <CommentCard
