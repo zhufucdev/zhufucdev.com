@@ -32,8 +32,8 @@ export async function getInspirations(): Promise<Inspiration[]> {
     })
 }
 
-export async function getInspiration(id: InspirationID): Promise<Inspiration | null> {
-    return await db.collection<Inspiration>(collectionID).findOne({_id: id});
+export async function getInspiration(id: InspirationID): Promise<Inspiration | undefined> {
+    return await db.collection<Inspiration>(collectionID).findOne({_id: id}) ?? undefined;
 }
 
 export async function addInspiration(id: InspirationID, raiser: UserID, body: string): Promise<boolean> {

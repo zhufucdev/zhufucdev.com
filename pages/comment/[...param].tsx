@@ -5,7 +5,7 @@ import {
     RenderingComment,
 } from "../../componenets/CommentCard";
 import PlaceHolder from "../../componenets/PlaceHolder";
-import { getComment, getComments } from "../../lib/db/comment";
+import {Commentable, getComment, getComments} from "../../lib/db/comment";
 import { getUser } from "../../lib/db/user";
 import { getSafeComment } from "../../lib/getSafeComment";
 import NoCommentIcon from "@mui/icons-material/CommentsDisabledOutlined";
@@ -17,16 +17,17 @@ import { useTitle } from "../../lib/useTitle";
 import { ReCaptchaScope } from "../../componenets/ReCaptchaScope";
 import { ReCaptchaPolicy } from "../../componenets/ReCaptchaPolicy";
 import { AnimatePresence, motion } from "framer-motion";
+import {RenderingReview} from "../../componenets/ReviewCard";
+import {getInspiration} from "../../lib/db/inspiration";
 
 interface PageProps {
-    current?: RenderingComment;
-    children: RenderingComment[];
+    current?: RenderingReview;
+    children: RenderingReview[];
     reCaptchaKey?: string;
 }
 
 const CommentPage: NextPage<PageProps> = (props: PageProps) => {
     useTitle("评论");
-    console.log(props.reCaptchaKey);
 
     if (props.current) {
         return (
@@ -128,8 +129,22 @@ function CommentApp(props: PageProps) {
 export const getServerSideProps: GetServerSideProps<PageProps> = async (
     context,
 ) => {
-    const { id } = context.query;
-    const current = await getComment(id as string);
+    const { param } = context.query;
+    let current: RenderingReview | undefined;
+    const type = param!.length > 1 ? param![0] as Commentable : 'comments';
+    const id = param!.length > 1 ? param![1] : param![0];
+    switch (type) {
+        case "comments":
+            const res = await getComment(id);
+            if (res) {
+                const {time, ...others} = res;
+                current = others;
+            }
+            break;
+        case "inspirations":
+            current = await getInspiration(id);
+            break;
+    }
     if (!current) {
         return { props: { children: [] } };
     }
@@ -137,8 +152,8 @@ export const getServerSideProps: GetServerSideProps<PageProps> = async (
         v.map(getSafeComment),
     );
     const nicknameOf: { [key: string]: string } = {};
-    const renderingCurrent: RenderingComment = {
-        ...getSafeComment(current),
+    const renderingCurrent: RenderingReview = {
+        ...current,
         raiserNick: (await getUser(current.raiser))?.nick,
     };
     if (renderingCurrent.raiserNick) {

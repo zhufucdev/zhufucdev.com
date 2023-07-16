@@ -111,7 +111,11 @@ export function ReviewCardRoot<M extends MenuProps>(
     }
 
     function handleCommentSection() {
-        router.push(`/comment/${data._id}`);
+        if (props.collectionId === 'comments') {
+            router.push(`/comment/${data._id}`);
+        } else {
+            router.push(`/comment/${props.collectionId}/${data._id}`);
+        }
     }
 
     function handleReply(event: React.MouseEvent<HTMLButtonElement>) {

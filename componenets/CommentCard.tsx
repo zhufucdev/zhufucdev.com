@@ -38,11 +38,11 @@ import { CommentUtil } from "../lib/comment";
 import { useTheme } from "@mui/material";
 import { useRouter } from "next/router";
 
-export type RenderingComment = SafeComment & RenderingReview;
+export type RenderingComment = RenderingReview & {edited?: boolean};
 interface CommentProps {
     data: RenderingComment;
-    onDeleted: (target: SafeComment) => void;
-    onEdited: (target: SafeComment, newContent: string) => void;
+    onDeleted: (target: RenderingComment) => void;
+    onEdited: (target: RenderingComment, newContent: string) => void;
     onReplied?: (reply: RenderingComment) => void;
     commentSectionDisabled?: boolean;
 }
