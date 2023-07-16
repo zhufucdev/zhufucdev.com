@@ -51,12 +51,12 @@ import {useRequestResult} from "../../lib/useRequestResult";
 import {ReCaptchaScope} from "../../componenets/ReCaptchaScope";
 import {ReCaptchaPolicy} from "../../componenets/ReCaptchaPolicy";
 import {CommentCard, RenderingComment} from "../../componenets/CommentCard";
-import {CommentUtil} from "../../lib/comment";
+import {CommentUtil, RenderingCommentUtil} from "../../lib/comment";
 
 type PageProps = {
     meta?: RenderingArticle;
     body?: string;
-    comments?: SafeComment[];
+    comments?: RenderingComment[];
     reCaptchaKey: string;
 };
 
@@ -149,7 +149,7 @@ function ArticleBody({meta, body}: Omit<PageProps, "reCaptchaKey">) {
 interface RevisionProps {
     meta: RenderingArticle;
     sx?: SxProps;
-    comments: SafeComment[];
+    comments: RenderingComment[];
 }
 
 function RevisionSection({meta, sx, comments: _comments}: RevisionProps) {
@@ -197,13 +197,13 @@ function RevisionSection({meta, sx, comments: _comments}: RevisionProps) {
         setCommenting(!commenting);
     };
 
-    async function handleDelete(target: SafeComment) {
+    async function handleDelete(target: RenderingComment) {
         const index = comments.findIndex((v) => v._id === target._id);
         if (index < 0) return;
         setComments(comments.slice(0, index).concat(comments.slice(index + 1)));
     }
 
-    async function handleEdit(target: SafeComment, newContent: string) {
+    async function handleEdit(target: RenderingComment, newContent: string) {
         const index = comments.findIndex((v) => v._id === target._id);
         if (index < 0) return;
         setComments(
@@ -217,10 +217,9 @@ function RevisionSection({meta, sx, comments: _comments}: RevisionProps) {
     }
 
     function handleNewComment(id: string, body: string) {
-        const comment = CommentUtil.create(
+        const comment = RenderingCommentUtil.create(
             user!,
             body,
-            {id: meta._id, type: "articles"},
             id,
         );
         setComments(comments.concat(comment));

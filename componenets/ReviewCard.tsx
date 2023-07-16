@@ -33,7 +33,7 @@ import {useRouter} from "next/router";
 import AdaptiveDialog, {AdaptiveDialogProps} from "./AdaptiveDialog";
 import {RenderingComment} from "./CommentCard";
 import {ChatInputField} from "./ChatInputField";
-import {CommentUtil} from "../lib/comment";
+import {CommentUtil, RenderingCommentUtil} from "../lib/comment";
 import Box from "@mui/material/Box";
 
 export interface RenderingReview extends WithLikes, WithComments {
@@ -283,7 +283,7 @@ function ReplyDialog({onReplied, to, toType, ...others}: ReplyProps) {
         others.onClose();
         onReplied?.call(
             {},
-            CommentUtil.create(user!, buf, {id: to._id, type: toType}, id),
+            RenderingCommentUtil.create(user!, buf, id),
         );
     });
     const bubbleColor = React.useMemo(

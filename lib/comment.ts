@@ -1,6 +1,6 @@
 import { nanoid } from "nanoid";
 import { RenderingComment } from "../componenets/CommentCard";
-import { Commentable } from "./db/comment";
+import {Comment, Commentable} from "./db/comment";
 import { User } from "./db/user";
 
 export class CommentUtil {
@@ -8,21 +8,22 @@ export class CommentUtil {
     static checkLength(body: string): number {
         return body.trim().length;
     }
+
     static validBody(text: string): boolean {
         return text.length > 0 && this.checkLength(text) <= this.maxLength;
     }
+
     static create(
         raiser: User,
         body: string,
         parent: { id: string; type: Commentable },
         id?: CommentID,
-    ): RenderingComment {
+    ): Comment {
         return {
             _id: id ?? nanoid(),
             raiser: raiser._id,
-            raiserNick: raiser.nick,
             body,
-            time: new Date().toISOString(),
+            time: new Date(),
             parent: parent.id,
             parentType: parent.type,
             edited: false,
@@ -30,4 +31,23 @@ export class CommentUtil {
             likes: [],
         };
     }
+}
+
+export class RenderingCommentUtil {
+    static create(
+        raiser: User,
+        body: string,
+        id?: CommentID,
+    ): RenderingComment {
+        return {
+            _id: id ?? nanoid(),
+            raiser: raiser._id,
+            raiserNick: raiser.nick,
+            body,
+            edited: false,
+            comments: [],
+            likes: [],
+        };
+    }
+
 }
