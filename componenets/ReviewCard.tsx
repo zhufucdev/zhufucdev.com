@@ -18,7 +18,6 @@ import {
     IconButton,
     MenuProps,
     Skeleton,
-    SxProps,
     Tooltip,
     Typography,
     useTheme,
@@ -236,6 +235,7 @@ export function ReviewCardRoot<M extends MenuProps>(
 interface ReviewCardPropsCompat extends CardProps {
     raiser: UserID;
     children: ReactNode;
+    belowCard?: ReactNode;
     grow?: boolean;
 }
 
@@ -250,6 +250,7 @@ export function ReviewCard(props: ReviewCardPropsCompat) {
                 <Card {...props} sx={{ ...props.sx, borderRadius: 2 }}>
                     {props.children}
                 </Card>
+                {props.belowCard}
             </Grid>
         </Grid>
     );

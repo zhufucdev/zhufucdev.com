@@ -14,19 +14,45 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { Box, Divider } from "@mui/material";
 import { useTitle } from "../../lib/useTitle";
+import { ReCaptchaScope } from "../../componenets/ReCaptchaScope";
+import { ReCaptchaPolicy } from "../../componenets/ReCaptchaPolicy";
 
 interface PageProps {
     current?: RenderingComment;
     children: RenderingComment[];
+    reCaptchaKey?: string;
 }
 
 const CommentPage: NextPage<PageProps> = (props: PageProps) => {
-    useTitle("评论的评论");
+    useTitle("评论");
+    console.log(props.reCaptchaKey)
+
+    if (props.current) {
+        return (
+            <ReCaptchaScope reCaptchaKey={props.reCaptchaKey}>
+                <CommentApp {...props} />
+                <ReCaptchaPolicy sx={{textAlign: 'center'}}/>
+            </ReCaptchaScope>
+        );
+    } else {
+        return (
+            <>
+                <PlaceHolder
+                    title="评论未找到"
+                    icon={NoCommentIcon}
+                    sx={{ mt: 2 }}
+                />
+            </>
+        );
+    }
+};
+
+function CommentApp(props: PageProps) {
     const router = useRouter();
-    const [current, setCurrent] = useState(props.current);
+    const [current, setCurrent] = useState(props.current!);
     const [children, setChildren] = useState(props.children);
     useEffect(() => {
-        setCurrent(props.current);
+        setCurrent(props.current!);
         setChildren(props.children);
     }, [props.current]);
 
@@ -64,41 +90,28 @@ const CommentPage: NextPage<PageProps> = (props: PageProps) => {
             );
         }
     }
-
-    if (current) {
-        return (
-            <Stack spacing={2}>
-                <CommentCardRoot
-                    data={current}
-                    onDeleted={handleDelete}
-                    onEdited={handleEdit}
-                    commentSectionDisabled={true}
-                />
-                {children.length > 0 && <Divider />}
-                {children.map((v, index) => (
-                    <Box key={v._id}>
-                        <CommentCard
-                            data={v}
-                            onDeleted={handleDelete}
-                            onEdited={handleEdit}
-                        />
-                        {index < children.length - 1 && <Divider />}
-                    </Box>
-                ))}
-            </Stack>
-        );
-    } else {
-        return (
-            <>
-                <PlaceHolder
-                    title="评论未找到"
-                    icon={NoCommentIcon}
-                    sx={{ mt: 2 }}
-                />
-            </>
-        );
-    }
-};
+    return (
+        <Stack spacing={2}>
+            <CommentCardRoot
+                data={current}
+                onDeleted={handleDelete}
+                onEdited={handleEdit}
+                commentSectionDisabled={true}
+            />
+            {children.length > 0 && <Divider />}
+            {children.map((v, index) => (
+                <Box key={v._id}>
+                    <CommentCard
+                        data={v}
+                        onDeleted={handleDelete}
+                        onEdited={handleEdit}
+                    />
+                    {index < children.length - 1 && <Divider />}
+                </Box>
+            ))}
+        </Stack>
+    );
+}
 
 export const getServerSideProps: GetServerSideProps<PageProps> = async (
     context,
@@ -133,7 +146,11 @@ export const getServerSideProps: GetServerSideProps<PageProps> = async (
         renderingChildren.push({ ...child, raiserNick: nick });
     }
     return {
-        props: { current: renderingCurrent, children: renderingChildren },
+        props: {
+            current: renderingCurrent,
+            children: renderingChildren,
+            reCaptchaKey: process.env.RECAPTCHA_KEY_FRONTEND,
+        },
     };
 };
 

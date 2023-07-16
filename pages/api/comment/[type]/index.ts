@@ -7,34 +7,48 @@ import {
 } from "../../../../lib/db/comment";
 import { validUser } from "../../../../lib/db/token";
 import { getUser, User } from "../../../../lib/db/user";
+import { getSafeComment } from "../../../../lib/getSafeComment";
 import { routeWithIronSession } from "../../../../lib/session";
 import { verifyReCaptcha } from "../../../../lib/utility";
 
 export default routeWithIronSession(async (req, res) => {
     const { type: target } = req.query;
-    const { body, token } = req.body;
-    if (typeof target !== "string" || typeof token !== "string" || !body) {
-        res.status(400).send("bad request");
-        return;
-    }
-    if (!(await validUser(req))) {
-        res.status(401).send("unauthorized");
-        return;
-    }
+    if (req.method === "POST") {
+        const { body, token } = req.body;
+        if (typeof target !== "string" || typeof token !== "string" || !body) {
+            res.status(400).send("bad request");
+            return;
+        }
+        if (!(await validUser(req))) {
+            res.status(401).send("unauthorized");
+            return;
+        }
 
-    const user = await getUser(req.session.userID!);
-    if (!user) {
-        res.status(401).send("user removed");
-        return;
-    }
+        const user = await getUser(req.session.userID!);
+        if (!user) {
+            res.status(401).send("user removed");
+            return;
+        }
 
-    if (!(await verifyReCaptcha(token))) {
-        res.status(400).send("invalid reCaptcha");
-        return;
-    }
+        if (!(await verifyReCaptcha(token))) {
+            res.status(400).send("invalid reCaptcha");
+            return;
+        }
 
-    await handleEdit(res, target, user, body);
+        await handleEdit(res, target, user, body);
+    } else {
+        await handleFetch(res, target as string);
+    }
 });
+
+async function handleFetch(res: NextApiResponse, target: CommentID) {
+    const doc = await getComment(target);
+    if (!doc) {
+        res.status(404).send('not found');
+        return
+    }
+    res.send(getSafeComment(doc));
+}
 
 async function handleEdit(
     res: NextApiResponse,

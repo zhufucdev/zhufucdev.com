@@ -3,11 +3,10 @@ import ListItemIcon from "@mui/material/ListItemIcon";
 import Menu, { MenuProps } from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import Tooltip from "@mui/material/Tooltip";
-import { motion } from "framer-motion";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { SafeComment } from "../lib/getSafeComment";
 import { RenderingReview, ReviewCard, ReviewCardRoot } from "./ReviewCard";
-import { useProfileContext } from "../lib/useUser";
+import { lookupUser, useProfileContext } from "../lib/useUser";
 import {
     getResponseRemark,
     hasPermission,
@@ -17,21 +16,28 @@ import {
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/DeleteOutline";
 import EditedIcon from "@mui/icons-material/UpdateOutlined";
+import ReturnIcon from "@mui/icons-material/KeyboardReturn";
 import { fetchApi } from "../lib/utility";
 import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
 import { useRequestResult } from "../lib/useRequestResult";
 import {
+    Box,
     Button,
     Dialog,
     DialogActions,
     DialogContent,
     DialogContentText,
     DialogTitle,
+    Skeleton,
     TextField,
+    Typography,
 } from "@mui/material";
 import { ProgressSlider } from "./PrograssSlider";
 import { DeleteAlertDialog } from "./DeleteAlertDialog";
 import { CommentUtil } from "../lib/comment";
+import { useTheme } from "@mui/material";
+import Link from "next/link";
+import { useRouter } from "next/router";
 
 export type RenderingComment = SafeComment & RenderingReview;
 interface CommentProps {
@@ -44,11 +50,69 @@ interface CommentProps {
 
 export function CommentCard(props: CommentProps) {
     return (
-        <motion.div>
-            <ReviewCard raiser={props.data.raiser}>
+        <>
+            <ReviewCard
+                raiser={props.data.raiser}
+                belowCard={
+                    props.data.comments.length > 0 && (
+                        <ReplyPreview
+                            id={props.data.comments[0]}
+                            left={props.data.comments.length - 1}
+                        />
+                    )
+                }
+            >
                 <CommentCardRoot {...props} />
             </ReviewCard>
-        </motion.div>
+        </>
+    );
+}
+
+function ReplyPreview({ id, left }: { id: CommentID; left: number }) {
+    const theme = useTheme();
+    const color = theme.palette.text.secondary;
+    const [comment, setComment] = useState<RenderingComment>();
+    const router = useRouter();
+
+    useEffect(() => {
+        fetch(`/api/comment/${id}`).then(async (res) => {
+            const obj: SafeComment = await res.json();
+            const user = await lookupUser(obj.raiser);
+            setComment({ ...obj, raiserNick: user?.nick });
+        });
+    }, [id]);
+
+    function handleClick() {
+        router.push(`/comment/${id}`);
+    }
+
+    return (
+        <Box
+            alignItems="center"
+            display="flex"
+            width={1}
+            pt={2}
+        >
+            <ReturnIcon
+                sx={{ rotate: "90deg", color, transform: "translateX(-6px)" }}
+            />
+            <Box width={8} />
+            {comment ? (
+                <>
+                    <Typography
+                        variant="body1"
+                        color="text.disabled"
+                    >
+                        {comment.raiserNick ?? comment.raiser}: {comment.body}
+                    </Typography>
+                    {left > 0 && (
+                        <Button click={handleClick}>{left}+</Button>
+                    )}
+                </>
+            ) : (
+                <Skeleton variant="text" sx={{ flexGrow: 1, height: "2rem" }} />
+            )}
+        </Box>
     );
 }
 
@@ -75,11 +139,11 @@ export function CommentCardRoot(props: CommentProps) {
         () => setEditError(true),
     );
     const bufHelper = useMemo(() => {
-                const len = CommentUtil.checkLength(editingBuffer);
-                if (len > CommentUtil.maxLength * 0.6) {
-                    return `${len} / ${CommentUtil.maxLength}`
-                }
-            }, [editingBuffer]);
+        const len = CommentUtil.checkLength(editingBuffer);
+        if (len > CommentUtil.maxLength * 0.6) {
+            return `${len} / ${CommentUtil.maxLength}`;
+        }
+    }, [editingBuffer]);
 
     const canEdit = useMemo(
         () =>
@@ -208,7 +272,6 @@ export function CommentCardRoot(props: CommentProps) {
                 onClose={() => setDeleteDialog(false)}
                 onConfirm={handleDelete}
             />
-            
         </>
     );
 }

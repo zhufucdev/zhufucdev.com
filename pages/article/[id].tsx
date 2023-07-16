@@ -376,7 +376,7 @@ function RevisionSection({ meta, sx, comments: _comments }: RevisionProps) {
                         <motion.div
                             key={c._id}
                             animate={{ x: 0 }}
-                            exit={{ x: -400 }}
+                            exit={{ x: '-120%' }}
                         >
                             <CommentCard
                                 data={c}
