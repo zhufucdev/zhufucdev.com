@@ -16,6 +16,7 @@ import { Box, Divider } from "@mui/material";
 import { useTitle } from "../../lib/useTitle";
 import { ReCaptchaScope } from "../../componenets/ReCaptchaScope";
 import { ReCaptchaPolicy } from "../../componenets/ReCaptchaPolicy";
+import { AnimatePresence, motion } from "framer-motion";
 
 interface PageProps {
     current?: RenderingComment;
@@ -25,13 +26,13 @@ interface PageProps {
 
 const CommentPage: NextPage<PageProps> = (props: PageProps) => {
     useTitle("评论");
-    console.log(props.reCaptchaKey)
+    console.log(props.reCaptchaKey);
 
     if (props.current) {
         return (
             <ReCaptchaScope reCaptchaKey={props.reCaptchaKey}>
                 <CommentApp {...props} />
-                <ReCaptchaPolicy sx={{textAlign: 'center'}}/>
+                <ReCaptchaPolicy sx={{ textAlign: "center" }} />
             </ReCaptchaScope>
         );
     } else {
@@ -90,25 +91,36 @@ function CommentApp(props: PageProps) {
             );
         }
     }
+
+    function handleReply(comment: RenderingComment) {
+        setChildren(children.concat(comment));
+    }
+
     return (
         <Stack spacing={2}>
             <CommentCardRoot
                 data={current}
                 onDeleted={handleDelete}
                 onEdited={handleEdit}
+                onReplied={handleReply}
                 commentSectionDisabled={true}
             />
             {children.length > 0 && <Divider />}
-            {children.map((v, index) => (
-                <Box key={v._id}>
-                    <CommentCard
-                        data={v}
-                        onDeleted={handleDelete}
-                        onEdited={handleEdit}
-                    />
-                    {index < children.length - 1 && <Divider />}
-                </Box>
-            ))}
+            <AnimatePresence>
+                {children.map((v) => (
+                    <motion.div
+                        key={v._id}
+                        animate={{ x: 0 }}
+                        exit={{ x: "-120%" }}
+                    >
+                        <CommentCard
+                            data={v}
+                            onDeleted={handleDelete}
+                            onEdited={handleEdit}
+                        />
+                    </motion.div>
+                ))}
+            </AnimatePresence>
         </Stack>
     );
 }

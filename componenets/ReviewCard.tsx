@@ -208,7 +208,7 @@ export function ReviewCardRoot<M extends MenuProps>(
                 onClose={() => setReplying(false)}
                 onReplied={props.onReplied}
                 to={props.data}
-                toType={props.collectionId}
+                toType={props.collectionId as Commentable}
             />
 
             {props.contextMenu &&
@@ -274,11 +274,11 @@ function ReplyDialog({ onReplied, to, toType, ...others }: ReplyProps) {
         [buf],
     );
     const theme = useTheme();
-    const handleResult = useRequestResult(() => {
+    const handleResult = useRequestResult<string>(async (_, id) => {
         others.onClose();
         onReplied?.call(
             {},
-            CommentUtil.create(user!, buf, { id: to._id, type: toType }),
+            CommentUtil.create(user!, buf, { id: to._id, type: toType }, id),
         );
     });
     const bubbleColor = React.useMemo(
@@ -307,7 +307,12 @@ function ReplyDialog({ onReplied, to, toType, ...others }: ReplyProps) {
         setSending(true);
         const token = await executeRecaptcha();
         const res = await postComment(toType, to._id, buf, token);
-        handleResult(await getResponseRemark(res));
+        if (res.ok) {
+            const id = await res.text();
+            handleResult({ success: true }, id);
+        } else {
+            handleResult(await getResponseRemark(res));
+        }
         setSending(false);
     }
 

@@ -58,6 +58,7 @@ export function CommentCard(props: CommentProps) {
                         <ReplyPreview
                             id={props.data.comments[0]}
                             left={props.data.comments.length - 1}
+                            parentId={props.data._id}
                         />
                     )
                 }
@@ -68,7 +69,13 @@ export function CommentCard(props: CommentProps) {
     );
 }
 
-function ReplyPreview({ id, left }: { id: CommentID; left: number }) {
+interface PreviewProps {
+    id: CommentID;
+    left: number;
+    parentId: string;
+}
+
+function ReplyPreview({ id, left, parentId }: PreviewProps) {
     const theme = useTheme();
     const color = theme.palette.text.secondary;
     const [comment, setComment] = useState<RenderingComment>();
@@ -83,31 +90,26 @@ function ReplyPreview({ id, left }: { id: CommentID; left: number }) {
     }, [id]);
 
     function handleClick() {
-        router.push(`/comment/${id}`);
+        router.push(`/comment/${parentId}`);
     }
 
     return (
-        <Box
-            alignItems="center"
-            display="flex"
-            width={1}
-            pt={2}
-        >
+        <Box alignItems="center" display="flex" width={1} pt={2}>
             <ReturnIcon
                 sx={{ rotate: "90deg", color, transform: "translateX(-6px)" }}
+                fontSize="small"
             />
             <Box width={8} />
             {comment ? (
                 <>
                     <Typography
-                        variant="body1"
+                        variant="body2"
                         color="text.disabled"
+                        flexGrow={1}
                     >
                         {comment.raiserNick ?? comment.raiser}: {comment.body}
                     </Typography>
-                    {left > 0 && (
-                        <Button click={handleClick}>{left}+</Button>
-                    )}
+                    {left > 0 && <Button onClick={handleClick}>{left}+</Button>}
                 </>
             ) : (
                 <Skeleton variant="text" sx={{ flexGrow: 1, height: "2rem" }} />
@@ -230,6 +232,7 @@ export function CommentCardRoot(props: CommentProps) {
                 showContextMenu={ctx}
                 onContextMenu={setCtx}
                 commentSectionDisabled={props.commentSectionDisabled}
+                onReplied={props.onReplied}
             >
                 {props.data.edited && (
                     <Tooltip title="已修改">

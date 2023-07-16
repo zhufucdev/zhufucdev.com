@@ -56,8 +56,10 @@ export async function drop(
             if (!checkPermit((original as unknown as Comment).raiser))
                 return notPermitted;
     }
+    const res = await coll.findOneAndDelete({ _id: id });
     return {
         permitted: true,
-        acknowledged: (await coll.findOneAndDelete({ _id: id })).ok === 1,
+        acknowledged: res.ok === 1,
+        original: res.value
     };
 }

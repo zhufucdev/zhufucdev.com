@@ -1,13 +1,13 @@
-import {requireDatabase} from "./database";
-import {nanoid} from "nanoid";
-import {WithLikes} from "./remark";
+import { requireDatabase } from "./database";
+import { nanoid } from "nanoid";
+import { WithLikes } from "./remark";
 
 export interface Comment extends WithComments, WithLikes {
     _id: CommentID;
     raiser: UserID;
     body: string;
     parent: any;
-    parentType: Commentable,
+    parentType: Commentable;
     time: Date;
     edited: boolean;
 }
@@ -18,16 +18,16 @@ export interface WithComments {
 }
 
 const collectionId = "comments";
-export type Commentable = 'inspirations' | 'articles' | 'comments';
+export type Commentable = "inspirations" | "articles" | "comments";
 
 export function asCommentable(name: string): Commentable | undefined {
     switch (name) {
-        case 'inspirations':
-        case 'articles':
-        case 'comments':
-            return name
+        case "inspirations":
+        case "articles":
+        case "comments":
+            return name;
         default:
-            return undefined
+            return undefined;
     }
 }
 
@@ -37,8 +37,10 @@ export function asCommentable(name: string): Commentable | undefined {
  */
 export async function getComments(holder: WithComments): Promise<Comment[]> {
     requireDatabase();
-    const comments = db.collection<Comment>(collectionId).find({_id: {$in: holder.comments}});
-    return await comments.sort('time').toArray();
+    const comments = db
+        .collection<Comment>(collectionId)
+        .find({ _id: { $in: holder.comments } });
+    return await comments.sort("time").toArray();
 }
 
 /**
@@ -47,7 +49,10 @@ export async function getComments(holder: WithComments): Promise<Comment[]> {
  */
 export async function getComment(id: CommentID): Promise<Comment | undefined> {
     requireDatabase();
-    return await db.collection<Comment>(collectionId).findOne({_id: id}) ?? undefined;
+    return (
+        (await db.collection<Comment>(collectionId).findOne({ _id: id })) ??
+        undefined
+    );
 }
 
 /**
@@ -62,32 +67,41 @@ export async function addComment(
     raiser: UserID,
     content: string,
     target: WithComments,
-    coll: Commentable
+    coll: Commentable,
 ): Promise<Comment | undefined> {
     requireDatabase();
     const instance: Comment = {
-        raiser, body: content,
+        raiser,
+        body: content,
         _id: nanoid(),
         parent: target._id,
         parentType: coll,
         time: new Date(),
         edited: false,
         comments: [],
-        likes: []
+        likes: [],
     };
 
-    const local = (await db.collection<Comment>(collectionId).insertOne(instance)).acknowledged;
-    if (!local) return
+    const local = (
+        await db.collection<Comment>(collectionId).insertOne(instance)
+    ).acknowledged;
+    if (!local) return;
 
-    const foreign = (await db.collection<WithComments>(coll).findOneAndUpdate({_id: target._id},
-        {$push: {comments: instance._id}}));
+    const foreign = await db
+        .collection<WithComments>(coll)
+        .findOneAndUpdate(
+            { _id: target._id },
+            { $push: { comments: instance._id } },
+        );
     if (foreign.ok === 0) {
         // undo local operation
-        await db.collection<Comment>(collectionId).findOneAndDelete({_id: instance._id});
-        return
+        await db
+            .collection<Comment>(collectionId)
+            .findOneAndDelete({ _id: instance._id });
+        return;
     }
 
-    return instance
+    return instance;
 }
 
 /**
@@ -95,10 +109,34 @@ export async function addComment(
  * @param id the identifier
  * @param update the new content
  */
-export async function updateComment(id: CommentID, update: Partial<Comment>): Promise<boolean> {
+export async function updateComment(
+    id: CommentID,
+    update: Partial<Comment>,
+): Promise<boolean> {
     requireDatabase();
     const collection = db.collection(collectionId);
-    const res = await collection.findOneAndUpdate({_id: id}, {$set: update});
+    const res = await collection.findOneAndUpdate(
+        { _id: id },
+        { $set: update },
+    );
     return res.ok === 1;
 }
 
+export async function notifyCommentDrop(
+    drop: CommentID | Comment,
+): Promise<boolean> {
+    requireDatabase();
+    const target =
+        typeof drop === "string"
+            ? await db.collection<Comment>(collectionId).findOne({ _id: drop })
+            : drop;
+    if (!target) return false;
+    
+    const res = await db
+        .collection<WithComments>(target.parentType)
+        .findOneAndUpdate(
+            { _id: target.parent },
+            { $pull: { comments: target._id } },
+        );
+    return res.ok === 1;
+}
