@@ -62,7 +62,7 @@ import {ContentsProvider, useContents} from "../lib/useContents";
 import {ContentsNodeComponent} from "../componenets/ContentsNodeComponent";
 import LanguageSelect from "../componenets/LanguageSelect";
 import {
-    LanguageOptions,
+    LanguageSettings,
     LanguageProvider,
     useLanguage,
 } from "../lib/useLanguage";
@@ -151,7 +151,7 @@ function MyAppBar(props: MyAppBarProps): JSX.Element {
                 )}
                 {langOptions && (
                     <LanguageSwitch
-                        options={langOptions}
+                        settings={langOptions}
                         onSwitched={setTargetLang}
                     />
                 )}
@@ -247,7 +247,7 @@ function MyHead() {
 }
 
 function LanguageSwitch(props: {
-    options: LanguageOptions;
+    settings: LanguageSettings;
     onSwitched: (target: string) => void;
 }) {
     const theme = useTheme();
@@ -286,16 +286,18 @@ function LanguageSwitch(props: {
                     在其他语言中查看
                 </Caption>
                 <List>
-                    {props.options.available.map((code) => (
+                    {props.settings.available.map(({name, href}) => (
                         <ListItemButton
-                            key={code}
+                            key={name}
                             onClick={() => {
                                 setOpen(false);
-                                props.onSwitched(code);
+                                props.onSwitched(name);
                             }}
-                            selected={props.options.current === code}
+                            selected={props.settings.current === name}
+                            component={Link}
+                            href={href}
                         >
-                            {getLanguageName(code)}
+                            {getLanguageName(name)}
                         </ListItemButton>
                     ))}
                 </List>

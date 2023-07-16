@@ -1,11 +1,12 @@
-import {FormControl, InputLabel, MenuItem, Select, SxProps, Typography} from "@mui/material";
+import {FormControl, InputLabel, MenuItem, Select, SxProps} from "@mui/material";
 import * as React from "react";
 import {defaultLang, getLanguageName} from "../lib/translation";
-import CheckIcon from "@mui/icons-material/Check";
+import {LanguageOption} from "../lib/useLanguage";
+import Link from "next/link";
 
 interface Props {
     current: string
-    available: string[]
+    available: LanguageOption[]
     onLanguageSwitched: (target: string) => void
     sx?: SxProps
 }
@@ -16,11 +17,16 @@ export default function LanguageSelect({current, available, sx, onLanguageSwitch
         <Select label="语言"
                 onChange={ev => onLanguageSwitched(ev.target.value)}
                 value={current ?? defaultLang}>
-            {available.map(code =>
-                <MenuItem key={code} value={code}>
-                    {getLanguageName(code)}
+            {available.map(({name, href}) => (
+                // @ts-ignore
+                <MenuItem
+                    value={name}
+                    key={name}
+                    component={Link}
+                    href={href}>
+                    {getLanguageName(name)}
                 </MenuItem>
-            )}
+            ))}
         </Select>
     </FormControl>
 }

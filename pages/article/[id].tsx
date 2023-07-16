@@ -1,17 +1,17 @@
-import { GetStaticPaths, GetStaticProps, NextPage } from "next";
+import {GetStaticPaths, GetStaticProps, NextPage} from "next";
 import {
     ArticleMeta,
     ArticleUtil,
     getArticle,
     listArticles,
 } from "../../lib/db/article";
-import { getSafeArticle } from "../../lib/getSafeArticle";
-import { MarkdownScope } from "../../componenets/MarkdownScope";
-import { postComment, readAll } from "../../lib/utility";
+import {getSafeArticle} from "../../lib/getSafeArticle";
+import {MarkdownScope} from "../../componenets/MarkdownScope";
+import {postComment, readAll} from "../../lib/utility";
 import PlaceHolder from "../../componenets/PlaceHolder";
-import { Copyright } from "../../componenets/Copyright";
-import { getUser } from "../../lib/db/user";
-import { ArticleHeader } from "../../componenets/ArticleHeader";
+import {Copyright} from "../../componenets/Copyright";
+import {getUser} from "../../lib/db/user";
+import {ArticleHeader} from "../../componenets/ArticleHeader";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -28,30 +28,30 @@ import {
     useRef,
     useState,
 } from "react";
-import { SxProps, useMediaQuery, useTheme } from "@mui/material";
-import { AnimatePresence, motion } from "framer-motion";
-import { useTitle } from "../../lib/useTitle";
-import { ArticleDescription } from "../../componenets/ArticleDescription";
-import { RenderingArticle } from "../../componenets/ArticleCard";
-import { useLanguage } from "../../lib/useLanguage";
-import { defaultLang } from "../../lib/translation";
-import { useRouter } from "next/router";
+import {SxProps, useMediaQuery, useTheme} from "@mui/material";
+import {AnimatePresence, motion} from "framer-motion";
+import {useTitle} from "../../lib/useTitle";
+import {ArticleDescription} from "../../componenets/ArticleDescription";
+import {RenderingArticle} from "../../componenets/ArticleCard";
+import {LanguageOption, useLanguage} from "../../lib/useLanguage";
+import {defaultLang} from "../../lib/translation";
+import {useRouter} from "next/router";
 import LoginPopover from "../../componenets/LoginPopover";
-import { useProfileContext } from "../../lib/useUser";
-import { getSafeComment, SafeComment } from "../../lib/getSafeComment";
-import { Commentable, getComments } from "../../lib/db/comment";
-import { hasPermission, reCaptchaNotReady } from "../../lib/contract";
+import {useProfileContext} from "../../lib/useUser";
+import {getSafeComment, SafeComment} from "../../lib/getSafeComment";
+import {getComments} from "../../lib/db/comment";
+import {hasPermission, reCaptchaNotReady} from "../../lib/contract";
 import NoContentIcon from "@mui/icons-material/PsychologyOutlined";
 import NoArticleIcon from "@mui/icons-material/PowerOffOutlined";
 import PrIcon from "@mui/icons-material/DriveFileRenameOutline";
 import CommentIcon from "@mui/icons-material/CommentOutlined";
-import { ChatInputField } from "../../componenets/ChatInputField";
-import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
-import { useRequestResult } from "../../lib/useRequestResult";
-import { ReCaptchaScope } from "../../componenets/ReCaptchaScope";
-import { ReCaptchaPolicy } from "../../componenets/ReCaptchaPolicy";
-import { CommentCard, RenderingComment } from "../../componenets/CommentCard";
-import { CommentUtil } from "../../lib/comment";
+import {ChatInputField} from "../../componenets/ChatInputField";
+import {useGoogleReCaptcha} from "react-google-recaptcha-v3";
+import {useRequestResult} from "../../lib/useRequestResult";
+import {ReCaptchaScope} from "../../componenets/ReCaptchaScope";
+import {ReCaptchaPolicy} from "../../componenets/ReCaptchaPolicy";
+import {CommentCard, RenderingComment} from "../../componenets/CommentCard";
+import {CommentUtil} from "../../lib/comment";
 
 type PageProps = {
     meta?: RenderingArticle;
@@ -61,33 +61,29 @@ type PageProps = {
 };
 
 const ArticleApp: NextPage<PageProps> = ({
-    meta,
-    body,
-    comments,
-    reCaptchaKey,
-}) => {
-    useTitle({ appbar: "文章", head: meta?.title ?? "文章" });
+        meta,
+        body,
+        comments,
+        reCaptchaKey,
+    }) => {
+    useTitle({appbar: "文章", head: meta?.title ?? "文章"});
     const router = useRouter();
-    const languageList = useMemo(() => {
-        if (!meta || !meta.altLangs) return [];
-        const list: string[] = [];
-        for (const key in meta.altLangs) {
-            list.push(key);
+    const langOptions = useMemo(() => {
+        if (!meta || !meta.alternatives) return undefined;
+        const hrefs: LanguageOption[] = [];
+        for (const key in meta.alternatives) {
+            hrefs.push({name: key, href: `/article/${meta.alternatives[key]}`})
         }
-        return list;
+        return {
+            current: (meta!.tags.lang as string) ?? defaultLang,
+            available: hrefs,
+        }
     }, [meta]);
-    const [options, _, __] = useLanguage(
-        meta && languageList
-            ? {
-                  current: (meta.tags.lang as string) ?? defaultLang,
-                  available: languageList,
-              }
-            : undefined,
-    );
+    const [options, ,] = useLanguage(langOptions);
 
     useEffect(() => {
         if (!options || !options.current) return;
-        const targetId = meta!.altLangs![options.current];
+        const targetId = meta!.alternatives![options.current];
         router.push(`/article/${targetId}`);
     }, [options]);
 
@@ -97,10 +93,10 @@ const ArticleApp: NextPage<PageProps> = ({
         if (body) {
             content = (
                 <>
-                    <ArticleBody meta={meta} body={body} />
+                    <ArticleBody meta={meta} body={body}/>
                     <RevisionSection
                         meta={meta}
-                        sx={{ mt: 2 }}
+                        sx={{mt: 2}}
                         comments={comments!}
                     />
                 </>
@@ -113,8 +109,8 @@ const ArticleApp: NextPage<PageProps> = ({
                         icon={NoContentIcon}
                         title="作者骗了你，没写正文"
                     />
-                    <RevisionSection meta={meta} comments={comments!} />
-                    <ReCaptchaPolicy sx={{ textAlign: "center" }} />
+                    <RevisionSection meta={meta} comments={comments!}/>
+                    <ReCaptchaPolicy sx={{textAlign: "center"}}/>
                 </>
             );
         }
@@ -122,27 +118,27 @@ const ArticleApp: NextPage<PageProps> = ({
         return (
             <ReCaptchaScope reCaptchaKey={reCaptchaKey}>
                 {content}
-                <ReCaptchaPolicy sx={{ textAlign: "center" }} />
-                <Copyright />
+                <ReCaptchaPolicy sx={{textAlign: "center"}}/>
+                <Copyright/>
             </ReCaptchaScope>
         );
     } else {
-        return <PlaceHolder icon={NoArticleIcon} title="文章未找到" />;
+        return <PlaceHolder icon={NoArticleIcon} title="文章未找到"/>;
     }
 };
 
-function ArticleBody({ meta, body }: Omit<PageProps, "reCaptchaKey">) {
+function ArticleBody({meta, body}: Omit<PageProps, "reCaptchaKey">) {
     const theme = useTheme();
     const onLargeScreen = useMediaQuery(theme.breakpoints.up("md"));
     const articleRef = useRef<HTMLDivElement>(null);
 
     return (
         <>
-            <ArticleHeader meta={meta!} article={articleRef} />
-            <ArticleDescription data={meta!} />
+            <ArticleHeader meta={meta!} article={articleRef}/>
+            <ArticleDescription data={meta!}/>
             <Box
                 ref={articleRef}
-                sx={{ width: onLargeScreen ? "calc(100% - 240px)" : "100%" }}
+                sx={{width: onLargeScreen ? "calc(100% - 240px)" : "100%"}}
             >
                 <MarkdownScope>{body}</MarkdownScope>
             </Box>
@@ -156,16 +152,16 @@ interface RevisionProps {
     comments: SafeComment[];
 }
 
-function RevisionSection({ meta, sx, comments: _comments }: RevisionProps) {
+function RevisionSection({meta, sx, comments: _comments}: RevisionProps) {
     const theme = useTheme();
     const router = useRouter();
-    const { executeRecaptcha } = useGoogleReCaptcha();
+    const {executeRecaptcha} = useGoogleReCaptcha();
     const handleCommentResult = useRequestResult((_, id) => {
         setCommenting(false);
         handleNewComment(id as string, commentBuffer);
         setCommentBuf("");
     });
-    const { user } = useProfileContext();
+    const {user} = useProfileContext();
     const [comments, setComments] = useState(_comments);
     const [reviewing, setReviewing] = useState<HTMLElement>();
     const [commenting, setCommenting] = useState(false);
@@ -214,7 +210,7 @@ function RevisionSection({ meta, sx, comments: _comments }: RevisionProps) {
             comments
                 .slice(0, index)
                 .concat(
-                    { ...target, body: newContent, edited: true },
+                    {...target, body: newContent, edited: true},
                     comments.slice(index + 1),
                 ),
         );
@@ -224,7 +220,7 @@ function RevisionSection({ meta, sx, comments: _comments }: RevisionProps) {
         const comment = CommentUtil.create(
             user!,
             body,
-            { id: meta._id, type: "articles" },
+            {id: meta._id, type: "articles"},
             id,
         );
         setComments(comments.concat(comment));
@@ -246,7 +242,7 @@ function RevisionSection({ meta, sx, comments: _comments }: RevisionProps) {
         );
         setCommenting(false);
         if (res.ok) {
-            handleCommentResult({ success: true }, await res.text());
+            handleCommentResult({success: true}, await res.text());
         } else {
             let msg: string;
             switch (res.status) {
@@ -282,7 +278,7 @@ function RevisionSection({ meta, sx, comments: _comments }: RevisionProps) {
             flex: 1,
         },
     };
-    const actions = { ml: 0.5, mt: -1, height: "64px" };
+    const actions = {ml: 0.5, mt: -1, height: "64px"};
 
     return (
         <motion.div layout>
@@ -297,7 +293,7 @@ function RevisionSection({ meta, sx, comments: _comments }: RevisionProps) {
                 layout
             >
                 <Grid item sx={container} key="comment-card">
-                    <Card sx={{ borderRadius: "12px" }}>
+                    <Card sx={{borderRadius: "12px"}}>
                         <CardContent>
                             <Typography variant="h5" gutterBottom>
                                 你的观点
@@ -309,10 +305,10 @@ function RevisionSection({ meta, sx, comments: _comments }: RevisionProps) {
                         <CardActions sx={actions}>
                             {!chatboxRevealed && (
                                 <Button
-                                    startIcon={<CommentIcon />}
+                                    startIcon={<CommentIcon/>}
                                     disabled={user && !canComment}
                                     onClick={handleComment}
-                                    sx={{ position: "absolute" }}
+                                    sx={{position: "absolute"}}
                                 >
                                     评论
                                 </Button>
@@ -343,12 +339,12 @@ function RevisionSection({ meta, sx, comments: _comments }: RevisionProps) {
                     sx={container}
                     component={motion.div}
                     variants={{
-                        rest: { opacity: 1 },
-                        disabled: { opacity: 0.4 },
+                        rest: {opacity: 1},
+                        disabled: {opacity: 0.4},
                     }}
                     animate={commenting ? "disabled" : "rest"}
                 >
-                    <Card sx={{ borderRadius: "12px" }}>
+                    <Card sx={{borderRadius: "12px"}}>
                         <CardContent>
                             <Typography variant="h5" gutterBottom>
                                 拉取请求
@@ -359,7 +355,7 @@ function RevisionSection({ meta, sx, comments: _comments }: RevisionProps) {
                         </CardContent>
                         <CardActions sx={actions}>
                             <Button
-                                startIcon={<PrIcon />}
+                                startIcon={<PrIcon/>}
                                 disabled={(user && !canPr) || commenting}
                                 onClick={handlePr}
                             >
@@ -375,8 +371,8 @@ function RevisionSection({ meta, sx, comments: _comments }: RevisionProps) {
                     {comments.map((c) => (
                         <motion.div
                             key={c._id}
-                            animate={{ x: 0 }}
-                            exit={{ x: '-120%' }}
+                            animate={{x: 0}}
+                            exit={{x: '-120%'}}
                         >
                             <CommentCard
                                 data={c}
@@ -398,7 +394,7 @@ function RevisionSection({ meta, sx, comments: _comments }: RevisionProps) {
 }
 
 export const getStaticProps: GetStaticProps<PageProps> = async (context) => {
-    const { id } = context.params!;
+    const {id} = context.params!;
     const meta = await getArticle(id as ArticleID);
     const stream = meta?.stream();
     const body = stream && (await readAll(stream)).toString();
@@ -415,14 +411,14 @@ export const getStaticProps: GetStaticProps<PageProps> = async (context) => {
         props.meta = {
             ...getSafeArticle(meta),
             authorNick: user?.nick,
-            altLangs,
+            alternatives: altLangs,
         };
         props.comments = await renderingComments(meta);
     }
     if (body) {
         props.body = body;
     }
-    return { props, revalidate: false };
+    return {props, revalidate: false};
 };
 
 async function renderingComments(
@@ -439,7 +435,7 @@ async function renderingComments(
             nick = (await getUser(comment.raiser))?.nick;
             if (nick) nicknameOf[comment.raiser] = nick;
         }
-        rendering.push({ ...comment, raiserNick: nick });
+        rendering.push({...comment, raiserNick: nick});
     }
     return rendering;
 }
@@ -449,7 +445,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
     return {
         paths: articles
             .filter(ArticleUtil.publicList())
-            .map((meta) => ({ params: { id: meta._id } })),
+            .map((meta) => ({params: {id: meta._id}})),
         fallback: "blocking",
     };
 };

@@ -4,19 +4,24 @@ const LanguageInstance =
     React.createContext<LanguageContext>([undefined, () => {
     }]);
 
-export interface LanguageOptions {
+export interface LanguageSettings {
     current?: string;
-    available: string[]
+    available: LanguageOption[]
 }
 
-type LanguageContext = [LanguageOptions | undefined, (option?: LanguageOptions) => void];
+export interface LanguageOption {
+    name: string;
+    href: string;
+}
+
+type LanguageContext = [LanguageSettings | undefined, (option?: LanguageSettings) => void];
 
 export function LanguageProvider(props: { children: React.ReactNode }) {
-    const options = useState<LanguageOptions>();
+    const options = useState<LanguageSettings>();
     return <LanguageInstance.Provider {...props} value={options}/>
 }
 
-export function useLanguage(options?: LanguageOptions): [LanguageOptions | undefined, Dispatch<LanguageOptions>, Dispatch<string>] {
+export function useLanguage(options?: LanguageSettings): [LanguageSettings | undefined, Dispatch<LanguageSettings>, Dispatch<string>] {
     const [option, setOption] = useContext(LanguageInstance);
 
     function setCurrent(target: string) {

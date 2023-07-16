@@ -284,7 +284,7 @@ export async function getStaticProps(): Promise<StaticProps> {
         const user = author(meta.author);
         if (user) {
             unfoldedArticles.push({
-                ...meta, authorNick: user.nick, altLangs: {}
+                ...meta, authorNick: user.nick, alternatives: {}
             })
         } else {
             unfoldedArticles.push(meta)
