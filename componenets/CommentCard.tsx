@@ -38,6 +38,8 @@ interface CommentProps {
     data: RenderingComment;
     onDeleted: (target: SafeComment) => void;
     onEdited: (target: SafeComment, newContent: string) => void;
+    onReplied?: (reply: RenderingComment) => void;
+    commentSectionDisabled?: boolean;
 }
 
 export function CommentCard(props: CommentProps) {
@@ -50,7 +52,7 @@ export function CommentCard(props: CommentProps) {
     );
 }
 
-function CommentCardRoot(props: CommentProps) {
+export function CommentCardRoot(props: CommentProps) {
     const [deleteDialog, setDeleteDialog] = useState(false);
     const [isDeleting, setDeleting] = useState(false);
     const [ctx, setCtx] = useState(false);
@@ -163,6 +165,7 @@ function CommentCardRoot(props: CommentProps) {
                 }}
                 showContextMenu={ctx}
                 onContextMenu={setCtx}
+                commentSectionDisabled={props.commentSectionDisabled}
             >
                 {props.data.edited && (
                     <Tooltip title="已修改">
@@ -205,6 +208,7 @@ function CommentCardRoot(props: CommentProps) {
                 onClose={() => setDeleteDialog(false)}
                 onConfirm={handleDelete}
             />
+            
         </>
     );
 }

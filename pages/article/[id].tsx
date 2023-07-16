@@ -221,18 +221,12 @@ function RevisionSection({ meta, sx, comments: _comments }: RevisionProps) {
     }
 
     function handleNewComment(id: string, body: string) {
-        const comment = {
-            _id: id,
-            raiser: user!._id,
-            raiserNick: user!.nick,
+        const comment = CommentUtil.create(
+            user!,
             body,
-            time: new Date().toISOString(),
-            parent: meta._id,
-            parentType: "articles" as Commentable,
-            edited: false,
-            comments: [],
-            likes: [],
-        };
+            { id: meta._id, type: "articles" },
+            id,
+        );
         setComments(comments.concat(comment));
     }
 

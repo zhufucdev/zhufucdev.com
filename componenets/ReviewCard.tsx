@@ -1,20 +1,19 @@
 import { WithLikes } from "../lib/db/remark";
-import { WithComments } from "../lib/db/comment";
+import { Commentable, WithComments } from "../lib/db/comment";
 import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
 import { useProfileContext } from "../lib/useUser";
-import { ElementType, ReactNode, useEffect, useMemo } from "react";
-import {
-    getResponseRemark,
-    hasPermission,
-    reCaptchaNotReady,
-} from "../lib/contract";
+import { ElementType, ReactNode } from "react";
+import { getResponseRemark, reCaptchaNotReady } from "../lib/contract";
 import * as React from "react";
 import { useRequestResult } from "../lib/useRequestResult";
-import { fetchApi } from "../lib/utility";
+import { fetchApi, postComment } from "../lib/utility";
 import {
     Card,
     CardActions,
     CardContent,
+    CardProps,
+    DialogContent,
+    DialogTitle,
     Grid,
     IconButton,
     MenuProps,
@@ -22,14 +21,20 @@ import {
     SxProps,
     Tooltip,
     Typography,
+    useTheme,
 } from "@mui/material";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import MoreIcon from "@mui/icons-material/MoreVert";
 import CommentIcon from "@mui/icons-material/CommentOutlined";
+import ReplyIcon from "@mui/icons-material/Reply";
 
 import LoginPopover from "./LoginPopover";
 import { LazyAvatar } from "./LazyAvatar";
 import { useRouter } from "next/router";
+import AdaptiveDialog, { AdaptiveDialogProps } from "./AdaptiveDialog";
+import { RenderingComment } from "./CommentCard";
+import { ChatInputField } from "./ChatInputField";
+import { CommentUtil } from "../lib/comment";
 
 export interface RenderingReview extends WithLikes, WithComments {
     _id: string;
@@ -42,6 +47,8 @@ export interface ReviewCardProps<M extends MenuProps> {
     data: RenderingReview;
     contextMenu?: ElementType<M>;
     contextMenuProps?: Omit<M, keyof MenuProps>;
+    onReplied?: (reply: RenderingComment) => void;
+    commentSectionDisabled?: boolean;
 }
 
 export function ReviewCardRoot<M extends MenuProps>(
@@ -65,6 +72,7 @@ export function ReviewCardRoot<M extends MenuProps>(
     );
     const [liked, setLiked] = React.useState(false);
     const [likes, setLikes] = React.useState(data.likes.length);
+    const [replying, setReplying] = React.useState(false);
 
     const handleLikeRes = useRequestResult(() => {
         if (!liked) {
@@ -75,7 +83,7 @@ export function ReviewCardRoot<M extends MenuProps>(
         setLiked(!liked);
     });
 
-    useEffect(() => {
+    React.useEffect(() => {
         if (!user) {
             setLiked(false);
         } else {
@@ -103,8 +111,16 @@ export function ReviewCardRoot<M extends MenuProps>(
         }
     }
 
-    function handleComment() {
-        router.push(`/comment/${props.collectionId}/${data._id}`);
+    function handleCommentSection() {
+        router.push(`/comment/${data._id}`);
+    }
+
+    function handleReply(event: React.MouseEvent<HTMLButtonElement>) {
+        if (!user) {
+            setAnchor(event.currentTarget);
+        } else {
+            setReplying(true);
+        }
     }
 
     return (
@@ -134,10 +150,19 @@ export function ReviewCardRoot<M extends MenuProps>(
                         ) : (
                             <>
                                 <Tooltip title="回复">
-                                    <IconButton onClick={handleComment}>
-                                        <CommentIcon />
+                                    <IconButton onClick={handleReply}>
+                                        <ReplyIcon />
                                     </IconButton>
                                 </Tooltip>
+                                {!props.commentSectionDisabled && (
+                                    <Tooltip title="评论区">
+                                        <IconButton
+                                            onClick={handleCommentSection}
+                                        >
+                                            <CommentIcon />
+                                        </IconButton>
+                                    </Tooltip>
+                                )}
                                 <Tooltip title="喜欢">
                                     <IconButton onClick={handleLike}>
                                         <FavoriteIcon
@@ -179,6 +204,14 @@ export function ReviewCardRoot<M extends MenuProps>(
                 transformOrigin={{ vertical: "top", horizontal: "right" }}
             />
 
+            <ReplyDialog
+                open={replying}
+                onClose={() => setReplying(false)}
+                onReplied={props.onReplied}
+                to={props.data}
+                toType={props.collectionId}
+            />
+
             {props.contextMenu &&
                 React.createElement(props.contextMenu, {
                     open:
@@ -200,10 +233,10 @@ export function ReviewCardRoot<M extends MenuProps>(
     );
 }
 
-interface ReviewCardPropsCompat {
-    sx?: SxProps;
+interface ReviewCardPropsCompat extends CardProps {
     raiser: UserID;
     children: ReactNode;
+    grow?: boolean;
 }
 
 export function ReviewCard(props: ReviewCardPropsCompat) {
@@ -213,11 +246,98 @@ export function ReviewCard(props: ReviewCardPropsCompat) {
                 <LazyAvatar userId={props.raiser} link />
             </Grid>
 
-            <Grid item flexGrow={1} mt={1}>
-                <Card sx={{ ...props.sx, borderRadius: 2 }}>
+            <Grid item flexGrow={props.grow !== false ? 1 : 0} mt={1}>
+                <Card {...props} sx={{ ...props.sx, borderRadius: 2 }}>
                     {props.children}
                 </Card>
             </Grid>
         </Grid>
+    );
+}
+
+interface ReplyProps extends Omit<AdaptiveDialogProps, "children"> {
+    onReplied?: (reply: RenderingComment) => void;
+    to: RenderingReview;
+    toType: Commentable;
+}
+
+function ReplyDialog({ onReplied, to, toType, ...others }: ReplyProps) {
+    const { executeRecaptcha } = useGoogleReCaptcha();
+    const { user } = useProfileContext();
+
+    const [buf, setBuf] = React.useState("");
+    const [sending, setSending] = React.useState(false);
+    const [error, setError] = React.useState(false);
+    const sendDisabled = React.useMemo(
+        () => !CommentUtil.validBody(buf),
+        [buf],
+    );
+    const theme = useTheme();
+    const handleResult = useRequestResult(() => {
+        others.onClose();
+        onReplied?.call(
+            {},
+            CommentUtil.create(user!, buf, { id: to._id, type: toType }),
+        );
+    });
+    const bubbleColor = React.useMemo(
+        () =>
+            theme.palette.mode === "dark"
+                ? theme.palette.grey["800"]
+                : theme.palette.grey["300"],
+        [theme],
+    );
+
+    function handleInput(newValue: string) {
+        const len = CommentUtil.checkLength(newValue);
+        if (len <= CommentUtil.maxLength) {
+            setBuf(newValue);
+            setError(false);
+        } else {
+            setError(true);
+        }
+    }
+
+    async function handleSend() {
+        if (!executeRecaptcha) {
+            handleResult(reCaptchaNotReady);
+            return;
+        }
+        setSending(true);
+        const token = await executeRecaptcha();
+        const res = await postComment(toType, to._id, buf, token);
+        handleResult(await getResponseRemark(res));
+        setSending(false);
+    }
+
+    return (
+        <AdaptiveDialog {...others}>
+            <DialogTitle>回复{to.raiserNick ?? to.raiser}</DialogTitle>
+            <DialogContent>
+                <ReviewCard
+                    raiser={to.raiser}
+                    grow={false}
+                    sx={{ background: bubbleColor }}
+                    elevation={0}
+                >
+                    <CardContent
+                        sx={{ paddingBottom: 0, overflowWrap: "anywhere" }}
+                    >
+                        {to.body}
+                    </CardContent>
+                </ReviewCard>
+                <ChatInputField
+                    value={buf}
+                    onValueChanged={handleInput}
+                    onSend={handleSend}
+                    isSending={sending}
+                    revealed
+                    revealingStart="center"
+                    sendDisabled={sendDisabled}
+                    sx={{ mt: 2 }}
+                    error={error}
+                />
+            </DialogContent>
+        </AdaptiveDialog>
     );
 }

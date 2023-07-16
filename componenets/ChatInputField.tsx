@@ -84,6 +84,7 @@ export function ChatInputField(props: Props) {
             onBlur={handleBlur("ct")}
             onFocus={handleFocus("ct")}
             error={props.error}
+            sx={props.sx}
         >
             <InputBase
                 fullWidth={props.fullWidth}
