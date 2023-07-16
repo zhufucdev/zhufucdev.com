@@ -1,39 +1,34 @@
-import {
-    Button,
-    Chip,
-    Collapse,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
-    IconButton,
-    Stack,
-    TextField,
-} from "@mui/material";
-import { useRouter } from "next/router";
-import { useProfileContext } from "../lib/useUser";
-import { useRequestResult } from "../lib/useRequestResult";
+import Button from "@mui/material/Button";
+import Chip from "@mui/material/Chip";
+import Collapse from "@mui/material/Collapse";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogTitle from "@mui/material/DialogTitle";
+import IconButton from "@mui/material/IconButton";
+import Stack from "@mui/material/Stack";
+import TextField from "@mui/material/TextField";
+
+import {useRouter} from "next/router";
+import {useProfileContext} from "../lib/useUser";
+import {useRequestResult} from "../lib/useRequestResult";
 import * as React from "react";
-import { useEffect, useMemo, useState } from "react";
-import {
-    getResponseRemark,
-    hasPermission,
-    maxUserMessageLength,
-} from "../lib/contract";
-import { beginPost, postMessage, uploadImage } from "../lib/utility";
-import { ProgressSlider } from "./PrograssSlider";
-import { LazyAvatar } from "./LazyAvatar";
-import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
+import {useEffect, useMemo, useState} from "react";
+import {getResponseRemark, hasPermission, maxUserMessageLength,} from "../lib/contract";
+import {beginPost, postMessage, uploadImage} from "../lib/utility";
+import {ProgressSlider} from "./PrograssSlider";
+import {LazyAvatar} from "./LazyAvatar";
+import {useGoogleReCaptcha} from "react-google-recaptcha-v3";
 
 import BulbIcon from "@mui/icons-material/LightbulbOutlined";
 import MessageIcon from "@mui/icons-material/MailOutline";
 import IssueIcon from "@mui/icons-material/Report";
 import RecentIcon from "@mui/icons-material/Podcasts";
 import ImageIcon from "@mui/icons-material/ImageOutlined";
-import { ImagesPopover } from "./ImagesPopover";
-import { User } from "../lib/db/user";
-import AdaptiveDialog, { AdaptiveDialogProps } from "./AdaptiveDialog";
+import {ImagesPopover} from "./ImagesPopover";
+import {User} from "../lib/db/user";
+import AdaptiveDialog, {AdaptiveDialogProps} from "./AdaptiveDialog";
 
-type DraftDialogProps = AdaptiveDialogProps & {
+type DraftDialogProps = Omit<AdaptiveDialogProps, 'children'> & {
     onPosted: (
         type: MessageType,
         id: any,
@@ -44,8 +39,8 @@ type DraftDialogProps = AdaptiveDialogProps & {
 
 export function DraftDialog(props: DraftDialogProps): JSX.Element {
     const router = useRouter();
-    const { user } = useProfileContext();
-    const { executeRecaptcha } = useGoogleReCaptcha();
+    const {user} = useProfileContext();
+    const {executeRecaptcha} = useGoogleReCaptcha();
     const handleResult = useRequestResult(
         () => setPosted(true),
         () => setFailed(true),
@@ -123,20 +118,20 @@ export function DraftDialog(props: DraftDialogProps): JSX.Element {
                     ref,
                 ]);
                 if (!res.ok) {
-                    return { response: res };
+                    return {response: res};
                 }
                 imageId = await res.text();
                 if (executeRecaptcha) token = await executeRecaptcha(); // a new token is required
             } else {
                 imageId = titleImage!;
             }
-            const content = { body: draft, title: title, image: imageId };
+            const content = {body: draft, title: title, image: imageId};
             return {
                 response: await postMessage(type, ref, content, token),
                 content,
             };
         } else {
-            const content = { body: draft };
+            const content = {body: draft};
             return {
                 response: await postMessage(type, ref, content, token),
                 content,
@@ -149,10 +144,10 @@ export function DraftDialog(props: DraftDialogProps): JSX.Element {
         setPosting(true);
         const token = await executeRecaptcha();
         const ref = await beginPost(type);
-        const { response: res, content } = await makePostRequest(token, ref);
+        const {response: res, content} = await makePostRequest(token, ref);
         let result: RequestResult;
         if (res.ok) {
-            result = { success: true, respond: await res.text() };
+            result = {success: true, respond: await res.text()};
         } else {
             result = await getResponseRemark(res);
         }
@@ -191,38 +186,38 @@ export function DraftDialog(props: DraftDialogProps): JSX.Element {
     }
 
     const chips = (
-        <Stack direction="row" spacing={1} sx={{ overflowX: "auto" }}>
+        <Stack direction="row" spacing={1} sx={{overflowX: "auto"}}>
             <DraftChip
                 label="近况"
                 type="recent"
                 permit="raise_recent"
-                icon={<RecentIcon fontSize="small" />}
+                icon={<RecentIcon fontSize="small"/>}
                 hide
             />
             <DraftChip
                 label="灵感"
                 type="inspiration"
                 permit="raise_inspiration"
-                icon={<BulbIcon fontSize="small" />}
+                icon={<BulbIcon fontSize="small"/>}
             />
             <DraftChip
                 label="私信"
                 type="pm"
                 permit="send_pm"
-                icon={<MessageIcon fontSize="small" />}
+                icon={<MessageIcon fontSize="small"/>}
             />
             <DraftChip
                 label="提问"
                 type="issue"
                 permit="raise_issue"
-                icon={<IssueIcon fontSize="small" />}
+                icon={<IssueIcon fontSize="small"/>}
             />
         </Stack>
     );
 
     const inputs = (
         <Stack direction="row" spacing={2}>
-            <LazyAvatar user={user} size={48} sx={{ mt: 0.2, ml: 0.2 }} />
+            <LazyAvatar user={user} size={48} sx={{mt: 0.2, ml: 0.2}}/>
             <Stack spacing={1} width="100%">
                 <Collapse appear={false} in={type === "recent"} mountOnEnter>
                     <TextField
@@ -239,7 +234,7 @@ export function DraftDialog(props: DraftDialogProps): JSX.Element {
                                         setAnchor(ev.currentTarget)
                                     }
                                 >
-                                    <ImageIcon />
+                                    <ImageIcon/>
                                 </IconButton>
                             ),
                         }}
@@ -302,8 +297,10 @@ export function DraftDialog(props: DraftDialogProps): JSX.Element {
                         vertical: "bottom",
                         horizontal: "right",
                     }}
-                    PaperProps={{
-                        sx: { maxHeight: "60%" },
+                    slotProps={{
+                        paper: {
+                            sx: {maxHeight: "60%"}
+                        },
                     }}
                 />
             )}

@@ -1,14 +1,11 @@
 import type {NextPage} from "next";
-import * as React from "react";
 import {useState} from "react";
-import {
-    Box,
-    Button,
-    Grid,
-    Stack,
-    useMediaQuery,
-    useTheme
-} from "@mui/material";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Grid from "@mui/material/Grid";
+import Stack from "@mui/material/Stack";
+import useMediaQuery from "@mui/material/useMediaQuery";
+import {useTheme} from "@mui/material";
 import {AnimatePresence, motion} from "framer-motion";
 
 import NoRecentsIcon from "@mui/icons-material/WifiTetheringOffOutlined";
@@ -35,7 +32,6 @@ import {getSafeArticle} from "../lib/getSafeArticle";
 import {ArticleCard, RenderingArticle} from "../componenets/ArticleCard";
 import {HorizontallyScrollingStack} from "../componenets/HorizontallyScrollingStack";
 import {myId} from "../lib/useUser";
-import {readTags} from "../lib/tagging";
 import {Caption} from "../componenets/Caption";
 
 const Home: NextPage<PageProps> = ({recents, inspirations: _inspirations, articles, recaptchaKey, myName}) => {
@@ -109,7 +105,7 @@ function RecentCards(props: { data: LocalRecent[] }): JSX.Element {
 
     const subtitle = <Caption key="subtitle-recents">近况</Caption>;
 
-    const [more, setMore] = React.useState(false);
+    const [more, setMore] = useState(false);
 
     function handleShowMoreClick() {
         setMore(true);

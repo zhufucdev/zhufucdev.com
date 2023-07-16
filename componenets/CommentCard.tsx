@@ -36,7 +36,6 @@ import { ProgressSlider } from "./PrograssSlider";
 import { DeleteAlertDialog } from "./DeleteAlertDialog";
 import { CommentUtil } from "../lib/comment";
 import { useTheme } from "@mui/material";
-import Link from "next/link";
 import { useRouter } from "next/router";
 
 export type RenderingComment = SafeComment & RenderingReview;

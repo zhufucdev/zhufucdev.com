@@ -1,10 +1,10 @@
 import "../styles/globals.sass";
 import CssBaseline from "@mui/material/CssBaseline";
-import type { AppProps } from "next/app";
+import type {AppProps} from "next/app";
 
-import { useRouter } from "next/router";
+import {useRouter} from "next/router";
 import * as React from "react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import {useEffect, useMemo, useRef, useState} from "react";
 
 import Box from "@mui/material/Box";
 import Drawer from "@mui/material/Drawer";
@@ -26,47 +26,48 @@ import LoginIcon from "@mui/icons-material/LoginOutlined";
 import ArticleIcon from "@mui/icons-material/ArticleOutlined";
 import LanguageIcon from "@mui/icons-material/LanguageOutlined";
 
+import Backdrop from "@mui/material/Backdrop";
+import IconButton from "@mui/material/IconButton";
+import LinearProgress from "@mui/material/LinearProgress";
+import Menu from "@mui/material/Menu";
+import MenuList from "@mui/material/MenuList";
+import MenuItem from "@mui/material/MenuItem";
+import Popover from "@mui/material/Popover";
+import Tooltip from "@mui/material/Tooltip";
+
 import {
-    Backdrop,
-    IconButton,
-    LinearProgress,
-    Menu,
-    MenuItem,
-    MenuList,
-    Popover,
     ThemeOptions,
-    Tooltip,
     useMediaQuery,
     useScrollTrigger,
     useTheme,
 } from "@mui/material";
-import { createTheme, ThemeProvider } from "@mui/material/styles";
-import { Analytics } from "@vercel/analytics/react";
+import {createTheme, ThemeProvider} from "@mui/material/styles";
+import {Analytics} from "@vercel/analytics/react";
 import Head from "next/head";
 import createEmotionCache from "../lib/emotionCache";
-import { CacheProvider, EmotionCache } from "@emotion/react";
+import {CacheProvider, EmotionCache} from "@emotion/react";
 import Link from "next/link";
-import { SnackbarProvider } from "notistack";
+import {SnackbarProvider} from "notistack";
 import {
     SelfProfileProvider,
     useProfile,
     useProfileContext,
 } from "../lib/useUser";
-import { LazyAvatar } from "../componenets/LazyAvatar";
-import { fetchApi } from "../lib/utility";
-import { getResponseRemark } from "../lib/contract";
-import { useRequestResult } from "../lib/useRequestResult";
-import { getTitle, TitleProvider, useTitle } from "../lib/useTitle";
-import { ContentsProvider, useContents } from "../lib/useContents";
-import { ContentsNodeComponent } from "../componenets/ContentsNodeComponent";
+import {LazyAvatar} from "../componenets/LazyAvatar";
+import {fetchApi} from "../lib/utility";
+import {getResponseRemark} from "../lib/contract";
+import {useRequestResult} from "../lib/useRequestResult";
+import {getTitle, TitleProvider, useTitle} from "../lib/useTitle";
+import {ContentsProvider, useContents} from "../lib/useContents";
+import {ContentsNodeComponent} from "../componenets/ContentsNodeComponent";
 import LanguageSelect from "../componenets/LanguageSelect";
 import {
     LanguageOptions,
     LanguageProvider,
     useLanguage,
 } from "../lib/useLanguage";
-import { defaultLang, getLanguageName } from "../lib/translation";
-import { Caption } from "../componenets/Caption";
+import {defaultLang, getLanguageName} from "../lib/translation";
+import {Caption} from "../componenets/Caption";
 
 export const drawerWidth = 240;
 
@@ -85,15 +86,15 @@ function MyAppBar(props: MyAppBarProps): JSX.Element {
     const theme = useTheme();
     const router = useRouter();
 
-    const { user, mutateUser, isLoading: isUserLoading } = useProfileContext();
+    const {user, mutateUser, isLoading: isUserLoading} = useProfileContext();
     const handleResult = useRequestResult();
     const [_title] = useTitle();
     const title = useMemo(() => getTitle(_title, false), [_title]);
     const [userMenuAnchor, setUserMenuAnchor] = React.useState<HTMLElement>();
-    const [langOptions, setLangOptions, setTargetLang] = useLanguage();
+    const [langOptions, , setTargetLang] = useLanguage();
 
     const handleLogout = async () => {
-        const res = await fetchApi("/api/login", { logout: true });
+        const res = await fetchApi("/api/login", {logout: true});
         const remark = await getResponseRemark(res);
         handleResult(remark);
         await mutateUser(undefined);
@@ -112,7 +113,7 @@ function MyAppBar(props: MyAppBarProps): JSX.Element {
         <AppBar
             position="fixed"
             sx={{
-                width: { sm: `calc(100% - ${drawerWidth}px)` },
+                width: {sm: `calc(100% - ${drawerWidth}px)`},
                 ml: `${drawerWidth}px`,
                 background: scrolled ? undefined : "transparent", // for user cover
             }}
@@ -124,16 +125,16 @@ function MyAppBar(props: MyAppBarProps): JSX.Element {
                     aria-label="open drawer"
                     edge="start"
                     onClick={props.onToggleDrawer}
-                    sx={{ mr: 2, display: { sm: "none" } }}
+                    sx={{mr: 2, display: {sm: "none"}}}
                 >
-                    <MenuIcon />
+                    <MenuIcon/>
                 </IconButton>
                 <Typography
                     variant="h6"
                     noWrap
                     color={useSurfaceColor ? "text.primary" : "inherit"}
                     component="div"
-                    sx={{ flexGrow: 1 }}
+                    sx={{flexGrow: 1}}
                 >
                     {title}
                 </Typography>
@@ -143,7 +144,7 @@ function MyAppBar(props: MyAppBarProps): JSX.Element {
                         available={langOptions.available}
                         sx={{
                             mr: 2,
-                            [theme.breakpoints.down("md")]: { display: "none" },
+                            [theme.breakpoints.down("md")]: {display: "none"},
                         }}
                         onLanguageSwitched={setTargetLang}
                     />
@@ -172,7 +173,7 @@ function MyAppBar(props: MyAppBarProps): JSX.Element {
                                     loading={isUserLoading}
                                 />
                             ) : (
-                                <AccountIcon />
+                                <AccountIcon/>
                             )}
                         </IconButton>
                     </span>
@@ -199,13 +200,13 @@ function MyAppBar(props: MyAppBarProps): JSX.Element {
                                     onClick={dismissHandler}
                                 >
                                     <ListItemIcon>
-                                        <AccountIcon fontSize="small" />
+                                        <AccountIcon fontSize="small"/>
                                     </ListItemIcon>
                                     <ListItemText>我的主页</ListItemText>
                                 </MenuItem>
                                 <MenuItem onClick={handleLogout}>
                                     <ListItemIcon>
-                                        <LogoutIcon fontSize="small" />
+                                        <LogoutIcon fontSize="small"/>
                                     </ListItemIcon>
                                     <ListItemText>退出账号</ListItemText>
                                 </MenuItem>
@@ -223,7 +224,7 @@ function MyAppBar(props: MyAppBarProps): JSX.Element {
                                 }}
                             >
                                 <ListItemIcon>
-                                    <LoginIcon fontSize="small" />
+                                    <LoginIcon fontSize="small"/>
                                 </ListItemIcon>
                                 <ListItemText>登录</ListItemText>
                             </MenuItem>
@@ -259,12 +260,12 @@ function LanguageSwitch(props: {
                 <span>
                     <IconButton
                         sx={{
-                            [theme.breakpoints.up("md")]: { display: "none" },
+                            [theme.breakpoints.up("md")]: {display: "none"},
                         }}
                         onClick={() => setOpen(true)}
                         ref={icon}
                     >
-                        <LanguageIcon />
+                        <LanguageIcon/>
                     </IconButton>
                 </span>
             </Tooltip>
@@ -305,12 +306,12 @@ function LanguageSwitch(props: {
 
 function MyDrawerContent(props: { onItemClicked: () => void }) {
     const router = useRouter();
-    const [root, setContents] = useContents();
+    const [root] = useContents();
 
     return (
         <>
-            <Toolbar />
-            <Divider />
+            <Toolbar/>
+            <Divider/>
             <List
                 sx={{
                     ".MuiListItemButton-root": {
@@ -331,13 +332,13 @@ function MyDrawerContent(props: { onItemClicked: () => void }) {
                                     selected={entry.route === router.pathname}
                                 >
                                     <ListItemIcon>{entry.icon}</ListItemIcon>
-                                    <ListItemText primary={entry.title} />
+                                    <ListItemText primary={entry.title}/>
                                 </ListItemButton>
                             </ListItem>
                             {entry.name === root?.target && (
                                 <Box
                                     sx={{
-                                        display: { sm: "block", md: "none" },
+                                        display: {sm: "block", md: "none"},
                                     }}
                                 >
                                     <ContentsNodeComponent
@@ -393,22 +394,22 @@ function MyBackdrop() {
         <Backdrop
             open={transiting}
             unmountOnExit
-            sx={{ zIndex: 10000, transitionDelay: "400ms" }}
+            sx={{zIndex: 10000, transitionDelay: "400ms"}}
         >
             <LinearProgress
                 variant="determinate"
                 value={progress}
-                sx={{ position: "absolute", top: 0, width: "100%" }}
+                sx={{position: "absolute", top: 0, width: "100%"}}
             />
         </Backdrop>
     );
 }
 
 function MyApp({
-    Component,
-    pageProps,
-    emotionCache = clientEmotionCache,
-}: MyAppProps) {
+                   Component,
+                   pageProps,
+                   emotionCache = clientEmotionCache,
+               }: MyAppProps) {
     const router = useRouter();
     const [mobileOpen, setMobileOpen] = React.useState(false);
     const selfProfile = useProfile();
@@ -432,13 +433,13 @@ function MyApp({
                     }
                 >
                     <ContentsProvider>
-                        <MyHead />
-                        <MyBackdrop />
+                        <MyHead/>
+                        <MyBackdrop/>
                         <SnackbarProvider>
                             <SelfProfileProvider {...selfProfile}>
                                 <LanguageProvider>
-                                    <Box sx={{ display: "flex" }}>
-                                        <CssBaseline />
+                                    <Box sx={{display: "flex"}}>
+                                        <CssBaseline/>
                                         <MyAppBar
                                             onToggleDrawer={handleDrawerToggle}
                                         />
@@ -446,8 +447,8 @@ function MyApp({
                                         <Box
                                             component="nav"
                                             sx={{
-                                                width: { sm: drawerWidth },
-                                                flexShrink: { sm: 0 },
+                                                width: {sm: drawerWidth},
+                                                flexShrink: {sm: 0},
                                             }}
                                             aria-label="drawer content"
                                         >
@@ -506,11 +507,11 @@ function MyApp({
                                                 },
                                             }}
                                         >
-                                            <Toolbar />
+                                            <Toolbar/>
                                             <Component {...pageProps} />
                                         </Box>
                                     </Box>
-                                    <Analytics />
+                                    <Analytics/>
                                 </LanguageProvider>
                             </SelfProfileProvider>
                         </SnackbarProvider>
@@ -524,34 +525,34 @@ function MyApp({
 function getDesignTokens(dark: boolean): ThemeOptions {
     return dark
         ? {
-              palette: {
-                  mode: "dark",
-                  primary: {
-                      main: "#EF6C00",
-                  },
-                  secondary: {
-                      main: "#00BCD4",
-                  },
-              },
-          }
+            palette: {
+                mode: "dark",
+                primary: {
+                    main: "#EF6C00",
+                },
+                secondary: {
+                    main: "#00BCD4",
+                },
+            },
+        }
         : {
-              palette: {
-                  mode: "light",
-                  primary: {
-                      main: "#E65100",
-                  },
-                  secondary: {
-                      main: "#00ACC1",
-                  },
-              },
-          };
+            palette: {
+                mode: "light",
+                primary: {
+                    main: "#E65100",
+                },
+                secondary: {
+                    main: "#00ACC1",
+                },
+            },
+        };
 }
 
 const routes = [
     {
         title: "主页",
         route: "/",
-        icon: <HomeIcon />,
+        icon: <HomeIcon/>,
         name: "home",
     },
     {
@@ -563,13 +564,13 @@ const routes = [
     {
         title: "文章",
         route: "/article",
-        icon: <ArticleIcon />,
+        icon: <ArticleIcon/>,
         name: "articles",
     },
     {
         title: "关于我",
         route: "/me",
-        icon: <AboutIcon />,
+        icon: <AboutIcon/>,
         name: "about_me",
     },
 ];
