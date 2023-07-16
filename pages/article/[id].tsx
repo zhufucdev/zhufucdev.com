@@ -40,7 +40,7 @@ import LoginPopover from "../../componenets/LoginPopover";
 import { useProfileContext } from "../../lib/useUser";
 import { getSafeComment, SafeComment } from "../../lib/getSafeComment";
 import { Commentable, getComments } from "../../lib/db/comment";
-import { hasPermission } from "../../lib/contract";
+import { hasPermission, reCaptchaNotReady } from "../../lib/contract";
 import NoContentIcon from "@mui/icons-material/PsychologyOutlined";
 import NoArticleIcon from "@mui/icons-material/PowerOffOutlined";
 import PrIcon from "@mui/icons-material/DriveFileRenameOutline";
@@ -51,6 +51,7 @@ import { useRequestResult } from "../../lib/useRequestResult";
 import { ReCaptchaScope } from "../../componenets/ReCaptchaScope";
 import { ReCaptchaPolicy } from "../../componenets/ReCaptchaPolicy";
 import { CommentCard, RenderingComment } from "../../componenets/CommentCard";
+import { CommentUtil } from "../../lib/comment";
 
 type PageProps = {
     meta?: RenderingArticle;
@@ -179,6 +180,14 @@ function RevisionSection({ meta, sx, comments: _comments }: RevisionProps) {
         () => user && hasPermission(user, "comment"),
         [user],
     );
+    const commentBufOverflow = useMemo(
+        () => CommentUtil.checkLength(commentBuffer) > CommentUtil.maxLength,
+        [commentBuffer],
+    );
+    const shouldComment = useMemo(
+        () => CommentUtil.validBody(commentBuffer),
+        [commentBuffer],
+    );
 
     const handlePr: MouseEventHandler<HTMLButtonElement> = (event) => {
         setReviewing(event.currentTarget);
@@ -201,7 +210,14 @@ function RevisionSection({ meta, sx, comments: _comments }: RevisionProps) {
     async function handleEdit(target: SafeComment, newContent: string) {
         const index = comments.findIndex((v) => v._id === target._id);
         if (index < 0) return;
-        setComments(comments.slice(0, index).concat({...target, body: newContent, edited: true}, comments.slice(index + 1)));
+        setComments(
+            comments
+                .slice(0, index)
+                .concat(
+                    { ...target, body: newContent, edited: true },
+                    comments.slice(index + 1),
+                ),
+        );
     }
 
     function handleNewComment(id: string, body: string) {
@@ -222,7 +238,7 @@ function RevisionSection({ meta, sx, comments: _comments }: RevisionProps) {
 
     async function handleCommentSubmit() {
         if (!executeRecaptcha) {
-            handleCommentResult({ success: false, msg: "reCaptcha 未就绪" });
+            handleCommentResult(reCaptchaNotReady);
             return;
         }
 
@@ -309,19 +325,19 @@ function RevisionSection({ meta, sx, comments: _comments }: RevisionProps) {
                             )}
                             <ChatInputField
                                 fullWidth
-                                label="评论"
                                 revealingStart="left"
                                 revealed={chatboxRevealed}
                                 onSend={handleCommentSubmit}
                                 isSending={postingComment}
                                 value={commentBuffer}
                                 onValueChanged={setCommentBuf}
-                                sendDisabled={!commentBuffer.trim()}
+                                sendDisabled={!shouldComment}
                                 onBlur={() => {
                                     if (!commentBuffer) {
                                         setCommenting(false);
                                     }
                                 }}
+                                error={commentBufOverflow}
                             />
                         </CardActions>
                     </Card>

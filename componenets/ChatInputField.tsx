@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import Paper, { PaperProps } from "@mui/material/Paper";
-import { CircularProgress, IconButton, InputBase } from "@mui/material";
+import {
+    CircularProgress,
+    IconButton,
+    InputBase,
+} from "@mui/material";
 import SendIcon from "@mui/icons-material/SendOutlined";
 import { styled } from "@mui/material/styles";
 
@@ -8,12 +12,12 @@ interface ContainerProps extends PaperProps {
     revealed: boolean;
     fullWidth?: boolean;
     revealingStart: string;
+    error?: boolean;
 }
 
 interface Props extends ContainerProps {
     value: string;
     onValueChanged: (newValue: string) => void;
-    label?: string;
     autoFocus?: boolean;
     sendDisabled?: boolean;
     onBlur?: () => void;
@@ -22,16 +26,17 @@ interface Props extends ContainerProps {
 }
 
 const Container = styled((props: ContainerProps) => {
-    const { revealed, fullWidth, revealingStart, ...others } = props;
+    const { revealed, fullWidth, revealingStart, error, ...others } = props;
     return <Paper {...others} />;
-})(({ theme, revealed, fullWidth, revealingStart }) => ({
+})(({ theme, revealed, fullWidth, revealingStart, error }) => ({
     display: "flex",
     alignItems: "center",
     width: fullWidth ? "100%" : undefined,
-    background:
-        theme.palette.mode === "dark"
-            ? theme.palette.grey["800"]
-            : theme.palette.grey["300"],
+    background: error
+        ? theme.palette.error.main
+        : theme.palette.mode === "dark"
+        ? theme.palette.grey["800"]
+        : theme.palette.grey["300"],
 
     borderRadius: "42px",
     paddingLeft: "16px",
@@ -78,6 +83,7 @@ export function ChatInputField(props: Props) {
             revealed={props.revealed}
             onBlur={handleBlur("ct")}
             onFocus={handleFocus("ct")}
+            error={props.error}
         >
             <InputBase
                 fullWidth={props.fullWidth}
@@ -96,17 +102,16 @@ export function ChatInputField(props: Props) {
                     onBlur={handleBlur("pgr")}
                 />
             ) : (
-                    <IconButton
-                        onClick={() => {
-                            props.onSend?.call({});
-                            handleFocus("btn")();
-                        }}
-                        disabled={props.sendDisabled}
-                    >
-                        <SendIcon />
-                    </IconButton>
-                )
-            }
+                <IconButton
+                    onClick={() => {
+                        props.onSend?.call({});
+                        handleFocus("btn")();
+                    }}
+                    disabled={props.sendDisabled}
+                >
+                    <SendIcon />
+                </IconButton>
+            )}
         </Container>
     );
 }

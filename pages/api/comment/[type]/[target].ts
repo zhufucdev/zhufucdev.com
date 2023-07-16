@@ -6,14 +6,13 @@ import {
     addComment,
     asCommentable,
     Commentable,
-    getComment,
-    updateComment,
     WithComments,
 } from "../../../../lib/db/comment";
 import { NextApiResponse } from "next";
 import { getDoc } from "../../../../lib/db/get";
 import { verifyReCaptcha } from "../../../../lib/utility";
 import { postComment } from ".";
+import { CommentUtil } from "../../../../lib/comment";
 
 export default routeWithIronSession(async (req, res) => {
     const { type, target } = req.query;
@@ -24,7 +23,8 @@ export default routeWithIronSession(async (req, res) => {
         typeof type !== "string" ||
         typeof target !== "string" ||
         typeof token !== "string" ||
-        !body
+        !body ||
+        !CommentUtil.validBody(body)
     ) {
         res.status(400).send("bad request");
         return;

@@ -4,7 +4,7 @@ import Menu, { MenuProps } from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import Tooltip from "@mui/material/Tooltip";
 import { motion } from "framer-motion";
-import { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { SafeComment } from "../lib/getSafeComment";
 import { RenderingReview, ReviewCard, ReviewCardRoot } from "./ReviewCard";
 import { useProfileContext } from "../lib/useUser";
@@ -30,6 +30,8 @@ import {
     TextField,
 } from "@mui/material";
 import { ProgressSlider } from "./PrograssSlider";
+import { DeleteAlertDialog } from "./DeleteAlertDialog";
+import { CommentUtil } from "../lib/comment";
 
 export type RenderingComment = SafeComment & RenderingReview;
 interface CommentProps {
@@ -49,6 +51,7 @@ export function CommentCard(props: CommentProps) {
 }
 
 function CommentCardRoot(props: CommentProps) {
+    const [deleteDialog, setDeleteDialog] = useState(false);
     const [isDeleting, setDeleting] = useState(false);
     const [ctx, setCtx] = useState(false);
     const [isEditing, setEditing] = useState(false);
@@ -56,6 +59,7 @@ function CommentCardRoot(props: CommentProps) {
     const [editSumbitted, setEditSubmitted] = useState(false);
     const [editError, setEditError] = useState(false);
     const [editingBuffer, setEditingBuf] = useState("");
+    const [bufError, setBufError] = useState(false);
     const { user } = useProfileContext();
     const { executeRecaptcha } = useGoogleReCaptcha();
     const handleDeleteResult = useRequestResult(() => {
@@ -68,6 +72,12 @@ function CommentCardRoot(props: CommentProps) {
         },
         () => setEditError(true),
     );
+    const bufHelper = useMemo(() => {
+                const len = CommentUtil.checkLength(editingBuffer);
+                if (len > CommentUtil.maxLength * 0.6) {
+                    return `${len} / ${CommentUtil.maxLength}`
+                }
+            }, [editingBuffer]);
 
     const canEdit = useMemo(
         () =>
@@ -84,6 +94,7 @@ function CommentCardRoot(props: CommentProps) {
             return;
         }
 
+        setCtx(false);
         setDeleting(true);
         const token = await executeRecaptcha();
         const res = await fetchApi(`/api/delete/comments/${props.data._id}`, {
@@ -105,6 +116,16 @@ function CommentCardRoot(props: CommentProps) {
         setEditSubmiting(false);
         setEditSubmitted(false);
         setEditError(false);
+    }
+
+    function handleBufChange(event: React.ChangeEvent<HTMLInputElement>) {
+        const value = event.currentTarget.value;
+        if (CommentUtil.validBody(value)) {
+            setEditingBuf(value);
+            setBufError(false);
+        } else {
+            setBufError(true);
+        }
     }
 
     function handleEditClose() {
@@ -136,7 +157,7 @@ function CommentCardRoot(props: CommentProps) {
                 collectionId="comments"
                 contextMenu={canEdit ? CommentContextMenu : undefined}
                 contextMenuProps={{
-                    onDelete: handleDelete,
+                    onDelete: () => setDeleteDialog(true),
                     isDeleting,
                     onEdit: handleEdit,
                 }}
@@ -164,12 +185,12 @@ function CommentCardRoot(props: CommentProps) {
                             variant="outlined"
                             value={editingBuffer}
                             label="评论"
-                            onChange={(ev) =>
-                                setEditingBuf(ev.currentTarget.value)
-                            }
+                            onChange={handleBufChange}
                             autoFocus
                             fullWidth
                             margin="dense"
+                            error={bufError}
+                            helperText={bufHelper}
                         />
                     </DialogContent>
                     <DialogActions>
@@ -178,6 +199,12 @@ function CommentCardRoot(props: CommentProps) {
                     </DialogActions>
                 </ProgressSlider>
             </Dialog>
+            <DeleteAlertDialog
+                targetName="评论"
+                open={deleteDialog}
+                onClose={() => setDeleteDialog(false)}
+                onConfirm={handleDelete}
+            />
         </>
     );
 }
