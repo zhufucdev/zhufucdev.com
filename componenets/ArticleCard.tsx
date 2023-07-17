@@ -56,9 +56,21 @@ export function ArticleCard(props: { data: RenderingArticle, sx?: SxProps }): JS
         setAnchor(ev.currentTarget);
     }
 
+    const coverSx = {
+        flexGrow: 1,
+        height: '140px'
+    }
+    const actionSx = {
+        height: '100%',
+        display: 'flex',
+        alignItems: 'stretch',
+        justifyContent: 'flex-start',
+        flexDirection: 'column'
+    };
+
     return <>
         <Card variant="outlined" sx={{borderRadius: 2, ...sx}}>
-            <CardActionArea component={Link} href={`/article/${data._id}`} sx={{height: '100%'}}>
+            <CardActionArea component={Link} href={`/article/${data._id}`} sx={actionSx}>
                 <CardHeader
                     title={data.title}
                     subheader={data.forward}
@@ -74,13 +86,13 @@ export function ArticleCard(props: { data: RenderingArticle, sx?: SxProps }): JS
                 </CardContent>
                 {data.cover &&
                     (coverCached ?
-                            <CardMedia
-                                component="img"
-                                src={getImageUri(data.cover)}
-                                alt="文章封面"
-                                style={{height: 140}}/>
-                            : <Skeleton variant="rectangular" animation="wave" height={140}/>
-                    )}
+                        <CardMedia
+                            component="img"
+                            src={getImageUri(data.cover)}
+                            sx={coverSx}
+                            alt="文章封面"/>
+                        : <Skeleton variant="rectangular" animation="wave" sx={{height: '100%'}}/>)
+                }
             </CardActionArea>
         </Card>
         {
