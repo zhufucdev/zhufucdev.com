@@ -25,7 +25,7 @@ export async function middleware(req: NextRequest) {
         }
 
         const article = await lookup<Article>('article', id, req);
-        if (!article) return;
+        if (!article || !article.tags.private) return;
 
         const session = await getIronSession(req, NextResponse.next(), sessionConfig);
         if (!session.userID || !session.accessToken) {
