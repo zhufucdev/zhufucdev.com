@@ -10,7 +10,8 @@ export class CommentUtil {
     }
 
     static validBody(text: string): boolean {
-        return text.length > 0 && this.checkLength(text) <= this.maxLength;
+        const length = this.checkLength(text);
+        return length > 0 && length <= this.maxLength;
     }
 
     static create(

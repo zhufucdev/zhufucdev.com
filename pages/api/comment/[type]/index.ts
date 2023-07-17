@@ -1,21 +1,21 @@
-import { NextApiResponse } from "next";
-import { hasPermission } from "../../../../lib/contract";
+import {NextApiResponse} from "next";
+import {hasPermission} from "../../../../lib/contract";
 import {
     Commentable,
     getComment,
     updateComment,
 } from "../../../../lib/db/comment";
-import { validUser } from "../../../../lib/db/token";
-import { getUser, User } from "../../../../lib/db/user";
-import { getSafeComment } from "../../../../lib/getSafeComment";
-import { routeWithIronSession } from "../../../../lib/session";
-import { verifyReCaptcha } from "../../../../lib/utility";
+import {validUser} from "../../../../lib/db/token";
+import {getUser, User} from "../../../../lib/db/user";
+import {getSafeComment} from "../../../../lib/getSafeComment";
+import {routeWithIronSession} from "../../../../lib/session";
+import {verifyReCaptcha} from "../../../../lib/utility";
 import {CommentUtil} from "../../../../lib/comment";
 
 export default routeWithIronSession(async (req, res) => {
-    const { type: target } = req.query;
+    const {type: target} = req.query;
     if (req.method === "POST") {
-        const { body, token } = req.body;
+        const {body, token} = req.body;
         if (typeof target !== "string" || typeof token !== "string" || !body || !CommentUtil.validBody(body)) {
             res.status(400).send("bad request");
             return;
@@ -36,7 +36,7 @@ export default routeWithIronSession(async (req, res) => {
             return;
         }
 
-        await handleEdit(res, target, user, body);
+        await handleEdit(res, target, user, body.trim());
     } else {
         await handleFetch(res, target as string);
     }
@@ -72,7 +72,7 @@ async function handleEdit(
         return;
     }
 
-    const acknowledged = await updateComment(target, { body, edited: true });
+    const acknowledged = await updateComment(target, {body, edited: true});
     if (acknowledged) {
         res.send("success");
     } else {

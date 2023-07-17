@@ -187,8 +187,8 @@ export function CommentCardRoot(props: CommentProps) {
 
     function handleBufChange(event: React.ChangeEvent<HTMLInputElement>) {
         const value = event.currentTarget.value;
+        setEditingBuf(value);
         if (CommentUtil.validBody(value)) {
-            setEditingBuf(value);
             setBufError(false);
         } else {
             setBufError(true);
@@ -264,7 +264,7 @@ export function CommentCardRoot(props: CommentProps) {
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={handleEditClose}>取消</Button>
-                        <Button onClick={handleEditSubmit}>确定</Button>
+                        <Button onClick={handleEditSubmit} disabled={bufError}>确定</Button>
                     </DialogActions>
                 </ProgressSlider>
             </Dialog>

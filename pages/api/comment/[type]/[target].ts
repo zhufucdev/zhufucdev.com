@@ -45,7 +45,7 @@ export default routeWithIronSession(async (req, res) => {
         return;
     }
 
-    await handleCreate(res, commentable, target, user, body);
+    await handleCreate(res, commentable, target, user, body.trim());
 });
 
 async function handleCreate(
