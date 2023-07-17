@@ -1,16 +1,9 @@
-import {IronSessionOptions} from "iron-session";
+import {IronSession} from "iron-session";
 import {withIronSessionApiRoute} from "iron-session/next";
 import {NextApiHandler} from "next";
-
-export const sessionOptions: IronSessionOptions = {
-    password: process.env.SECRET_COOKIE_PASSWORD as string,
-    cookieName: 'web-session',
-    ttl: 2147483647,
-    // secure: true should be used in production (HTTPS) but can't be used in development (HTTP)
-    cookieOptions: {
-        secure: process.env.NODE_ENV === 'production',
-    },
-}
+import {NextRequest, NextResponse} from "next/server";
+import {getIronSession} from "iron-session/edge";
+import {sessionConfig} from "./session.config";
 
 declare module 'iron-session' {
     interface IronSessionData {
@@ -20,5 +13,9 @@ declare module 'iron-session' {
 }
 
 export function routeWithIronSession(handler: NextApiHandler) {
-    return withIronSessionApiRoute(handler, sessionOptions);
+    return withIronSessionApiRoute(handler, sessionConfig);
+}
+
+export async function optEdgeIronSession(req: NextRequest): Promise<IronSession> {
+    return getIronSession(req, NextResponse.next(), sessionConfig);
 }

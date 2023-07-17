@@ -1,6 +1,7 @@
 import stream from "stream";
 import { Commentable } from "./db/comment";
 import {Remarkable, RemarkMode} from "./db/remark";
+import {SafeArticle} from "./getSafeArticle";
 
 export function getHumanReadableTime(time: Date): string {
     function prefix(units: number): string | undefined {
@@ -72,6 +73,12 @@ export async function lookupImage(id: ImageID): Promise<ImageMetaClient | undefi
     const res = await fetch(`/api/images/${id}/meta`);
     if (!res.ok) return undefined;
     return res.json();
+}
+
+export async function lookupArticle(id: ArticleID): Promise<SafeArticle | undefined> {
+    const res = await fetch(`/api/article/${id}`);
+    if (!res.ok) return undefined;
+    return res.json()
 }
 
 export async function fetchApi(url: string, body: any): Promise<Response> {

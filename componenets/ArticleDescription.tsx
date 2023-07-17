@@ -18,6 +18,7 @@ export function ArticleDescription({data}: { data: RenderingArticle }) {
                 append(TagKeyUtil.getDisplayName(TagKey.Coauthor), data.tags.coauthor as string)
                 break;
             case TagKey.Hidden:
+            case TagKey.Private:
             case TagKey.PrFrom:
                 append(TagKeyUtil.getDisplayName(key as TagKey));
                 break;

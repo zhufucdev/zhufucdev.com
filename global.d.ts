@@ -22,6 +22,7 @@ declare global {
         | "send_pm"
         | "comment"
         | "remark"
+        | "review"
         | "edit_own_post"
         | "change_nick"
         | "change_avatar"
