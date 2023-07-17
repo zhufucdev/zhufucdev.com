@@ -153,7 +153,7 @@ export async function uploadImage(file: Blob, token: string, useAs: ImageUse = '
 }
 
 /**
- * Buffer a stream. Wonder why ECMScript isn't shipped with this
+ * Buffer a stream. Wonder why ECMA isn't shipped with this
  * @param stream the stream
  */
 export async function readAll(stream: stream.Readable): Promise<Buffer> {
