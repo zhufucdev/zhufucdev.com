@@ -10,12 +10,13 @@ import { getUser, User } from "../../../../lib/db/user";
 import { getSafeComment } from "../../../../lib/getSafeComment";
 import { routeWithIronSession } from "../../../../lib/session";
 import { verifyReCaptcha } from "../../../../lib/utility";
+import {CommentUtil} from "../../../../lib/comment";
 
 export default routeWithIronSession(async (req, res) => {
     const { type: target } = req.query;
     if (req.method === "POST") {
         const { body, token } = req.body;
-        if (typeof target !== "string" || typeof token !== "string" || !body) {
+        if (typeof target !== "string" || typeof token !== "string" || !body || !CommentUtil.validBody(body)) {
             res.status(400).send("bad request");
             return;
         }
