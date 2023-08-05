@@ -2,7 +2,6 @@ import CircularProgress from "@mui/material/CircularProgress";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import Menu, { MenuProps } from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
-import Tooltip from "@mui/material/Tooltip";
 import React, { useEffect, useMemo, useState } from "react";
 import { SafeComment } from "../lib/getSafeComment";
 import { RenderingReview, ReviewCard, ReviewCardRoot } from "./ReviewCard";
@@ -31,6 +30,8 @@ import {
     Skeleton,
     TextField,
     Typography,
+    Tooltip,
+    IconButton,
 } from "@mui/material";
 import { ProgressSlider } from "./PrograssSlider";
 import { DeleteAlertDialog } from "./DeleteAlertDialog";
@@ -38,7 +39,7 @@ import { CommentUtil } from "../lib/comment";
 import { useTheme } from "@mui/material";
 import { useRouter } from "next/router";
 
-export type RenderingComment = RenderingReview & {edited?: boolean};
+export type RenderingComment = RenderingReview & { edited?: boolean };
 interface CommentProps {
     data: RenderingComment;
     onDeleted: (target: RenderingComment) => void;
@@ -235,7 +236,9 @@ export function CommentCardRoot(props: CommentProps) {
             >
                 {props.data.edited && (
                     <Tooltip title="已修改">
-                        <EditedIcon sx={{ mr: 1 }} />
+                        <IconButton>
+                            <EditedIcon />
+                        </IconButton>
                     </Tooltip>
                 )}
             </ReviewCardRoot>
@@ -264,7 +267,9 @@ export function CommentCardRoot(props: CommentProps) {
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={handleEditClose}>取消</Button>
-                        <Button onClick={handleEditSubmit} disabled={bufError}>确定</Button>
+                        <Button onClick={handleEditSubmit} disabled={bufError}>
+                            确定
+                        </Button>
                     </DialogActions>
                 </ProgressSlider>
             </Dialog>
