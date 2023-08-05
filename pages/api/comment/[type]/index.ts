@@ -74,6 +74,7 @@ async function handleEdit(
 
     const acknowledged = await updateComment(target, {body, edited: true});
     if (acknowledged) {
+        postComment(res, origin.parentType, origin._id);
         res.send("success");
     } else {
         res.status(500).send("database not acknowledging");
