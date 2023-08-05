@@ -87,6 +87,6 @@ export async function postComment(
 ) {
     switch (type) {
         case "articles":
-            await res.revalidate(`/articles/${id}`);
+            await res.revalidate(`/article/${id}`);
     }
 }
