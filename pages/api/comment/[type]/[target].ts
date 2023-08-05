@@ -68,7 +68,7 @@ async function handleCreate(
 
     const acknowledged = await addComment(raiser._id, body, doc, type);
     if (acknowledged) {
-        postComment(res, type, target);
+        postComment(res, acknowledged);
         res.send(acknowledged._id);
     } else {
         res.status(500).send("database not acknowledging");

@@ -1,7 +1,7 @@
 import {NextApiResponse} from "next";
 import {hasPermission} from "../../../../lib/contract";
 import {
-    Commentable,
+    Comment,
     getComment,
     updateComment,
 } from "../../../../lib/db/comment";
@@ -74,7 +74,7 @@ async function handleEdit(
 
     const acknowledged = await updateComment(target, {body, edited: true});
     if (acknowledged) {
-        postComment(res, origin.parentType, origin.parent);
+        postComment(res, origin);
         res.send("success");
     } else {
         res.status(500).send("database not acknowledging");
@@ -83,11 +83,10 @@ async function handleEdit(
 
 export async function postComment(
     res: NextApiResponse,
-    type: Commentable,
-    id: string,
+    comment: Comment,
 ) {
-    switch (type) {
+    switch (comment.parentType) {
         case "articles":
-            await res.revalidate(`/article/${id}`);
+            await res.revalidate(`/article/${comment.parent}`);
     }
 }
