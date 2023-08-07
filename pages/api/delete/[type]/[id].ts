@@ -1,72 +1,75 @@
-import { routeWithIronSession } from "../../../../lib/session";
-import { validUser } from "../../../../lib/db/token";
-import { canDrop, drop, Droppable } from "../../../../lib/db/drop";
-import { NextApiResponse } from "next";
-import { notifyTargetDropped } from "../../../../lib/db/image";
-import { Comment, notifyCommentDrop } from "../../../../lib/db/comment";
+import { routeWithIronSession } from '../../../../lib/session'
+import { validUser } from '../../../../lib/db/token'
+import { canDrop, drop, Droppable } from '../../../../lib/db/drop'
+import { NextApiResponse } from 'next'
+import { notifyTargetDropped } from '../../../../lib/db/image'
+import { Comment, notifyCommentDrop } from '../../../../lib/db/comment'
 
 export default routeWithIronSession(async (req, res) => {
-    const { type, id } = req.query;
-    if (typeof id !== "string" || typeof type !== "string") {
-        res.status(400).send("bad request");
-        return;
+    const { type, id } = req.query
+    if (typeof id !== 'string' || typeof type !== 'string') {
+        res.status(400).send('bad request')
+        return
     }
 
     if (!(await validUser(req))) {
-        res.status(401).send("unauthorized");
-        return;
+        res.status(401).send('unauthorized')
+        return
     }
 
     if (canDrop(type)) {
         const { acknowledged, permitted, original } = await drop(
             type as Droppable,
             id,
-            req.session.userID!,
-        );
+            req.session.userID!
+        )
         if (acknowledged) {
-            res.send("success");
-            postDrop(type as Droppable, original!, id, res);
+            res.send('success')
+            postDrop(type as Droppable, original!, id, res)
         } else if (permitted) {
-            res.status(500).send("database not acknowledging");
+            res.status(500).send('database not acknowledging')
         } else {
-            res.status(403).send("forbidden");
+            res.status(403).send('forbidden')
         }
     } else {
-        res.status(400).send(`${type} is undroppable`);
+        res.status(400).send(`${type} is undroppable`)
     }
-});
+})
 
 async function postDrop(
     type: Droppable,
     dropped: any,
     id: any,
-    res: NextApiResponse,
+    res: NextApiResponse
 ) {
-    await notifyTargetDropped(id);
+    await notifyTargetDropped(id)
     switch (type) {
-        case "articles":
-            await res.revalidate("/article");
-            await notifyTargetDropped(id);
-            break;
-        case "recents":
-            await res.revalidate("/inspiration");
-            break;
-        case "comments":
-            const comment = dropped as Comment;
+        case 'articles':
+            await Promise.all([
+                res.revalidate('/article'),
+                res.revalidate('/'),
+                notifyTargetDropped(id),
+            ])
+            break
+        case 'recents':
+            await res.revalidate('/inspiration')
+            break
+        case 'comments':
+            const comment = dropped as Comment
             if (comment.parent) {
-                await notifyCommentDrop(comment);
+                await notifyCommentDrop(comment)
 
                 switch (comment.parentType) {
-                    case "articles":
-                        await res.revalidate(`/article/${comment.parent}`);
-                        break;
-                    case "comments":
-                        await res.revalidate(`/comment/${comment.parent}`);
-                        break;
+                    case 'articles':
+                        await res.revalidate(`/article/${comment.parent}`)
+                        break
+                    case 'comments':
+                        await res.revalidate(`/comment/${comment.parent}`)
+                        break
                 }
             }
-            break;
-        case "inspirations":
-            await res.revalidate("/");
+            break
+        case 'inspirations':
+            await res.revalidate('/')
     }
 }
