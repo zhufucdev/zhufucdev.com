@@ -143,12 +143,12 @@ export async function verifyReCaptcha(token: string): Promise<boolean> {
  */
 export async function uploadImage(file: Blob, token: string, useAs: ImageUse = 'save', target: string[] = []): Promise<Response> {
     const form = new FormData();
-    form.set("file", file);
-    form.set("token", token);
-    form.set("use", useAs);
+    form.append("token", token);
+    form.append("use", useAs);
     if (useAs === 'cover' || useAs === 'post') {
-        form.set("target", JSON.stringify(target));
+        form.append("target", JSON.stringify(target));
     }
+    form.append("file", file);
 
     return await fetch(
         '/api/images',
