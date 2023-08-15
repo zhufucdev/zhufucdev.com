@@ -1,5 +1,5 @@
 import ReactMarkdown from "react-markdown";
-import {Card, IconButton, Link, styled, Tooltip, useMediaQuery, useTheme} from "@mui/material";
+import {Card, IconButton, styled, Tooltip, useMediaQuery, useTheme} from "@mui/material";
 import {Prism} from "react-syntax-highlighter";
 import {dracula as dark, duotoneLight as light} from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import {LazyImage} from "./LazyImage";
@@ -40,6 +40,7 @@ import Typography from "@mui/material/Typography";
 import {useSnackbar} from "notistack";
 import Divider from "@mui/material/Divider";
 import {ImageViewer} from "./ImageViewer";
+import Link from "./Link";
 
 export function MarkdownScope(props: MarkdownScopeProps): JSX.Element {
     const theme = useTheme();
