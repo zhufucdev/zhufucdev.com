@@ -1,4 +1,4 @@
-import {Stack} from "@mui/material";
+import Stack from "@mui/material/Stack";
 import {AnimatedActionFab} from "./AnimatedActionFab";
 import React, {useEffect, useState} from "react";
 

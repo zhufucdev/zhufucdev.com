@@ -2,13 +2,10 @@ import CssBaseline from '@mui/material/CssBaseline'
 
 import { useRouter } from 'next/router'
 import * as React from 'react'
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 
 import Box from '@mui/material/Box'
-import Drawer from '@mui/material/Drawer'
 import Toolbar from '@mui/material/Toolbar'
-import Backdrop from '@mui/material/Backdrop'
-import LinearProgress from '@mui/material/LinearProgress'
 
 import { ThemeOptions, useMediaQuery } from '@mui/material'
 import { createTheme, ThemeProvider } from '@mui/material/styles'
@@ -16,7 +13,6 @@ import { Analytics } from '@vercel/analytics/react'
 import Head from 'next/head'
 import createEmotionCache from '../lib/emotionCache'
 import { CacheProvider } from '@emotion/react'
-import { SnackbarProvider } from 'notistack'
 import { SelfProfileProvider, useProfile } from '../lib/useUser'
 import { getTitle, TitleProvider, useTitle } from '../lib/useTitle'
 import { ContentsProvider } from '../lib/useContents'
@@ -29,13 +25,21 @@ import LoadingScreen from './LoadingScreen'
 export const drawerWidth = 240
 
 const clientEmotionCache = createEmotionCache()
+const loadingView = () => <LoadingScreen />
 const MyDrawerContent = dynamic(() => import('./MyDrawerContent'), {
-    loading: () => <LoadingScreen />,
-    ssr: false
+    loading: loadingView,
+    ssr: false,
 })
 const MyAppBar = dynamic(() => import('./MyAppBar'), {
-    loading: () => <LoadingScreen />,
+    loading: loadingView,
 })
+const MyBackdrop = dynamic(() => import('./MyBackdrop'))
+const Drawer = dynamic(() => import('@mui/material/Drawer'), {
+    loading: loadingView,
+})
+const SnackbarProvider = dynamic(() =>
+    import('notistack').then((mod) => mod.SnackbarProvider)
+)
 
 function MyHead() {
     const [_title] = useTitle()
@@ -44,57 +48,6 @@ function MyHead() {
         <Head>
             <title>{title}</title>
         </Head>
-    )
-}
-
-function MyBackdrop() {
-    const router = useRouter()
-    const [transiting, setTransiting] = useState(false)
-    const [progress, setProgress] = useState(-1)
-    useEffect(() => {
-        let timer: NodeJS.Timer
-
-        function onHandler() {
-            setTransiting(true)
-            setProgress(0)
-            let i = 1
-            timer = setInterval(() => {
-                if (transiting) clearInterval(timer)
-                else {
-                    setProgress(100 - 100 / i)
-                    i++
-                }
-            }, 100)
-        }
-
-        function offHandler() {
-            setTransiting(false)
-            setProgress(100)
-        }
-
-        router.events.on('routeChangeStart', onHandler)
-        router.events.on('routeChangeComplete', offHandler)
-        router.events.on('routeChangeError', offHandler)
-
-        return () => {
-            router.events.off('routeChangeStart', onHandler)
-            router.events.off('routeChangeComplete', offHandler)
-            router.events.off('routeChangeError', offHandler)
-        }
-    }, [router])
-
-    return (
-        <Backdrop
-            open={transiting}
-            unmountOnExit
-            sx={{ zIndex: 10000, transitionDelay: '400ms' }}
-        >
-            <LinearProgress
-                variant="determinate"
-                value={progress}
-                sx={{ position: 'absolute', top: 0, width: '100%' }}
-            />
-        </Backdrop>
     )
 }
 

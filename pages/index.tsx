@@ -19,7 +19,6 @@ import { getInspirations } from '../lib/db/inspiration'
 import PlaceHolder from '../components/PlaceHolder'
 import { Copyright } from '../components/Copyright'
 import { Scaffold } from '../components/Scaffold'
-import { DraftDialog } from '../components/DraftDialog'
 import { RenderingInspiration } from '../components/InspirationCard'
 import { useTitle } from '../lib/useTitle'
 import { getUser, getUsers, User } from '../lib/db/user'
@@ -41,7 +40,6 @@ const RecentCard = dynamic(
     () => import('../components/RecentCard').then((v) => v.RecentCard),
     {
         loading: loadingView,
-        ssr: false,
     }
 )
 
@@ -50,7 +48,6 @@ const InspirationCard = dynamic(
         import('../components/InspirationCard').then((v) => v.InspirationCard),
     {
         loading: loadingView,
-        ssr: false,
     }
 )
 
@@ -58,7 +55,13 @@ const ArticleCard = dynamic(
     () => import('../components/ArticleCard').then((v) => v.ArticleCard),
     {
         loading: loadingView,
-        ssr: false,
+    }
+)
+
+const DraftDialog = dynamic(
+    () => import('../components/DraftDialog').then((v) => v.DraftDialog),
+    {
+        loading: loadingView,
     }
 )
 

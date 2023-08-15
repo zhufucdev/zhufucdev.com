@@ -1,5 +1,7 @@
-import {Fab, useTheme, Zoom} from "@mui/material";
+import Fab from "@mui/material/Fab";
+import Zoom from "@mui/material/Zoom"
 import * as React from "react";
+import { useTheme } from "@mui/material";
 
 type AnimatedActionFabProps = {
     show: boolean,
