@@ -39,7 +39,7 @@ export async function addArticle(
     tags: string[] = []
 ): Promise<ArticleStore | undefined> {
     requireBucket();
-    const stream = renderBucket.openUploadStream(title + ".md");
+    const stream = renderBucket.openUploadStream(title + ".mdx");
     try {
         await writeBody(stream, body);
     } catch (e) {

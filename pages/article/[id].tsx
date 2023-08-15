@@ -7,6 +7,7 @@ import {
 } from '../../lib/db/article'
 import { getSafeArticle } from '../../lib/getSafeArticle'
 import { readAll } from '../../lib/utility'
+import { serializedMdx } from '../../lib/mdxUtility'
 import PlaceHolder from '../../components/PlaceHolder'
 import { Copyright } from '../../components/Copyright'
 import { getUser } from '../../lib/db/user'
@@ -34,6 +35,7 @@ import NoContentIcon from '@mui/icons-material/PsychologyOutlined'
 import NoArticleIcon from '@mui/icons-material/PowerOffOutlined'
 import dynamic from 'next/dynamic'
 import LoadingScreen from '../../components/LoadingScreen'
+import { MDXRemoteSerializeResult } from 'next-mdx-remote'
 
 const loadingView = () => <LoadingScreen />
 const LoginPopover = dynamic(() => import('../../components/LoginPopover'))
@@ -65,7 +67,7 @@ const MarkdownScope = dynamic(
 
 type PageProps = {
     meta?: RenderingArticle
-    body?: string
+    body?: MDXRemoteSerializeResult
     comments?: RenderingComment[]
     reCaptchaKey: string
 }
@@ -153,7 +155,7 @@ function ArticleBody({ meta, body }: Omit<PageProps, 'reCaptchaKey'>) {
                 ref={articleRef}
                 sx={{ width: onLargeScreen ? 'calc(100% - 240px)' : '100%' }}
             >
-                <MarkdownScope>{body}</MarkdownScope>
+                <MarkdownScope>{body!}</MarkdownScope>
             </Box>
         </>
     )
@@ -290,7 +292,7 @@ export const getStaticProps: GetStaticProps<PageProps> = async (context) => {
         props.comments = await renderingComments(meta)
     }
     if (body) {
-        props.body = body
+        props.body = await serializedMdx(body)
     }
     return { props, revalidate: false }
 }

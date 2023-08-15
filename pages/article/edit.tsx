@@ -2,9 +2,9 @@ import { GetServerSideProps, NextPage } from 'next'
 import dynamic from 'next/dynamic'
 import { ArticleMeta, getArticle } from '../../lib/db/article'
 import { useTitle } from '../../lib/useTitle'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
-import { LocalCache, LocalImage } from '../../components/MarkdownScope'
+import { LocalImage } from '../../components/MarkdownScope'
 import { ImagesPopover } from '../../components/ImagesPopover'
 import '@uiw/react-md-editor/markdown-editor.css'
 import '@uiw/react-markdown-preview/markdown.css'
@@ -32,32 +32,20 @@ import PlaceHolder from '../../components/PlaceHolder'
 
 import PictureIcon from '@mui/icons-material/PhotoOutlined'
 import LockedIcon from '@mui/icons-material/PublicOffOutlined'
-import UploadIcon from '@mui/icons-material/UploadOutlined'
 
 import { useRequestResult } from '../../lib/useRequestResult'
 import { useRouter } from 'next/router'
 import { beginPost, fetchApi, readAll, uploadImage } from '../../lib/utility'
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3'
 import { getSafeArticle, SafeArticle } from '../../lib/getSafeArticle'
-import { ICommand } from '@uiw/react-md-editor'
-import * as commands from '@uiw/react-md-editor/lib/commands'
-import { nanoid } from 'nanoid'
 import TagInputField from '../../components/TagInputField'
 import { Tag, TagKey } from '../../lib/tagging'
 import LoadingScreen from '../../components/LoadingScreen'
 
-const MDEditor = dynamic(() => import('@uiw/react-md-editor'), {
-    ssr: false,
+const MdxEditor = dynamic(() => import('../../components/MdxEditor'), {
     loading: () => <LoadingScreen />,
+    ssr: false,
 })
-
-const MarkdownScope = dynamic(
-    () =>
-        import('../../components/MarkdownScope').then(
-            (mod) => mod.MarkdownScope
-        ),
-    { ssr: false, loading: () => <LoadingScreen /> }
-)
 
 type Permission = 'none' | 'create' | 'modify' | 'pr' | 'modify-pr'
 const EditPage: NextPage<PageProps> = (props) => {
@@ -211,90 +199,6 @@ function MetadataStepContent(props: MetadataProps): JSX.Element {
                 }
                 onClose={() => setAnchor(undefined)}
             />
-        </>
-    )
-}
-
-type EditorProps = {
-    value: string | undefined
-    preload: LocalImage
-    onChange: (value: string) => void
-    onUploadImage: (key: string, image: File) => void
-}
-
-function MyEditor({
-    value,
-    preload,
-    onChange,
-    onUploadImage,
-}: EditorProps): JSX.Element {
-    const [imageCache, setImageCache] = useState<LocalCache>({})
-    const uploadRef = useRef<HTMLInputElement>(null)
-
-    const uploadImage: ICommand = {
-        name: 'upload image',
-        keyCommand: 'upload',
-        buttonProps: { 'aria-label': '上传图片' },
-        icon: <UploadIcon sx={{ fontSize: 16 }} />,
-        execute: (state, api) => {
-            if (!uploadRef.current) return
-
-            uploadRef.current.click()
-            const changeListener = () => {
-                const file = uploadRef.current!.files?.item(0)
-                if (!file) return
-                const id = nanoid()
-                onUploadImage(id, file)
-
-                if (state.selectedText) {
-                    api.replaceSelection(id)
-                } else {
-                    api.replaceSelection(
-                        `![image-${
-                            Object.getOwnPropertyNames(preload).length
-                        }](${id})`
-                    )
-                }
-            }
-            uploadRef.current.addEventListener('change', changeListener, {
-                once: true,
-            })
-            uploadRef.current.addEventListener('cancel', (ev) => {
-                ev.currentTarget!.removeEventListener('change', changeListener)
-            })
-        },
-    }
-
-    function handleNewCache(key: string, cache: string) {
-        const nextCache = imageCache
-        nextCache[key] = cache
-        setImageCache(nextCache)
-    }
-
-    const preview = (
-        <MarkdownScope
-            preload={preload}
-            imageCache={imageCache}
-            newCache={handleNewCache}
-        >
-            {value}
-        </MarkdownScope>
-    )
-
-    return (
-        <>
-            <MDEditor
-                value={value}
-                onChange={(v) => onChange(v ?? '')}
-                components={{ preview: () => preview }}
-                commands={commands.getCommands()}
-                extraCommands={[
-                    uploadImage,
-                    commands.divider,
-                    ...commands.getExtraCommands(),
-                ]}
-            />
-            <input hidden type="file" accept="image/*" ref={uploadRef} />
         </>
     )
 }
@@ -577,7 +481,7 @@ function PageContent(props: ContentProps): JSX.Element {
                         内容
                     </StepLabel>
                     <StepContent>
-                        <MyEditor
+                        <MdxEditor
                             value={value}
                             onChange={setValue}
                             preload={preload}
