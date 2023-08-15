@@ -11,7 +11,7 @@ import * as commands from '@uiw/react-md-editor/lib/commands'
 
 import UploadIcon from '@mui/icons-material/UploadOutlined'
 import { MDXRemoteSerializeResult } from 'next-mdx-remote'
-import { Card, Typography } from '@mui/material'
+import { Card, Collapse, Typography } from '@mui/material'
 import { fetchApi } from '../lib/utility'
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3'
 import { useSnackbar } from 'notistack'
@@ -135,7 +135,14 @@ function Preview({ children, ...props }: PreviewProps) {
     }, [children])
     return (
         <>
-            {error && <HelperCard variant='error' title='服务器未能完成渲染' content={error} />}
+            {error && (
+                <HelperCard
+                    variant="error"
+                    title="服务器未能完成渲染"
+                    content={error}
+                    sx={{ position: 'absolute', width: '70%', left: '14%' }}
+                />
+            )}
             {rendered && <MarkdownScope {...props}>{rendered}</MarkdownScope>}
         </>
     )
