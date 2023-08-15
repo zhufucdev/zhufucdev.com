@@ -2,7 +2,10 @@ import '../styles/globals.sass'
 import { AppProps } from 'next/app'
 import { EmotionCache } from '@emotion/cache'
 import React from 'react'
-import AppFrame from "../components/AppFrame";
+import AppFrame from '../components/AppFrame'
+import Box from '@mui/material/Box'
+import routes from '../lib/routes'
+import Link from 'next/link'
 
 export interface MyAppProps extends AppProps {
     emotionCache?: EmotionCache
@@ -10,7 +13,20 @@ export interface MyAppProps extends AppProps {
 }
 
 function MyApp(props: MyAppProps) {
-    return <AppFrame {...props} />
+    return (
+        <>
+            <AppFrame {...props} />
+            <Box hidden>
+                {routes
+                    .filter((e) => !e.hidden)
+                    .map((e) => (
+                        <Link key={e.name} href={e.route}>
+                            {e.title}
+                        </Link>
+                    ))}
+            </Box>
+        </>
+    )
 }
 
 export async function getServerSideProps() {
