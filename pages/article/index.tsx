@@ -1,8 +1,8 @@
 import {GetStaticProps, NextPage} from "next";
 import {ArticleUtil, listArticles} from "../../lib/db/article";
 import {Box, CircularProgress, Grid, Stack, useTheme} from "@mui/material";
-import {Copyright} from "../../componenets/Copyright";
-import {Scaffold} from "../../componenets/Scaffold";
+import {Copyright} from "../../components/Copyright";
+import {Scaffold} from "../../components/Scaffold";
 import {lookupUser, myId, useProfileContext, useUser} from "../../lib/useUser";
 import {useRouter} from "next/router";
 import {useTitle} from "../../lib/useTitle";
@@ -12,11 +12,11 @@ import EditIcon from "@mui/icons-material/EditOutlined";
 
 import {getSafeArticle, SafeArticle} from "../../lib/getSafeArticle";
 import {getUser, getUsers} from "../../lib/db/user";
-import PlaceHolder from "../../componenets/PlaceHolder";
+import PlaceHolder from "../../components/PlaceHolder";
 import NoArticleIcon from "@mui/icons-material/PsychologyOutlined";
-import {ReCaptchaPolicy} from "../../componenets/ReCaptchaPolicy";
-import {ReCaptchaScope} from "../../componenets/ReCaptchaScope";
-import {ArticleCard, RenderingArticle} from "../../componenets/ArticleCard";
+import {ReCaptchaPolicy} from "../../components/ReCaptchaPolicy";
+import {ReCaptchaScope} from "../../components/ReCaptchaScope";
+import {ArticleCard, RenderingArticle} from "../../components/ArticleCard";
 import useScroll from "../../lib/useScroll";
 import {hasPermission} from "../../lib/contract";
 

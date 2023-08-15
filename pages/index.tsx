@@ -16,23 +16,23 @@ import ContinueIcon from "@mui/icons-material/ArrowForward";
 
 import {getRecents, Recent} from "../lib/db/recent";
 import {getInspirations} from "../lib/db/inspiration";
-import PlaceHolder from "../componenets/PlaceHolder";
-import {Copyright} from "../componenets/Copyright";
-import {Scaffold} from "../componenets/Scaffold";
-import {DraftDialog} from "../componenets/DraftDialog";
-import {InspirationCard, RenderingInspiration} from "../componenets/InspirationCard";
-import {RecentCard} from "../componenets/RecentCard";
+import PlaceHolder from "../components/PlaceHolder";
+import {Copyright} from "../components/Copyright";
+import {Scaffold} from "../components/Scaffold";
+import {DraftDialog} from "../components/DraftDialog";
+import {InspirationCard, RenderingInspiration} from "../components/InspirationCard";
+import {RecentCard} from "../components/RecentCard";
 import {useTitle} from "../lib/useTitle";
 import {getUser, getUsers, User} from "../lib/db/user";
-import {ReCaptchaScope} from "../componenets/ReCaptchaScope";
-import {ReCaptchaPolicy} from "../componenets/ReCaptchaPolicy";
+import {ReCaptchaScope} from "../components/ReCaptchaScope";
+import {ReCaptchaPolicy} from "../components/ReCaptchaPolicy";
 import Link from "next/link";
 import {ArticleUtil, listArticles} from "../lib/db/article";
 import {getSafeArticle} from "../lib/getSafeArticle";
-import {ArticleCard, RenderingArticle} from "../componenets/ArticleCard";
-import {HorizontallyScrollingStack} from "../componenets/HorizontallyScrollingStack";
+import {ArticleCard, RenderingArticle} from "../components/ArticleCard";
+import {HorizontallyScrollingStack} from "../components/HorizontallyScrollingStack";
 import {myId} from "../lib/useUser";
-import {Caption} from "../componenets/Caption";
+import {Caption} from "../components/Caption";
 
 const Home: NextPage<PageProps> = ({recents, inspirations: _inspirations, articles, recaptchaKey, myName}) => {
     const [draftOpen, setDraft] = useState(false);

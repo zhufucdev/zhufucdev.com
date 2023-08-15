@@ -1,5 +1,5 @@
 import { nanoid } from "nanoid";
-import { RenderingComment } from "../componenets/CommentCard";
+import { RenderingComment } from "../components/CommentCard";
 import {Comment, Commentable} from "./db/comment";
 import { User } from "./db/user";
 

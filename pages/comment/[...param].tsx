@@ -3,8 +3,8 @@ import {
     CommentCard,
     CommentCardRoot,
     RenderingComment,
-} from "../../componenets/CommentCard";
-import PlaceHolder from "../../componenets/PlaceHolder";
+} from "../../components/CommentCard";
+import PlaceHolder from "../../components/PlaceHolder";
 import {Commentable, getComment, getComments} from "../../lib/db/comment";
 import { getUser } from "../../lib/db/user";
 import { getSafeComment } from "../../lib/getSafeComment";
@@ -14,10 +14,10 @@ import Divider from "@mui/material/Divider";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { useTitle } from "../../lib/useTitle";
-import { ReCaptchaScope } from "../../componenets/ReCaptchaScope";
-import { ReCaptchaPolicy } from "../../componenets/ReCaptchaPolicy";
+import { ReCaptchaScope } from "../../components/ReCaptchaScope";
+import { ReCaptchaPolicy } from "../../components/ReCaptchaPolicy";
 import { AnimatePresence, motion } from "framer-motion";
-import {RenderingReview} from "../../componenets/ReviewCard";
+import {RenderingReview} from "../../components/ReviewCard";
 import {getInspiration} from "../../lib/db/inspiration";
 
 interface PageProps {

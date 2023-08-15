@@ -1,4 +1,4 @@
-import PlaceHolder from "../componenets/PlaceHolder";
+import PlaceHolder from "../components/PlaceHolder";
 import LockedIcon from "@mui/icons-material/PublicOffOutlined";
 
 export default function UnauthorizedPage() {

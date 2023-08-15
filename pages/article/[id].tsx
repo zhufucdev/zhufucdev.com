@@ -6,12 +6,12 @@ import {
     listArticles,
 } from "../../lib/db/article";
 import {getSafeArticle} from "../../lib/getSafeArticle";
-import {MarkdownScope} from "../../componenets/MarkdownScope";
+import {MarkdownScope} from "../../components/MarkdownScope";
 import {postComment, readAll} from "../../lib/utility";
-import PlaceHolder from "../../componenets/PlaceHolder";
-import {Copyright} from "../../componenets/Copyright";
+import PlaceHolder from "../../components/PlaceHolder";
+import {Copyright} from "../../components/Copyright";
 import {getUser} from "../../lib/db/user";
-import {ArticleHeader} from "../../componenets/ArticleHeader";
+import {ArticleHeader} from "../../components/ArticleHeader";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -31,12 +31,12 @@ import {
 import {SxProps, useMediaQuery, useTheme} from "@mui/material";
 import {AnimatePresence, motion} from "framer-motion";
 import {useTitle} from "../../lib/useTitle";
-import {ArticleDescription} from "../../componenets/ArticleDescription";
-import {RenderingArticle} from "../../componenets/ArticleCard";
+import {ArticleDescription} from "../../components/ArticleDescription";
+import {RenderingArticle} from "../../components/ArticleCard";
 import {LanguageOption, useLanguage} from "../../lib/useLanguage";
 import {defaultLang} from "../../lib/translation";
 import {useRouter} from "next/router";
-import LoginPopover from "../../componenets/LoginPopover";
+import LoginPopover from "../../components/LoginPopover";
 import {useProfileContext} from "../../lib/useUser";
 import {getSafeComment, SafeComment} from "../../lib/getSafeComment";
 import {getComments} from "../../lib/db/comment";
@@ -45,12 +45,12 @@ import NoContentIcon from "@mui/icons-material/PsychologyOutlined";
 import NoArticleIcon from "@mui/icons-material/PowerOffOutlined";
 import PrIcon from "@mui/icons-material/DriveFileRenameOutline";
 import CommentIcon from "@mui/icons-material/CommentOutlined";
-import {ChatInputField} from "../../componenets/ChatInputField";
+import {ChatInputField} from "../../components/ChatInputField";
 import {useGoogleReCaptcha} from "react-google-recaptcha-v3";
 import {useRequestResult} from "../../lib/useRequestResult";
-import {ReCaptchaScope} from "../../componenets/ReCaptchaScope";
-import {ReCaptchaPolicy} from "../../componenets/ReCaptchaPolicy";
-import {CommentCard, RenderingComment} from "../../componenets/CommentCard";
+import {ReCaptchaScope} from "../../components/ReCaptchaScope";
+import {ReCaptchaPolicy} from "../../components/ReCaptchaPolicy";
+import {CommentCard, RenderingComment} from "../../components/CommentCard";
 import {CommentUtil, RenderingCommentUtil} from "../../lib/comment";
 
 type PageProps = {

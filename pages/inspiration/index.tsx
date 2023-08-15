@@ -1,14 +1,14 @@
 import {GetStaticProps, NextPage} from "next";
-import {InspirationCardRoot, recommendedColorFor, RenderingInspiration} from "../../componenets/InspirationCard";
+import {InspirationCardRoot, recommendedColorFor, RenderingInspiration} from "../../components/InspirationCard";
 import {getInspirations} from "../../lib/db/inspiration";
 import {getUsers} from "../../lib/db/user";
 import {useTitle} from "../../lib/useTitle";
-import PlaceHolder from "../../componenets/PlaceHolder";
+import PlaceHolder from "../../components/PlaceHolder";
 
 import NoInspirationIcon from "@mui/icons-material/LightbulbOutlined";
 import {Card, Grid} from "@mui/material";
 import {useEffect, useState} from "react";
-import {ReCaptchaScope} from "../../componenets/ReCaptchaScope";
+import {ReCaptchaScope} from "../../components/ReCaptchaScope";
 import {motion} from "framer-motion";
 
 const InspirationPage: NextPage<PageProps> = (props) => {

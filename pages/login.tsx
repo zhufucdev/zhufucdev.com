@@ -20,7 +20,7 @@ import {
 } from "@mui/material";
 import type {NextPage} from "next";
 
-import {Copyright} from "../componenets/Copyright";
+import {Copyright} from "../components/Copyright";
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
@@ -31,9 +31,9 @@ import {useRouter} from "next/router";
 import {useGoogleReCaptcha} from "react-google-recaptcha-v3";
 import {reCaptchaNotReady, userContract} from "../lib/contract";
 import {useRequestResult} from "../lib/useRequestResult";
-import {ReCaptchaPolicy} from "../componenets/ReCaptchaPolicy";
+import {ReCaptchaPolicy} from "../components/ReCaptchaPolicy";
 import {useTitle} from "../lib/useTitle";
-import {ReCaptchaScope} from "../componenets/ReCaptchaScope";
+import {ReCaptchaScope} from "../components/ReCaptchaScope";
 import {useUser} from "../lib/useUser";
 
 type Helper = { id?: string, pwd?: string, nick?: string, repwd?: string };

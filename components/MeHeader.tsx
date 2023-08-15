@@ -19,7 +19,6 @@ import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import EditIcon from "@mui/icons-material/EditOutlined";
 import DoneIcon from "@mui/icons-material/Done";
-import {drawerWidth} from "../pages/_app";
 import {LazyImage} from "./LazyImage";
 import {fetchApi, getImageUri, uploadImage} from "../lib/utility";
 import {useUser} from "../lib/useUser";
@@ -28,6 +27,7 @@ import {getResponseRemark, userContract} from "../lib/contract";
 import {useRequestResult} from "../lib/useRequestResult";
 import {useGoogleReCaptcha} from "react-google-recaptcha-v3";
 import {useSnackbar} from "notistack";
+import { drawerWidth } from "./AppFrame";
 
 type HeaderProps = {
     user: User | undefined

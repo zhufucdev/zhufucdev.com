@@ -2,12 +2,12 @@ import {GetStaticProps, NextPage} from "next";
 import {useTitle} from "../../lib/useTitle";
 import {getUser} from "../../lib/db/user";
 import {fromSafeUser, getSafeUser, SafeUser} from "../../lib/getSafeUser";
-import {MeHeader} from "../../componenets/MeHeader";
+import {MeHeader} from "../../components/MeHeader";
 import {MeTabs} from "./[...param]";
 import {myId} from "../../lib/useUser";
-import {ReCaptchaScope} from "../../componenets/ReCaptchaScope";
-import {ReCaptchaPolicy} from "../../componenets/ReCaptchaPolicy";
-import {Copyright} from "../../componenets/Copyright";
+import {ReCaptchaScope} from "../../components/ReCaptchaScope";
+import {ReCaptchaPolicy} from "../../components/ReCaptchaPolicy";
+import {Copyright} from "../../components/Copyright";
 
 const MePage: NextPage<PageProps> = (props) => {
     useTitle(`关于 ${props.user.nick}`);

@@ -4,8 +4,8 @@ import {ArticleMeta, getArticle} from "../../lib/db/article";
 import {useTitle} from "../../lib/useTitle";
 import {useEffect, useMemo, useRef, useState} from "react";
 
-import {LocalCache, LocalImage, MarkdownScope} from "../../componenets/MarkdownScope";
-import {ImagesPopover} from "../../componenets/ImagesPopover";
+import {LocalCache, LocalImage, MarkdownScope} from "../../components/MarkdownScope";
+import {ImagesPopover} from "../../components/ImagesPopover";
 import "@uiw/react-md-editor/markdown-editor.css";
 import "@uiw/react-markdown-preview/markdown.css";
 import {
@@ -27,8 +27,8 @@ import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import {useProfileContext} from "../../lib/useUser";
 import {getResponseRemark, hasPermission} from "../../lib/contract";
-import {ReCaptchaScope} from "../../componenets/ReCaptchaScope";
-import PlaceHolder from "../../componenets/PlaceHolder";
+import {ReCaptchaScope} from "../../components/ReCaptchaScope";
+import PlaceHolder from "../../components/PlaceHolder";
 
 import PictureIcon from "@mui/icons-material/PhotoOutlined";
 import LockedIcon from "@mui/icons-material/PublicOffOutlined";
@@ -42,7 +42,7 @@ import {getSafeArticle, SafeArticle} from "../../lib/getSafeArticle";
 import {ICommand} from "@uiw/react-md-editor";
 import * as commands from "@uiw/react-md-editor/lib/commands";
 import {nanoid} from "nanoid";
-import TagInputField from "../../componenets/TagInputField";
+import TagInputField from "../../components/TagInputField";
 import {Tag, TagKey} from "../../lib/tagging";
 
 const MDEditor = dynamic(

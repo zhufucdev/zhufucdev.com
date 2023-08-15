@@ -1,14 +1,14 @@
 import {GetServerSideProps, NextPage} from "next";
 import {Stack, Tab, Tabs, Box} from "@mui/material";
 import {getInspirations} from "../../lib/db/inspiration";
-import {InspirationCardRoot, RenderingInspiration} from "../../componenets/InspirationCard";
+import {InspirationCardRoot, RenderingInspiration} from "../../components/InspirationCard";
 import {useRouter} from "next/router";
-import {MeHeader} from "../../componenets/MeHeader";
+import {MeHeader} from "../../components/MeHeader";
 import Typography from "@mui/material/Typography";
 import Divider from "@mui/material/Divider";
 import {ReactNode, useEffect, useState} from "react";
 import {getUser} from "../../lib/db/user";
-import PlaceHolder from "../../componenets/PlaceHolder";
+import PlaceHolder from "../../components/PlaceHolder";
 import {fromSafeUser, getSafeUser, SafeUser} from "../../lib/getSafeUser";
 import QuestionIcon from "@mui/icons-material/HelpOutline";
 import AnswerIcon from "@mui/icons-material/QuestionAnswerOutlined";
@@ -18,9 +18,9 @@ import NotImplementedIcon from "@mui/icons-material/HandymanOutlined";
 import Link from "next/link";
 import {isMe} from "../../lib/useUser";
 import {useTitle} from "../../lib/useTitle";
-import {ReCaptchaScope} from "../../componenets/ReCaptchaScope";
-import {ReCaptchaPolicy} from "../../componenets/ReCaptchaPolicy";
-import {Copyright} from "../../componenets/Copyright";
+import {ReCaptchaScope} from "../../components/ReCaptchaScope";
+import {ReCaptchaPolicy} from "../../components/ReCaptchaPolicy";
+import {Copyright} from "../../components/Copyright";
 
 function InspirationsTab(props: { data: RenderingInspiration[] }): JSX.Element {
     const [data, setData] = useState(props.data);

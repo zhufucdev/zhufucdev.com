@@ -2,7 +2,6 @@ import React, {useCallback, useEffect, useState} from "react";
 import {useMediaQuery, useScrollTrigger, useTheme} from "@mui/material";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
-import {drawerWidth} from "../pages/_app";
 import {LazyImage} from "./LazyImage";
 import {getImageUri} from "../lib/utility";
 import {motion} from "framer-motion";
@@ -11,6 +10,7 @@ import {ContentsNodeComponent} from "./ContentsNodeComponent";
 import {Contents, ContentsNode, useContents} from "../lib/useContents";
 import {useTitle} from "../lib/useTitle";
 import {RenderingArticle} from "./ArticleCard";
+import { drawerWidth } from "./AppFrame";
 
 export function ArticleHeader(props: { meta: RenderingArticle, article: React.RefObject<HTMLDivElement> }): JSX.Element {
     const theme = useTheme();
