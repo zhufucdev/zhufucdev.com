@@ -1,8 +1,5 @@
-import Box from "@mui/material/Box";
-import CircularProgress from "@mui/material/CircularProgress";
+import Skeleton from '@mui/material/Skeleton'
 
 export default function LoadingScreen() {
-    return <Box justifyContent="center">
-        <CircularProgress />
-    </Box>
+    return <Skeleton variant="rounded" width="100%" height="100%" sx={{minHeight: '200px'}}/>
 }

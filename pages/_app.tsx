@@ -1,18 +1,13 @@
 import '../styles/globals.sass'
-import LoadingScreen from '../components/LoadingScreen'
 import { AppProps } from 'next/app'
 import { EmotionCache } from '@emotion/cache'
 import React from 'react'
-import dynamic from 'next/dynamic'
+import AppFrame from "../components/AppFrame";
 
 export interface MyAppProps extends AppProps {
     emotionCache?: EmotionCache
     pageProps: { recaptchaKey: string }
 }
-
-const AppFrame = dynamic(() => import('../components/AppFrame'), {
-    loading: () => <LoadingScreen />,
-})
 
 function MyApp(props: MyAppProps) {
     return <AppFrame {...props} />
