@@ -139,7 +139,7 @@ function Preview({ children, ...props }: PreviewProps) {
                 <HelperCard
                     variant="error"
                     title="服务器未能完成渲染"
-                    content={error}
+                    children={error}
                     sx={{ position: 'absolute', width: '70%', left: '14%' }}
                 />
             )}

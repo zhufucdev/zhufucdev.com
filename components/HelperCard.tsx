@@ -9,10 +9,11 @@ interface Props {
     variant?: 'help' | 'success' | 'warn' | 'error'
     sx?: SxProps
     title: ReactNode
-    content: ReactNode
+    children: ReactNode
+    noWrap?: boolean
 }
 
-export default function HelperCard({ variant, sx, title, content }: Props) {
+export default function HelperCard({ variant, sx, title, children, noWrap }: Props) {
     const theme = useTheme()
     let icon: JSX.Element
     let color: string
@@ -35,14 +36,14 @@ export default function HelperCard({ variant, sx, title, content }: Props) {
     }
 
     return (
-        <Paper variant="outlined" sx={{ width: '100%', p: 2, background: color, mb: 1, ...sx }}>
+        <Paper variant="outlined" sx={{ width: '100%', pt: 2, pl: 2, pr: 2, pb: 1, background: color, mb: noWrap ? 0 : 2, ...sx }}>
             <Box display="flex" alignItems="center" mb={1}>
                 {icon}
                 <Typography variant="h6" ml={1}>
                     {title}
                 </Typography>
             </Box>
-            {content}
+            {children}
         </Paper>
     )
 }

@@ -32,6 +32,7 @@ import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote'
 
 import CopyIcon from '@mui/icons-material/ContentCopyOutlined'
 import HelperCard from './HelperCard'
+import Details from './Details'
 
 export type LocalImage = { [key: string]: File }
 export type LocalCache = { [key: string]: string }
@@ -61,6 +62,7 @@ export interface MarkdownScopeProps extends ImageProps {
 const components = {
     Button,
     HelperCard,
+    Details
 }
 
 export function MarkdownScope(props: MarkdownScopeProps): JSX.Element {
