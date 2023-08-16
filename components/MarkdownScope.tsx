@@ -2,7 +2,14 @@ import {
     Button,
     Card,
     IconButton,
+    Paper,
     styled,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
     Tooltip,
     useMediaQuery,
     useTheme,
@@ -111,6 +118,42 @@ export function MarkdownScope(props: MarkdownScopeProps): JSX.Element {
                             newCache={newCache}
                         />
                     )
+                },
+                table({ children }) {
+                    return (
+                        <TableContainer component={Paper}>
+                            <Table sx={{minWidth: 650}}>{children}</Table>
+                        </TableContainer>
+                    )
+                },
+                thread({ chilren }) {
+                    return <TableHead>{chilren}</TableHead>
+                },
+                tr({ children }) {
+                    return (
+                        <TableRow
+                            sx={{
+                                '&:last-child td, &:last-child th': {
+                                    border: 0,
+                                },
+                            }}
+                        >
+                            {children}
+                        </TableRow>
+                    )
+                },
+                th({ children, align }) {
+                    return (
+                        <TableCell align={align as any}>{children}</TableCell>
+                    )
+                },
+                td({ children, align }) {
+                    return (
+                        <TableCell align={align as any}>{children}</TableCell>
+                    )
+                },
+                tbody({ children }) {
+                    return <TableBody>{children}</TableBody>
                 },
                 ...components,
             }}
