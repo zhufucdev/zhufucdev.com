@@ -140,7 +140,7 @@ function Preview({ children, ...props }: PreviewProps) {
                     title="服务器未能完成渲染"
                     sx={{ position: 'absolute', width: '70%', left: '14%' }}
                 >
-                    {children}
+                    {error}
                 </HelperCard>
             )}
             {rendered && <MarkdownScope {...props}>{rendered}</MarkdownScope>}
