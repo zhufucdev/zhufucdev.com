@@ -43,32 +43,38 @@ $ npm run build
 
 # Roadmap
 
-- [ ] Recents
-    - [ ] shelf
-        - [x] layout
-        - [ ] image viewer
-    - [ ] editor
-
-- [ ] Inspirations
+- [x] Recents
     - [x] shelf
-    - [ ] third-party raiser
-        - [ ] account system
+        - [x] layout
+        - [x] image viewer
+    - [x] editor
+
+- [x] Inspirations
+    - [x] shelf
+    - [x] third-party raiser
+        - [x] account management
             - [x] registeration
                 - [ ] ~~validation via email~~
                 - [x] captcha
-            - [ ] feedback system
+            - [x] feedback system
                 - [x] reactions
-                - [ ] comment section
+                - [x] comment section
 
-- [ ] Projects
-    - [ ] shelf
-        - [ ] ...
-        - [ ] statistics
-    - [ ] Preview
-        - [ ] previewer filter
-    - [ ] feedback system
+- [ ] ~~Projects~~
+    - [ ] ~~shelf~~
+        - [ ] ~~...~~
+        - [ ] ~~statistics~~
+    - [ ] ~~Preview~~
+        - [ ] ~~previewer filter~~
+    - [ ] ~~feedback system~~
 
-- [ ] About
+- [x] Articles
+    - [x] shelf
+    - [x] pull request
+    - [x] i18n
+    - [x] comment section
+
+- [x] About
 
 # License
 ```
