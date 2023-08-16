@@ -166,7 +166,7 @@ function ArticleBody({ meta, body }: Omit<PageProps, 'reCaptchaKey'>) {
                 ref={articleRef}
                 sx={{ width: onLargeScreen ? 'calc(100% - 240px)' : '100%' }}
             >
-                <MarkdownScope>{body!}</MarkdownScope>
+                <MarkdownScope lazy>{body!}</MarkdownScope>
             </Box>
         </>
     )

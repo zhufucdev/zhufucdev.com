@@ -39,6 +39,7 @@ import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote'
 import CopyIcon from '@mui/icons-material/ContentCopyOutlined'
 import HelperCard from './HelperCard'
 import Details from './Details'
+import Repo from './Repo'
 
 export type LocalImage = { [key: string]: File }
 export type LocalCache = { [key: string]: string }
@@ -63,6 +64,7 @@ type ImageProps = {
 
 export interface MarkdownScopeProps extends ImageProps {
     children: MDXRemoteSerializeResult
+    lazy?: boolean
 }
 
 const components = {
@@ -70,6 +72,7 @@ const components = {
     HelperCard,
     Details,
     Box,
+    Repo,
 }
 
 const StyledCodeBlock = styled('code')(
@@ -90,6 +93,7 @@ export function MarkdownScope(props: MarkdownScopeProps): JSX.Element {
     return (
         <MDXRemote
             {...props.children}
+            lazy={props.lazy}
             components={{
                 a({ href, children }) {
                     return <Link href={href ?? ''}>{children}</Link>
