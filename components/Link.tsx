@@ -1,12 +1,9 @@
-import MLink from '@mui/material/Link'
+import { styled, useTheme } from '@mui/material'
 import NLink from 'next/link'
-import { ReactNode } from 'react'
 
-interface Props {
-    href?: string
-    children?: ReactNode
-}
+const Link = styled(NLink)(({ theme }) => ({
+    color: theme.palette.primary.main,
+    '&:hover': { textDecorationColor: theme.palette.primary.light },
+}))
 
-export default function Link({ href, children }: Props) {
-    return <MLink component={NLink} href={href}>{children}</MLink>
-}
+export default Link

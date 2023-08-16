@@ -81,7 +81,7 @@ export function MarkdownScope(props: MarkdownScopeProps): JSX.Element {
         <MDXRemote
             {...props.children}
             components={{
-                a: Link,
+                a({href, children}) { return <Link href={href ?? ''}>{children}</Link> },
                 code({ className, children, ...props }) {
                     const match = /language-(\w+)/.exec(className || '')
                     return match ? (
