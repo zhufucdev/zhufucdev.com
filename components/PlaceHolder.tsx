@@ -1,11 +1,10 @@
-import SvgIcon from '@mui/material/SvgIcon'
 import { SxProps } from '@mui/material'
 import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
 import React from 'react'
 
 function PlaceHolder(props: {
-    icon: typeof SvgIcon
+    icon: React.ComponentType,
     title: string
     sx?: SxProps
 }) {
@@ -30,7 +29,7 @@ function PlaceHolder(props: {
                         height: 48,
                     },
                     color: 'disabled',
-                })}
+                } as any)}
                 <Typography variant="h5" color="text.disabled" mt={2}>
                     {title}
                 </Typography>

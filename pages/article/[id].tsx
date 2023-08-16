@@ -8,7 +8,6 @@ import {
 import { getSafeArticle } from '../../lib/getSafeArticle'
 import { readAll } from '../../lib/utility'
 import { serializedMdx } from '../../lib/mdxUtility'
-import PlaceHolder from '../../components/PlaceHolder'
 import { Copyright } from '../../components/Copyright'
 import { getUser } from '../../lib/db/user'
 import Typography from '@mui/material/Typography'
@@ -19,7 +18,6 @@ import { ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import { SxProps, useMediaQuery, useTheme } from '@mui/material'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useTitle } from '../../lib/useTitle'
-import { ArticleDescription } from '../../components/ArticleDescription'
 import { RenderingArticle } from '../../components/ArticleCard'
 import { LanguageOption, useLanguage } from '../../lib/useLanguage'
 import { defaultLang } from '../../lib/translation'
@@ -31,7 +29,6 @@ import { ReCaptchaScope } from '../../components/ReCaptchaScope'
 import { ReCaptchaPolicy } from '../../components/ReCaptchaPolicy'
 import { RenderingComment } from '../../components/CommentCard'
 
-import NoContentIcon from '@mui/icons-material/PsychologyOutlined'
 import NoArticleIcon from '@mui/icons-material/PowerOffOutlined'
 import dynamic from 'next/dynamic'
 import LoadingScreen from '../../components/LoadingScreen'
@@ -57,11 +54,25 @@ const ArticleHeader = dynamic(
         ),
     { loading: loadingView }
 )
+const ArticleDescription = dynamic(
+    () =>
+        import('../../components/ArticleDescription').then(
+            (mod) => mod.ArticleDescription
+        ),
+    { loading: loadingView }
+)
 const MarkdownScope = dynamic(
     () =>
         import('../../components/MarkdownScope').then(
             (mod) => mod.MarkdownScope
         ),
+    { loading: loadingView }
+)
+const PlaceHolder = dynamic(() => import('../../components/PlaceHolder'), {
+    loading: loadingView,
+})
+const NoContentIcon = dynamic(
+    () => import('@mui/icons-material/PsychologyOutlined'),
     { loading: loadingView }
 )
 
