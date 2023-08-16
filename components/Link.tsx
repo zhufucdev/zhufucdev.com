@@ -7,7 +7,6 @@ interface Props {
     children?: ReactNode
 }
 
-export default function Link({href, children}: Props) {
-    return <MLink component={NLink} href={href} children={children} />
+export default function Link({ href, children }: Props) {
+    return <MLink component={NLink} href={href}>{children}</MLink>
 }
-

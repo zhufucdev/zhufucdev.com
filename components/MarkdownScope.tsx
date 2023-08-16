@@ -1,7 +1,6 @@
 import {
     Button,
     Card,
-    Collapse,
     IconButton,
     styled,
     Tooltip,
@@ -62,7 +61,8 @@ export interface MarkdownScopeProps extends ImageProps {
 const components = {
     Button,
     HelperCard,
-    Details
+    Details,
+    Box
 }
 
 export function MarkdownScope(props: MarkdownScopeProps): JSX.Element {

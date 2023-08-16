@@ -1,5 +1,4 @@
 import remarkGfm from 'remark-gfm'
-import rehypeRaw from 'rehype-raw'
 import { MDXRemoteSerializeResult } from 'next-mdx-remote'
 import { serialize } from 'next-mdx-remote/serialize'
 

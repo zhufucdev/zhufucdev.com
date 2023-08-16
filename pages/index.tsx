@@ -33,6 +33,11 @@ import { myId } from '../lib/useUser'
 import { Caption } from '../components/Caption'
 import dynamic from 'next/dynamic'
 import LoadingScreen from '../components/LoadingScreen'
+import { MDXRemoteSerializeResult } from 'next-mdx-remote'
+import { serializedMdx } from '../lib/mdxUtility'
+import { useGoogleReCaptcha } from 'react-google-recaptcha-v3'
+import { fetchApi } from '../lib/utility'
+import { useRouter } from 'next/router'
 
 const loadingView = () => <LoadingScreen />
 
@@ -72,12 +77,13 @@ const Home: NextPage<PageProps> = ({
     recaptchaKey,
     myName,
 }) => {
+    const router = useRouter()
     const [draftOpen, setDraft] = useState(false)
     useTitle({ appbar: '主页', head: `${myName}的博客` })
 
     const [inspirations, setInspirations] = useState(_inspirations)
 
-    function handleNewPost(
+    async function handleNewPost(
         type: MessageType,
         id: string,
         raiser: User,
@@ -98,16 +104,8 @@ const Home: NextPage<PageProps> = ({
                 setInspirations(inspirations)
                 break
             case 'recent':
-                recents.pop()
-                recents.unshift({
-                    _id: id,
-                    body: content.body,
-                    title: content.title!,
-                    cover: content.image!,
-                    time: new Date().toISOString(),
-                    likes: [],
-                    dislikes: [],
-                })
+                router.reload()
+                break
         }
     }
 
@@ -142,8 +140,9 @@ const Home: NextPage<PageProps> = ({
     )
 }
 
-export type LocalRecent = Omit<Recent, 'time'> & {
+export type LocalRecent = Omit<Recent, 'time' | 'body'> & {
     time: string
+    body: MDXRemoteSerializeResult
 }
 
 function RecentCards(props: { data: LocalRecent[] }): JSX.Element {
@@ -340,10 +339,13 @@ type StaticProps = {
 }
 
 export async function getStaticProps(): Promise<StaticProps> {
-    const recents = (await getRecents()).map((v) => ({
-        ...v,
-        time: v.time.toISOString(),
-    }))
+    const recents = await Promise.all(
+        (await getRecents()).map(async (v) => ({
+            ...v,
+            time: v.time.toISOString(),
+            body: await serializedMdx(v.body),
+        }))
+    )
     const inspirations = await getInspirations()
     const articles = (await listArticles())
         .filter(ArticleUtil.publicList())

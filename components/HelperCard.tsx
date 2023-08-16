@@ -29,6 +29,7 @@ export default function HelperCard({ variant, sx, title, children, noWrap }: Pro
         case 'success':
             icon = <DoneAllIcon />
             color = theme.palette.success.main
+            break
         default:
             icon = <HelpOutlineIcon />
             color = theme.palette.background.paper
