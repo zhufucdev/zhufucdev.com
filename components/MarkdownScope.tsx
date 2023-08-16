@@ -62,26 +62,31 @@ const components = {
     Button,
     HelperCard,
     Details,
-    Box
+    Box,
 }
 
-export function MarkdownScope(props: MarkdownScopeProps): JSX.Element {
-    const theme = useTheme()
-    const { preload, imageCache, newCache } = props
-
-    const StyledCodeBlock = styled('code')`
-        background: ${theme.palette.mode === 'light'
+const StyledCodeBlock = styled('code')(
+    ({ theme }) => `
+    background: ${
+        theme.palette.mode === 'light'
             ? theme.palette.grey.A200
-            : theme.palette.grey.A700};
-        border-radius: 4px;
-        padding: 2px;
-    `
+            : theme.palette.grey.A700
+    };
+    border-radius: 4px;
+    padding: 2px;
+`
+)
+
+export function MarkdownScope(props: MarkdownScopeProps): JSX.Element {
+    const { preload, imageCache, newCache } = props
 
     return (
         <MDXRemote
             {...props.children}
             components={{
-                a({href, children}) { return <Link href={href ?? ''}>{children}</Link> },
+                a({ href, children }) {
+                    return <Link href={href ?? ''}>{children}</Link>
+                },
                 code({ className, children, ...props }) {
                     const match = /language-(\w+)/.exec(className || '')
                     return match ? (
@@ -151,6 +156,7 @@ function MdImage({
         setImageId(src)
         setContent(getImageUri(src))
     }, [src, preload, imageCache])
+
     return (
         <>
             <LazyImage
@@ -161,6 +167,10 @@ function MdImage({
                     maxWidth: 'calc(100% - 50px)',
                     display: 'block',
                     margin: 'auto',
+                }}
+                waveSx={{
+                    width: '50%',
+                    height: '120px',
                 }}
                 onClick={() => setViewer(true)}
             />
