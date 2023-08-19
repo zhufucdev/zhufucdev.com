@@ -1,20 +1,20 @@
-import {NextApiHandler} from "next";
-import {getArticle} from "../../../lib/db/article";
-import {getSafeArticle} from "../../../lib/getSafeArticle";
+import { NextApiHandler } from 'next'
+import { getArticle } from '../../../lib/db/article'
+import { getSafeArticle } from '../../../lib/safeArticle'
 
 const handler: NextApiHandler = async (req, res) => {
-    const {id} = req.query;
+    const { id } = req.query
     if (typeof id !== 'string') {
-        res.status(400).send('bad request');
+        res.status(400).send('bad request')
         return
     }
-    const meta = await getArticle(id);
+    const meta = await getArticle(id)
     if (!meta) {
-        res.status(404).send('not found');
+        res.status(404).send('not found')
         return
     }
 
     res.send(getSafeArticle(meta))
 }
 
-export default handler;
+export default handler

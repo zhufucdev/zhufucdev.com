@@ -16,7 +16,7 @@ export default routeWithIronSession(async (req, res) => {
     }
     const user = await getUser(req.session.userID!);
     if (!user) {
-        res.status(403).send('user removed');
+        res.status(401).send('user removed');
         return
     }
     let {token, title, forward, body, cover, tags} = req.body;

@@ -1,7 +1,7 @@
 import stream from "stream";
 import { Commentable } from "./db/comment";
 import {Remarkable, RemarkMode} from "./db/remark";
-import {SafeArticle} from "./getSafeArticle";
+import {SafeArticle} from "./safeArticle";
 
 export function getHumanReadableTime(time: Date): string {
     function prefix(units: number): string | undefined {

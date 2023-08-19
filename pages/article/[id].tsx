@@ -5,7 +5,7 @@ import {
     getArticle,
     listArticles,
 } from '../../lib/db/article'
-import { getSafeArticle } from '../../lib/getSafeArticle'
+import { getSafeArticle } from '../../lib/safeArticle'
 import { readAll } from '../../lib/utility'
 import { serializedMdx } from '../../lib/mdxUtility'
 import { Copyright } from '../../components/Copyright'
@@ -23,7 +23,7 @@ import { LanguageOption, useLanguage } from '../../lib/useLanguage'
 import { defaultLang } from '../../lib/translation'
 import { useRouter } from 'next/router'
 import { useProfileContext } from '../../lib/useUser'
-import { getSafeComment, SafeComment } from '../../lib/getSafeComment'
+import { getSafeComment, SafeComment } from '../../lib/safeComment'
 import { getComments } from '../../lib/db/comment'
 import { ReCaptchaScope } from '../../components/ReCaptchaScope'
 import { ReCaptchaPolicy } from '../../components/ReCaptchaPolicy'

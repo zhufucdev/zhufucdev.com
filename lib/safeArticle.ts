@@ -1,6 +1,7 @@
-import {Article, ArticleMeta} from "./db/article";
+import { Article, ArticleCollection, ArticleMeta } from "./db/article";
 
 export type SafeArticle = Omit<ArticleMeta, "postTime"> & { postTime: string };
+export type SafeCollection = Omit<ArticleCollection, keyof AsyncIterable<ArticleMeta>>
 
 export function getSafeArticle(source: Article): SafeArticle {
     const data: SafeArticle = {

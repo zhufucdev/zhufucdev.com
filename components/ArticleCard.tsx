@@ -19,7 +19,7 @@ import {
 import Link from "next/link";
 import DropdownMenuIcon from "@mui/icons-material/MoreVertOutlined";
 import LoginPopover from "./LoginPopover";
-import {SafeArticle} from "../lib/getSafeArticle";
+import {SafeArticle} from "../lib/safeArticle";
 import {useRouter} from "next/router";
 import {getResponseRemark, hasPermission, reCaptchaNotReady} from "../lib/contract";
 import {useSnackbar} from "notistack";

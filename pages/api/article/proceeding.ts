@@ -2,7 +2,7 @@ import {routeWithIronSession} from "../../../lib/session";
 import {validUser} from "../../../lib/db/token";
 import {ArticleUtil, listArticles} from "../../../lib/db/article";
 import {getUser} from "../../../lib/db/user";
-import {getSafeArticle, SafeArticle} from "../../../lib/getSafeArticle";
+import {getSafeArticle} from "../../../lib/safeArticle";
 
 export default routeWithIronSession(async (req, res) => {
     if (!await validUser(req)) {

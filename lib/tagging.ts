@@ -10,7 +10,8 @@ export enum TagKey {
     Language = 'lang',
     Hidden = 'hidden',
     Coauthor = 'coauthor',
-    Private = 'private'
+    Private = 'private',
+    Collection = 'collection',
 }
 
 const nameOfTag: Tags = {
@@ -19,7 +20,8 @@ const nameOfTag: Tags = {
     lang: '语言',
     hidden: '不列出',
     private: '私享',
-    coauthor: '第二作者'
+    coauthor: '第二作者',
+    collection: '合集',
 }
 
 export class TagKeyUtil {
@@ -41,6 +43,7 @@ export class Tag {
         switch (key) {
             case TagKey.Hidden:
             case TagKey.Private:
+            case TagKey.Collection:
                 this.value = true;
                 break;
             default:

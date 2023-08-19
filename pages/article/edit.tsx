@@ -37,10 +37,12 @@ import { useRequestResult } from '../../lib/useRequestResult'
 import { useRouter } from 'next/router'
 import { beginPost, fetchApi, readAll, uploadImage } from '../../lib/utility'
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3'
-import { getSafeArticle, SafeArticle } from '../../lib/getSafeArticle'
+import { getSafeArticle, SafeArticle } from '../../lib/safeArticle'
 import TagInputField from '../../components/TagInputField'
 import { Tag, TagKey } from '../../lib/tagging'
 import LoadingScreen from '../../components/LoadingScreen'
+import CollectionControl from '../../components/CollectionControl'
+import { SpecificCollection } from '../api/article/collection/[id]'
 
 const MdxEditor = dynamic(() => import('../../components/MdxEditor'), {
     loading: () => <LoadingScreen />,
@@ -121,11 +123,14 @@ interface MetadataProps {
     cover?: File | ImageID
     tags: Tag[]
     hardcodedTags: Tag[]
+    collections?: SpecificCollection
+    colLoading: boolean
     context?: Partial<ArticleMeta>
     onTitleChanged: (title: string) => void
     onForwardChanged: (forward: string) => void
     onCoverChanged: (target: ImageID | File) => void
     onTagChanged: (tags: Tag[]) => void
+    onCollectionsChanged: (coll: ArticleID[]) => void
     setter: (incremental: number) => void
 }
 
@@ -177,6 +182,17 @@ function MetadataStepContent(props: MetadataProps): JSX.Element {
                     context={props.context}
                     onChanged={props.onTagChanged}
                 />
+                <CollectionControl
+                    collections={props.collections}
+                    onItemsChanged={(sc) =>
+                        props.onCollectionsChanged(
+                            Object.entries(sc)
+                                .filter(([_, { containing }]) => containing)
+                                .map(([id, _]) => id)
+                        )
+                    }
+                    loading={props.colLoading}
+                />
                 <Box mb={2}>
                     <BackButton disabled />
                     <ContinueButton
@@ -219,7 +235,14 @@ function PageContent(props: ContentProps): JSX.Element {
             typeof localStorage === 'object'
                 ? (localStorage.getItem(`${storageIdentifier}.${type}`) as T)
                 : undefined
-        return useState<T>(draft ?? or)
+        const state = useState<T>(draft ?? or)
+        useEffect(() => {
+            const newValue = state[0]
+            if (typeof newValue === 'string') {
+                saveFunc(type, newValue)
+            }
+        }, [state[0]])
+        return state
     }
 
     const hardcodedTags = useMemo(() => {
@@ -260,7 +283,49 @@ function PageContent(props: ContentProps): JSX.Element {
                 }
             }
         }
-        return useState(draft ?? [])
+        const state = useState(draft ?? [])
+        useEffect(() =>
+            saveFunc('tags', JSON.stringify(state[0].map((v) => v.toString())))
+        )
+        return state
+    }
+
+    function useCollections() {
+        const storageId = `${storageIdentifier}.collections`
+        let collections: string[] = []
+        if (typeof localStorage === 'object') {
+            const read = localStorage.getItem(storageId)
+            if (read) {
+                collections = JSON.parse(read)
+            }
+        }
+
+        const [state, setState] = useState(collections)
+        const [spColl, setSpColl] = useState<SpecificCollection>()
+        const [loading, setLoading] = useState(false)
+        useEffect(() => {
+            // load initial value
+            if (!article || localStorage.getItem(storageId)) {
+                return
+            }
+            setLoading(true)
+            fetch(`/api/article/collection/${article._id}`)
+                .then((res) => res.json() as Promise<SpecificCollection>)
+                .then((data) => {
+                    setSpColl(data)
+                    setState(
+                        Object.entries(data)
+                            .filter(([_, { containing }]) => containing)
+                            .map(([id, _]) => id)
+                    )
+                })
+                .finally(() => setLoading(false))
+        }, [])
+        useEffect(() => {
+            // save to localStorage
+            saveFunc('collections', JSON.stringify(state))
+        }, [state])
+        return { state, setState, loading, spColl }
     }
 
     const [title, setTitle] = useSaved('title', article?.title ?? '')
@@ -272,34 +337,19 @@ function PageContent(props: ContentProps): JSX.Element {
     const [value, setValue] = useSaved('body', props.body ?? '')
     const [preload, setPreload] = useState<LocalImage>({})
     const [tags, setTags] = useTags()
-    function saveFunc(type: string, content: () => string): () => void {
+    const {
+        state: collections,
+        setState: setCollections,
+        loading: collLoading,
+        spColl,
+    } = useCollections()
+
+    function saveFunc(type: string, content: string): () => void {
         const id = storageIdentifier
         return () => {
-            localStorage.setItem(`${id}.${type}`, content())
+            localStorage.setItem(`${id}.${type}`, content)
         }
     }
-
-    useEffect(
-        saveFunc('title', () => title),
-        [title]
-    )
-    useEffect(
-        saveFunc('forward', () => forward),
-        [forward]
-    )
-    useEffect(
-        saveFunc('body', () => value!),
-        [value]
-    )
-    useEffect(() => {
-        if (typeof cover === 'string') {
-            localStorage.setItem(storageIdentifier + '.cover', cover)
-        }
-    }, [cover])
-    useEffect(
-        saveFunc('tags', () => JSON.stringify(tags.map((v) => v.toString()))),
-        [tags]
-    )
 
     const [activeStep, setActiveStep] = useState(0)
     const lastStep = 2
@@ -339,10 +389,11 @@ function PageContent(props: ContentProps): JSX.Element {
             cover,
             body: source,
             tags: tags.concat(hardcodedTags).map((t) => t.toString()),
+            collections,
         }
+        let res: Response
         if (article) {
             const original = article
-            body.edit = true
             body.id = original._id
             if (body.title === original.title) {
                 delete body.title
@@ -356,9 +407,11 @@ function PageContent(props: ContentProps): JSX.Element {
             if (source === props.body) {
                 delete body.body
             }
+            res = await fetchApi('/api/article/edit', body)
+        } else {
+            res = await fetchApi(`/api/article/create`, body)
         }
 
-        const res = await fetchApi('/api/article', body)
         handleResult(await getResponseRemark(res))
     }
 
@@ -467,6 +520,9 @@ function PageContent(props: ContentProps): JSX.Element {
                             hardcodedTags={hardcodedTags}
                             onTagChanged={setTags}
                             context={{ ...article, postTime: undefined }}
+                            collections={spColl}
+                            colLoading={collLoading}
+                            onCollectionsChanged={setCollections}
                         />
                     </StepContent>
                 </Step>

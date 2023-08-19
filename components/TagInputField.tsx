@@ -142,7 +142,7 @@ export default function TagInputField(props: Props) {
                                         onClick={() => {
                                             setInputBuffer('');
                                             props.onChanged(props.tags.concat(
-                                                onTagAppend(v.key, props.context)));
+                                                tagDispatcher(v.key, props.context)));
                                         }}>
                             <ListItemText>{v.name}</ListItemText>
                             <Typography variant="caption" ml={1}>{v.key}</Typography>
@@ -154,7 +154,7 @@ export default function TagInputField(props: Props) {
     </Box>
 }
 
-function onTagAppend(key: TagKey, context?: Partial<ArticleMeta>): Tag {
+function tagDispatcher(key: TagKey, context?: Partial<ArticleMeta>): Tag {
     if (!context) return new Tag(key);
 
     switch (key) {

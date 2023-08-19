@@ -8,7 +8,7 @@ import { useRouter } from 'next/router'
 import { useTitle } from '../../lib/useTitle'
 import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { getSafeArticle, SafeArticle } from '../../lib/getSafeArticle'
+import { getSafeArticle, SafeArticle } from '../../lib/safeArticle'
 
 import { getUser, getUsers } from '../../lib/db/user'
 import { ReCaptchaPolicy } from '../../components/ReCaptchaPolicy'
