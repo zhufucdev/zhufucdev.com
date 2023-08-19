@@ -9,7 +9,7 @@ import Divider from "@mui/material/Divider";
 import {ReactNode, useEffect, useState} from "react";
 import {getUser} from "../../lib/db/user";
 import PlaceHolder from "../../components/PlaceHolder";
-import {fromSafeUser, getSafeUser, SafeUser} from "../../lib/getSafeUser";
+import {fromSafeUser, getSafeUser, SafeUser} from "../../lib/safeUser";
 import QuestionIcon from "@mui/icons-material/HelpOutline";
 import AnswerIcon from "@mui/icons-material/QuestionAnswerOutlined";
 import ErrorIcon from "@mui/icons-material/ErrorOutline";

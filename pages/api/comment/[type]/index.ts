@@ -7,7 +7,7 @@ import {
 } from "../../../../lib/db/comment";
 import {validUser} from "../../../../lib/db/token";
 import {getUser, User} from "../../../../lib/db/user";
-import {getSafeComment} from "../../../../lib/getSafeComment";
+import {getSafeComment} from "../../../../lib/safeComment";
 import {routeWithIronSession} from "../../../../lib/session";
 import {verifyReCaptcha} from "../../../../lib/utility";
 import {CommentUtil} from "../../../../lib/comment";

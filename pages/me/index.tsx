@@ -1,7 +1,7 @@
 import {GetStaticProps, NextPage} from "next";
 import {useTitle} from "../../lib/useTitle";
 import {getUser} from "../../lib/db/user";
-import {fromSafeUser, getSafeUser, SafeUser} from "../../lib/getSafeUser";
+import {fromSafeUser, getSafeUser, SafeUser} from "../../lib/safeUser";
 import {MeHeader} from "../../components/MeHeader";
 import {MeTabs} from "./[...param]";
 import {myId} from "../../lib/useUser";

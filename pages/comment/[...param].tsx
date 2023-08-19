@@ -7,7 +7,7 @@ import {
 import PlaceHolder from "../../components/PlaceHolder";
 import {Commentable, getComment, getComments} from "../../lib/db/comment";
 import { getUser } from "../../lib/db/user";
-import { getSafeComment } from "../../lib/getSafeComment";
+import { getSafeComment } from "../../lib/safeComment";
 import NoCommentIcon from "@mui/icons-material/CommentsDisabledOutlined";
 import Stack from "@mui/material/Stack";
 import Divider from "@mui/material/Divider";

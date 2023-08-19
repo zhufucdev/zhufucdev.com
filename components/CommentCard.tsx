@@ -3,7 +3,7 @@ import ListItemIcon from "@mui/material/ListItemIcon";
 import Menu, { MenuProps } from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import React, { useEffect, useMemo, useState } from "react";
-import { SafeComment } from "../lib/getSafeComment";
+import { SafeComment } from "../lib/safeComment";
 import { RenderingReview, ReviewCard, ReviewCardRoot } from "./ReviewCard";
 import { lookupUser, useProfileContext } from "../lib/useUser";
 import {
