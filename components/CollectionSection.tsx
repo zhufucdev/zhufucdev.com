@@ -20,7 +20,7 @@ export default function CollectionSection({
     collectionId,
 }: Props) {
     return (
-        <Paper sx={{ p: 2, mt: 2 }} variant="outlined">
+        <Paper sx={{ p: 2, mt: 2, borderRadius: 2 }} variant="outlined">
             <Typography variant="h5" mb={1}>
                 继续阅读
             </Typography>
@@ -31,7 +31,7 @@ export default function CollectionSection({
                 </CLink>
                 中
             </Typography>
-            <Box display="flex">
+            <Box display="flex" mt={1}>
                 {previous && (
                     <Button
                         startIcon={<SkipPreviousIcon />}

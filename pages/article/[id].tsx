@@ -131,7 +131,12 @@ const ArticleApp: NextPage<PageProps> = ({
     useEffect(() => {
         if (!options || !options.current) return
         const targetId = meta!.alternatives![options.current]
-        router.push(`/article/${targetId}`)
+        if (targetId !== meta!._id) {
+            router.push({
+                pathname: `/article/${targetId}`,
+                query: router.query,
+            })
+        }
     }, [options])
 
     if (meta) {
