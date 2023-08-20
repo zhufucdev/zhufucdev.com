@@ -13,17 +13,13 @@ import { Copyright } from '../../components/Copyright'
 import { getUser } from '../../lib/db/user'
 import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
-import Grid from '@mui/material/Grid'
-import Stack from '@mui/material/Stack'
 import { ReactNode, useEffect, useMemo, useRef, useState } from 'react'
-import { SxProps, useMediaQuery, useTheme } from '@mui/material'
-import { AnimatePresence, motion } from 'framer-motion'
+import { useMediaQuery, useTheme } from '@mui/material'
 import { useTitle } from '../../lib/useTitle'
 import { RenderingArticle } from '../../components/ArticleCard'
 import { LanguageOption, useLanguage } from '../../lib/useLanguage'
 import { defaultLang } from '../../lib/translation'
 import { useRouter } from 'next/router'
-import { useProfileContext } from '../../lib/useUser'
 import { getSafeComment, SafeComment } from '../../lib/safeComment'
 import { getComments } from '../../lib/db/comment'
 import { ReCaptchaScope } from '../../components/ReCaptchaScope'
@@ -117,15 +113,21 @@ const ArticleApp: NextPage<PageProps> = ({
     }, [meta])
     useLanguage(langOptions)
     const [container, setContainer] = useState<Contained>()
+    const [loadingContainer, setLoadingContainer] = useState(false)
 
     useEffect(() => {
         if (!meta || !coll) {
             setContainer(undefined)
+            setLoadingContainer(false)
             return
         }
+        setLoadingContainer(true)
         fetch(`/api/article/position/${coll}/${meta._id}`)
             .then((res) => res.json())
-            .then((data) => setContainer(data))
+            .then((data) => {
+                setContainer(data)
+                setLoadingContainer(false)
+            })
     }, [coll, meta])
 
     if (meta) {
@@ -141,6 +143,7 @@ const ArticleApp: NextPage<PageProps> = ({
                     />
                     {container && (
                         <CollectionSection
+                            loading={loadingContainer}
                             collectionTitle={container.collection}
                             collectionId={coll as string}
                             next={container.next}
