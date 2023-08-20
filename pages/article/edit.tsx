@@ -42,11 +42,11 @@ import TagInputField from '../../components/TagInputField'
 import { Tag, TagKey } from '../../lib/tagging'
 import LoadingScreen from '../../components/LoadingScreen'
 import CollectionControl from '../../components/CollectionControl'
-import { SpecificCollection } from '../api/article/collection/[id]'
 import {
     getRenderingCollection,
     RenderingCollection,
 } from '../../lib/renderingCollection'
+import { SpecificCollection } from '../api/article/collections/[id]'
 
 const MdxEditor = dynamic(() => import('../../components/MdxEditor'), {
     loading: () => <LoadingScreen />,

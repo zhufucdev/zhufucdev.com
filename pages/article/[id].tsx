@@ -115,7 +115,7 @@ const ArticleApp: NextPage<PageProps> = ({
             available: hrefs,
         }
     }, [meta])
-    const [options] = useLanguage(langOptions)
+    useLanguage(langOptions)
     const [container, setContainer] = useState<Contained>()
 
     useEffect(() => {
@@ -127,17 +127,6 @@ const ArticleApp: NextPage<PageProps> = ({
             .then((res) => res.json())
             .then((data) => setContainer(data))
     }, [coll, meta])
-
-    useEffect(() => {
-        if (!options || !options.current) return
-        const targetId = meta!.alternatives![options.current]
-        if (targetId !== meta!._id) {
-            router.push({
-                pathname: `/article/${targetId}`,
-                query: router.query,
-            })
-        }
-    }, [options])
 
     if (meta) {
         let content: ReactNode

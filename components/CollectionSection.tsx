@@ -39,7 +39,7 @@ export default function CollectionSection({
                         href={{
                             pathname: getArticleUri(previous._id),
                             query: { coll: collectionId },
-                        }}
+                        } as any}
                     >
                         上一篇：{previous.title}
                     </Button>
@@ -52,7 +52,7 @@ export default function CollectionSection({
                         href={{
                             pathname: getArticleUri(next._id),
                             query: { coll: collectionId },
-                        }}
+                        } as any}
                     >
                         下一篇：{next.title}
                     </Button>

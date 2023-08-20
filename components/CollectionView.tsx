@@ -60,7 +60,6 @@ export default function CollectionView({ collection, title, sx }: Props) {
                 m: 'auto',
                 borderRadius: 2,
                 maxWidth: maxWidth,
-                overflow: 'auto',
                 ...sx,
             }}
             variant="outlined"

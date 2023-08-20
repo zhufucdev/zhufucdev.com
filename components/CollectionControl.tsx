@@ -3,15 +3,15 @@ import Typography from '@mui/material/Typography'
 
 import Button from '@mui/material/Button'
 import Popover from '@mui/material/Popover'
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 
-import { SpecificCollection } from '../pages/api/article/collection/[id]'
 import PlaylistRemoveIcon from '@mui/icons-material/PlaylistRemove'
 import PlaylistAddIcon from '@mui/icons-material/PlaylistAdd'
 import Skeleton from '@mui/material/Skeleton'
 import List from '@mui/material/List'
 import { Checkbox, ListItem, ListItemButton } from '@mui/material'
 import { Caption } from './Caption'
+import { SpecificCollection } from '../pages/api/article/collections/[id]'
 
 interface Props {
     collections?: SpecificCollection

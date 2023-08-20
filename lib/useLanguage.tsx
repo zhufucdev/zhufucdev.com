@@ -34,6 +34,6 @@ export function useLanguage(options?: LanguageSettings): [LanguageSettings | und
         return () => {
             setOption(undefined);
         }
-    }, []);
+    }, [options]);
     return [option, setOption, setCurrent];
 }
