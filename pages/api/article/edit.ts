@@ -12,7 +12,6 @@ import {
     updateArticle,
     updateArticleInCollection,
 } from '../../../lib/db/article'
-import { validRef } from '../begin/[type]'
 import { notifyTargetDuplicated } from '../../../lib/db/image'
 import { nanoid } from 'nanoid'
 import {
@@ -120,14 +119,22 @@ export default routeWithIronSession(async (req, res) => {
         if (acknowledged) {
             res.revalidate('/')
             res.revalidate(`/article/${ref}`)
+            let involved: ArticleID[] = [ref]
             if (update._id) {
-                res.revalidate(`/article/${update._id}`)
-                updateArticleInCollection(update._id, collections)
+                involved.push(update._id)
+                involved = involved.concat(
+                    await updateArticleInCollection(update._id, collections)
+                )
             } else {
-                updateArticleInCollection(ref, collections)
+                involved = involved.concat(
+                    await updateArticleInCollection(ref, collections)
+                )
             }
             if (tagStruct['t-from']) {
-                res.revalidate(`/article/${tagStruct['t-from']}`)
+                involved.push(tagStruct['t-from'] as string)
+            }
+            for (const id of involved) {
+                res.revalidate(`/article/${id}`)
             }
             await res.revalidate('/article')
             res.send('success')
@@ -173,7 +180,12 @@ export default routeWithIronSession(async (req, res) => {
         notifyTargetDuplicated(original._id, pr._id)
         if (meta) {
             if (collections) {
-                updateArticleInCollection(pr._id, collections)
+                for (const involved of await updateArticleInCollection(
+                    pr._id,
+                    collections
+                )) {
+                    res.revalidate(`/article/${involved}`)
+                }
             }
             res.send(meta._id)
         } else {

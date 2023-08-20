@@ -320,7 +320,7 @@ function collectionTransformer(base: Article, doc?: CollectionStore) {
                 )
             }
         },
-    }   
+    }
     delete coll.stream
     return coll
 }
@@ -369,26 +369,36 @@ export async function updateCollection(
     }
 }
 
+/**
+ * Update the containers (articles which happen to be a collection)
+ * of a contained article
+ * @returns id of containers involved
+ */
 export async function updateArticleInCollection(
     id: ArticleID,
     collections: ArticleID[]
-) {
+): Promise<ArticleID[]> {
     requireDatabase()
     const original =
         (await listCollections())
             ?.filter((col) => col.articles.includes(id))
             ?.map((col) => col._id) ?? []
 
+    const involved: ArticleID[] = []
     const diff = Diff.diffArrays(original, collections)
     for (const entry of diff) {
         if (entry.added) {
             for (const entryId of entry.value) {
                 updateCollection(entryId, id)
+                involved.push(entryId)
             }
         } else if (entry.removed) {
             for (const entryId of entry.value) {
                 updateCollection(entryId, id, true)
+                involved.push(entryId)
             }
         }
     }
+
+    return involved
 }
