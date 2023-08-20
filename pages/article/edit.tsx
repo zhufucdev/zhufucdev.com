@@ -309,11 +309,11 @@ function PageContent(props: ContentProps): JSX.Element {
         const [loading, setLoading] = useState(false)
         useEffect(() => {
             // load initial value
-            if (!article || localStorage.getItem(storageId)) {
+            if (localStorage.getItem(storageId)) {
                 return
             }
             setLoading(true)
-            fetch(`/api/article/collections/${article._id}`)
+            fetch(`/api/article/collections${article ? '/' + article._id : ''}`)
                 .then((res) => res.json() as Promise<SpecificCollection>)
                 .then((data) => {
                     setSpColl(data)
