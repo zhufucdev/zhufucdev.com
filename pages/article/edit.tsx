@@ -288,8 +288,13 @@ function PageContent(props: ContentProps): JSX.Element {
             }
         }
         const state = useState(draft ?? [])
-        useEffect(() =>
-            saveFunc('tags', JSON.stringify(state[0].map((v) => v.toString())))
+        useEffect(
+            () =>
+                saveFunc(
+                    'tags',
+                    JSON.stringify(state[0].map((v) => v.toString()))
+                ),
+            [tags]
         )
         return state
     }
@@ -348,11 +353,9 @@ function PageContent(props: ContentProps): JSX.Element {
         spColl,
     } = useCollections()
 
-    function saveFunc(type: string, content: string): () => void {
+    function saveFunc(type: string, content: string) {
         const id = storageIdentifier
-        return () => {
-            localStorage.setItem(`${id}.${type}`, content)
-        }
+        localStorage.setItem(`${id}.${type}`, content)
     }
 
     const [activeStep, setActiveStep] = useState(0)
