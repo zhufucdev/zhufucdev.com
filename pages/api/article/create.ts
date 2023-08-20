@@ -2,7 +2,7 @@ import { routeWithIronSession } from '../../../lib/session'
 import { validUser } from '../../../lib/db/token'
 import { getUser } from '../../../lib/db/user'
 import { hasPermission } from '../../../lib/contract'
-import { verifyReCaptcha } from '../../../lib/utility'
+import { getArticleUri, verifyReCaptcha } from '../../../lib/utility'
 import { addArticle, updateArticleInCollection } from '../../../lib/db/article'
 import { validRef } from '../begin/[type]'
 
@@ -55,7 +55,9 @@ export default routeWithIronSession(async (req, res) => {
     if (meta) {
         res.revalidate('/')
         if (collections) {
-            updateArticleInCollection(ref, collections)
+            for (const involved in await updateArticleInCollection(ref, collections)) {
+                res.revalidate(getArticleUri(involved))
+            }
         }
         await res.revalidate('/article')
         res.send(meta._id)
