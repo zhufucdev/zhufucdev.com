@@ -243,7 +243,7 @@ function PageContent(props: ContentProps): JSX.Element {
         useEffect(() => {
             const newValue = state[0]
             if (typeof newValue === 'string') {
-                saveFunc(type, newValue)
+                saveAs(type, newValue)
             }
         }, [state[0]])
         return state
@@ -290,49 +290,47 @@ function PageContent(props: ContentProps): JSX.Element {
         const state = useState(draft ?? [])
         useEffect(
             () =>
-                saveFunc(
+                saveAs(
                     'tags',
                     JSON.stringify(state[0].map((v) => v.toString()))
                 ),
-            [tags]
+            [state[0]]
         )
         return state
     }
 
     function useCollections() {
         const storageId = `${storageIdentifier}.collections`
-        let collections: string[] = []
+        let selected: string[] = []
         if (typeof localStorage === 'object') {
             const read = localStorage.getItem(storageId)
             if (read) {
-                collections = JSON.parse(read)
+                selected = JSON.parse(read)
             }
         }
 
-        const [state, setState] = useState(collections)
+        const [state, setState] = useState(selected)
         const [spColl, setSpColl] = useState<SpecificCollection>()
         const [loading, setLoading] = useState(false)
         useEffect(() => {
             // load initial value
-            if (localStorage.getItem(storageId)) {
-                return
-            }
             setLoading(true)
             fetch(`/api/article/collections${article ? '/' + article._id : ''}`)
                 .then((res) => res.json() as Promise<SpecificCollection>)
                 .then((data) => {
                     setSpColl(data)
-                    setState(
-                        Object.entries(data)
-                            .filter(([_, { containing }]) => containing)
-                            .map(([id, _]) => id)
-                    )
+                    if (!state) {
+                        setState(
+                            Object.entries(data)
+                                .filter(([_, { containing }]) => containing)
+                                .map(([id, _]) => id)
+                        )
+                    }
                 })
                 .finally(() => setLoading(false))
         }, [])
         useEffect(() => {
-            // save to localStorage
-            saveFunc('collections', JSON.stringify(state))
+            saveAs('collections', JSON.stringify(state))
         }, [state])
         return { state, setState, loading, spColl }
     }
@@ -353,7 +351,7 @@ function PageContent(props: ContentProps): JSX.Element {
         spColl,
     } = useCollections()
 
-    function saveFunc(type: string, content: string) {
+    function saveAs(type: string, content: string) {
         const id = storageIdentifier
         localStorage.setItem(`${id}.${type}`, content)
     }
