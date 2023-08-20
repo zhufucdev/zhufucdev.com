@@ -124,10 +124,8 @@ const ArticleApp: NextPage<PageProps> = ({
         setLoadingContainer(true)
         fetch(`/api/article/position/${coll}/${meta._id}`)
             .then((res) => res.json())
-            .then((data) => {
-                setContainer(data)
-                setLoadingContainer(false)
-            })
+            .then((data) => setContainer(data))
+            .finally(() => setLoadingContainer(false))
     }, [coll, meta])
 
     if (meta) {
