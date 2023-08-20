@@ -313,7 +313,7 @@ function PageContent(props: ContentProps): JSX.Element {
                 return
             }
             setLoading(true)
-            fetch(`/api/article/collection/${article._id}`)
+            fetch(`/api/article/collections/${article._id}`)
                 .then((res) => res.json() as Promise<SpecificCollection>)
                 .then((data) => {
                     setSpColl(data)

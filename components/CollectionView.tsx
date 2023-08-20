@@ -14,19 +14,16 @@ import PlaylistRemoveIcon from '@mui/icons-material/PlaylistRemove'
 import { RenderingCollection } from '../lib/renderingCollection'
 import Link from 'next/link'
 import { cacheImage, getArticleUri, getImageUri } from '../lib/utility'
-import { useCallback, useRef, useState } from 'react'
+import { ReactNode, useCallback, useState } from 'react'
 import { SafeArticle } from '../lib/safeArticle'
 
 interface Props {
+    title?: ReactNode
     collection?: RenderingCollection
     sx?: SxProps
 }
 
-export default function CollectionView({ collection, sx }: Props) {
-    if (!collection) {
-        return <NoCollection />
-    }
-
+export default function CollectionView({ collection, title, sx }: Props) {
     const maxWidth = 550
     const [isFullWidth, setFullWidth] = useState(false)
     const [hasImg, setImg] = useState(false)
@@ -53,9 +50,19 @@ export default function CollectionView({ collection, sx }: Props) {
         }
     }
 
+    if (!collection) {
+        return <NoCollection />
+    }
+
     return (
         <Card
-            sx={{ m: 'auto', borderRadius: 2, maxWidth: maxWidth, ...sx }}
+            sx={{
+                m: 'auto',
+                borderRadius: 2,
+                maxWidth: maxWidth,
+                overflow: 'auto',
+                ...sx,
+            }}
             variant="outlined"
             ref={cardRef}
             onMouseLeave={() => setImg(false)}
@@ -88,14 +95,19 @@ export default function CollectionView({ collection, sx }: Props) {
                         </Box>
                     </Fade>
                 )}
-                <Typography variant="h6">目录</Typography>
+                <Typography variant="h6" ml={1}>
+                    {title ?? '目录'}
+                </Typography>
                 <List>
                     {collection.articles.map((meta, index) => (
                         <ListItemButton
                             key={meta._id}
                             sx={{ borderRadius: 1 }}
                             component={Link}
-                            href={getArticleUri(meta._id)}
+                            href={{
+                                pathname: getArticleUri(meta._id),
+                                query: { coll: collection._id },
+                            }}
                             onMouseOver={() => handleHover(meta)}
                         >
                             <Typography>

@@ -6,7 +6,7 @@ import {
     getCollection,
     listArticles,
 } from '../../lib/db/article'
-import { getSafeArticle } from '../../lib/safeArticle'
+import { getSafeArticle, SafeArticle } from '../../lib/safeArticle'
 import { readAll } from '../../lib/utility'
 import { serializedMdx } from '../../lib/mdxUtility'
 import { Copyright } from '../../components/Copyright'
@@ -40,18 +40,6 @@ import {
 } from '../../lib/renderingCollection'
 
 const loadingView = () => <LoadingScreen />
-const LoginPopover = dynamic(() => import('../../components/LoginPopover'))
-const ArticleComment = dynamic(
-    () => import('../../components/ArticleComment'),
-    { loading: loadingView }
-)
-const ArticlePr = dynamic(() => import('../../components/ArticlePr'), {
-    loading: loadingView,
-})
-const CommentCard = dynamic(
-    () => import('../../components/CommentCard').then((mod) => mod.CommentCard),
-    { loading: loadingView }
-)
 const ArticleHeader = dynamic(
     () =>
         import('../../components/ArticleHeader').then(
@@ -80,6 +68,14 @@ const NoContentIcon = dynamic(
     () => import('@mui/icons-material/PsychologyOutlined'),
     { loading: loadingView }
 )
+const RevisionSection = dynamic(
+    () => import('../../components/RevisionSection'),
+    { loading: loadingView }
+)
+const CollectionSection = dynamic(
+    () => import('../../components/CollectionSection'),
+    { loading: loadingView }
+)
 
 type PageProps = {
     meta?: RenderingArticle
@@ -87,6 +83,12 @@ type PageProps = {
     comments?: RenderingComment[]
     collection?: RenderingCollection
     reCaptchaKey: string
+}
+
+type Contained = {
+    collection: string
+    next?: SafeArticle
+    previous?: SafeArticle
 }
 
 const ArticleApp: NextPage<PageProps> = ({
@@ -98,6 +100,7 @@ const ArticleApp: NextPage<PageProps> = ({
 }) => {
     useTitle({ appbar: '文章', head: meta?.title ?? '文章' })
     const router = useRouter()
+    const { coll } = router.query
     const langOptions = useMemo(() => {
         if (!meta || !meta.alternatives) return undefined
         const hrefs: LanguageOption[] = []
@@ -113,6 +116,17 @@ const ArticleApp: NextPage<PageProps> = ({
         }
     }, [meta])
     const [options] = useLanguage(langOptions)
+    const [container, setContainer] = useState<Contained>()
+
+    useEffect(() => {
+        if (!meta || !coll) {
+            setContainer(undefined)
+            return
+        }
+        fetch(`/api/article/position/${coll}/${meta._id}`)
+            .then((res) => res.json())
+            .then((data) => setContainer(data))
+    }, [coll, meta])
 
     useEffect(() => {
         if (!options || !options.current) return
@@ -131,6 +145,14 @@ const ArticleApp: NextPage<PageProps> = ({
                         body={body}
                         collection={collection}
                     />
+                    {container && (
+                        <CollectionSection
+                            collectionTitle={container.collection}
+                            collectionId={coll as string}
+                            next={container.next}
+                            previous={container.previous}
+                        />
+                    )}
                     <RevisionSection
                         meta={meta}
                         sx={{ mt: 2 }}
@@ -186,114 +208,6 @@ function ArticleBody({
                 </MarkdownScope>
             </Box>
         </>
-    )
-}
-
-interface RevisionProps {
-    meta: RenderingArticle
-    sx?: SxProps
-    comments: RenderingComment[]
-}
-
-function RevisionSection({ meta, sx, comments: _comments }: RevisionProps) {
-    const theme = useTheme()
-    const { user } = useProfileContext()
-    const [comments, setComments] = useState(_comments)
-    const [reviewing, setReviewing] = useState<HTMLElement>()
-    const [commenting, setCommenting] = useState(false)
-
-    async function handleDelete(target: RenderingComment) {
-        const index = comments.findIndex((v) => v._id === target._id)
-        if (index < 0) return
-        setComments(comments.slice(0, index).concat(comments.slice(index + 1)))
-    }
-
-    async function handleEdit(target: RenderingComment, newContent: string) {
-        const index = comments.findIndex((v) => v._id === target._id)
-        if (index < 0) return
-        setComments(
-            comments
-                .slice(0, index)
-                .concat(
-                    { ...target, body: newContent, edited: true },
-                    comments.slice(index + 1)
-                )
-        )
-    }
-
-    const container = {
-        flexGrow: 1,
-        [theme.breakpoints.up('sm')]: {
-            flexGrow: 1,
-            flex: 1,
-        },
-    }
-
-    return (
-        <motion.div layout>
-            <Grid
-                container
-                spacing={2}
-                sx={{
-                    ...sx,
-                    flexDirection: commenting ? 'column' : 'row',
-                }}
-                component={motion.div}
-                layout
-            >
-                <Grid item sx={container} key="comment-card">
-                    <ArticleComment
-                        expanded={commenting}
-                        setExpanded={setCommenting}
-                        articleId={meta._id}
-                        postComment={(c) => setComments(comments.concat(c))}
-                        setPrimaryButton={setReviewing}
-                    />
-                </Grid>
-
-                <Grid
-                    item
-                    key="pr-card"
-                    sx={container}
-                    component={motion.div}
-                    variants={{
-                        rest: { opacity: 1 },
-                        disabled: { opacity: 0.4 },
-                    }}
-                    animate={commenting ? 'disabled' : 'rest'}
-                >
-                    <ArticlePr
-                        commenting={commenting}
-                        articleId={meta._id}
-                        setPrimaryButton={setReviewing}
-                    />
-                </Grid>
-            </Grid>
-
-            <Stack spacing={2} mt={2}>
-                <AnimatePresence initial={false}>
-                    {comments.map((c) => (
-                        <motion.div
-                            key={c._id}
-                            animate={{ x: 0 }}
-                            exit={{ x: '-120%' }}
-                        >
-                            <CommentCard
-                                data={c}
-                                onDeleted={handleDelete}
-                                onEdited={handleEdit}
-                            />
-                        </motion.div>
-                    ))}
-                </AnimatePresence>
-            </Stack>
-
-            <LoginPopover
-                open={Boolean(reviewing) && !user}
-                onClose={() => setReviewing(undefined)}
-                anchorEl={reviewing}
-            />
-        </motion.div>
     )
 }
 
