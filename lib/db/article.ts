@@ -294,8 +294,8 @@ interface CollectionStore {
     articles: Array<ArticleID>
 }
 
-function collectionTransformer(base: ArticleMeta, doc?: CollectionStore) {
-    return {
+function collectionTransformer(base: Article, doc?: CollectionStore) {
+    const coll: any = {
         ...base,
         articles: doc?.articles ?? [],
         [Symbol.asyncIterator]: async function* () {
@@ -320,7 +320,9 @@ function collectionTransformer(base: ArticleMeta, doc?: CollectionStore) {
                 )
             }
         },
-    }
+    }   
+    delete coll.stream
+    return coll
 }
 
 export async function getCollection(

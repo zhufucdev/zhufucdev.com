@@ -1,6 +1,6 @@
 import { GetServerSideProps, NextPage } from 'next'
 import dynamic from 'next/dynamic'
-import { ArticleMeta, getArticle } from '../../lib/db/article'
+import { ArticleMeta, getArticle, getCollection } from '../../lib/db/article'
 import { useTitle } from '../../lib/useTitle'
 import { useEffect, useMemo, useState } from 'react'
 
@@ -43,6 +43,10 @@ import { Tag, TagKey } from '../../lib/tagging'
 import LoadingScreen from '../../components/LoadingScreen'
 import CollectionControl from '../../components/CollectionControl'
 import { SpecificCollection } from '../api/article/collection/[id]'
+import {
+    getRenderingCollection,
+    RenderingCollection,
+} from '../../lib/renderingCollection'
 
 const MdxEditor = dynamic(() => import('../../components/MdxEditor'), {
     loading: () => <LoadingScreen />,
@@ -541,6 +545,7 @@ function PageContent(props: ContentProps): JSX.Element {
                             value={value}
                             onChange={setValue}
                             preload={preload}
+                            collection={props.collection}
                             onUploadImage={(key, file) => {
                                 const nextPreupload = preload
                                 preload[key] = file
@@ -577,6 +582,7 @@ function PageContent(props: ContentProps): JSX.Element {
 
 type PageProps = {
     article?: SafeArticle
+    collection?: RenderingCollection
     body?: string
     reCaptchaKey: string
 }
@@ -587,15 +593,22 @@ export const getServerSideProps: GetServerSideProps<PageProps> = async (
     const reCaptchaKey = process.env.RECAPTCHA_KEY_FRONTEND as string
     if (id) {
         const article = await getArticle(id as string)
-        if (article)
-            return {
-                props: {
-                    article: getSafeArticle(article),
-                    body: (await readAll(article.stream())).toString(),
-                    reCaptchaKey,
-                },
+        const collection = await getCollection(id as string).then((data) =>
+            data ? getRenderingCollection(data) : undefined
+        )
+        if (article) {
+            const props: PageProps = {
+                article: getSafeArticle(article),
+                body: (await readAll(article.stream())).toString(),
+                reCaptchaKey,
             }
-        else
+            if (collection) {
+                props.collection = collection
+            }
+            return {
+                props,
+            }
+        } else {
             return {
                 props: { reCaptchaKey },
                 redirect: {
@@ -603,6 +616,7 @@ export const getServerSideProps: GetServerSideProps<PageProps> = async (
                     destination: '/article/edit',
                 },
             }
+        }
     }
     return { props: { reCaptchaKey } }
 }

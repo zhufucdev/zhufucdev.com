@@ -1,9 +1,8 @@
-import { Article, ArticleCollection, ArticleMeta } from "./db/article";
+import { ArticleMeta } from './db/article'
 
-export type SafeArticle = Omit<ArticleMeta, "postTime"> & { postTime: string };
-export type SafeCollection = Omit<ArticleCollection, keyof AsyncIterable<ArticleMeta>>
+export type SafeArticle = Omit<ArticleMeta, 'postTime'> & { postTime: string }
 
-export function getSafeArticle(source: Article): SafeArticle {
+export function getSafeArticle(source: ArticleMeta): SafeArticle {
     const data: SafeArticle = {
         _id: source._id,
         author: source.author,
@@ -13,10 +12,10 @@ export function getSafeArticle(source: Article): SafeArticle {
         dislikes: source.dislikes,
         postTime: source.postTime.toISOString(),
         tags: source.tags,
-        comments: source.comments
+        comments: source.comments,
     }
     if (source.cover) {
-        data.cover = source.cover;
+        data.cover = source.cover
     }
     return data
 }
@@ -24,6 +23,7 @@ export function getSafeArticle(source: Article): SafeArticle {
 export function fromSaveArticle(source: SafeArticle): ArticleMeta {
     return {
         ...source,
-        postTime: new Date(source.postTime)
+        postTime: new Date(source.postTime),
     }
 }
+

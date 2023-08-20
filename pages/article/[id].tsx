@@ -3,6 +3,7 @@ import {
     ArticleMeta,
     ArticleUtil,
     getArticle,
+    getCollection,
     listArticles,
 } from '../../lib/db/article'
 import { getSafeArticle } from '../../lib/safeArticle'
@@ -33,6 +34,10 @@ import NoArticleIcon from '@mui/icons-material/PowerOffOutlined'
 import dynamic from 'next/dynamic'
 import LoadingScreen from '../../components/LoadingScreen'
 import { MDXRemoteSerializeResult } from 'next-mdx-remote'
+import {
+    getRenderingCollection,
+    RenderingCollection,
+} from '../../lib/renderingCollection'
 
 const loadingView = () => <LoadingScreen />
 const LoginPopover = dynamic(() => import('../../components/LoginPopover'))
@@ -80,6 +85,7 @@ type PageProps = {
     meta?: RenderingArticle
     body?: MDXRemoteSerializeResult
     comments?: RenderingComment[]
+    collection?: RenderingCollection
     reCaptchaKey: string
 }
 
@@ -87,6 +93,7 @@ const ArticleApp: NextPage<PageProps> = ({
     meta,
     body,
     comments,
+    collection,
     reCaptchaKey,
 }) => {
     useTitle({ appbar: '文章', head: meta?.title ?? '文章' })
@@ -119,7 +126,11 @@ const ArticleApp: NextPage<PageProps> = ({
         if (body) {
             content = (
                 <>
-                    <ArticleBody meta={meta} body={body} />
+                    <ArticleBody
+                        meta={meta}
+                        body={body}
+                        collection={collection}
+                    />
                     <RevisionSection
                         meta={meta}
                         sx={{ mt: 2 }}
@@ -153,7 +164,11 @@ const ArticleApp: NextPage<PageProps> = ({
     }
 }
 
-function ArticleBody({ meta, body }: Omit<PageProps, 'reCaptchaKey'>) {
+function ArticleBody({
+    meta,
+    body,
+    collection,
+}: Omit<PageProps, 'reCaptchaKey'>) {
     const theme = useTheme()
     const onLargeScreen = useMediaQuery(theme.breakpoints.up('md'))
     const articleRef = useRef<HTMLDivElement>(null)
@@ -166,7 +181,9 @@ function ArticleBody({ meta, body }: Omit<PageProps, 'reCaptchaKey'>) {
                 ref={articleRef}
                 sx={{ width: onLargeScreen ? 'calc(100% - 240px)' : '100%' }}
             >
-                <MarkdownScope lazy>{body!}</MarkdownScope>
+                <MarkdownScope lazy collection={collection}>
+                    {body!}
+                </MarkdownScope>
             </Box>
         </>
     )
@@ -285,6 +302,7 @@ export const getStaticProps: GetStaticProps<PageProps> = async (context) => {
     const meta = await getArticle(id as ArticleID)
     const stream = meta?.stream()
     const body = stream && (await readAll(stream)).toString()
+    const collection = await renderingCollection(id as ArticleID)
     const props: PageProps = {
         reCaptchaKey: process.env.RECAPTCHA_KEY_FRONTEND as string,
     }
@@ -304,6 +322,9 @@ export const getStaticProps: GetStaticProps<PageProps> = async (context) => {
     }
     if (body) {
         props.body = await serializedMdx(body)
+    }
+    if (collection) {
+        props.collection = collection
     }
     return { props, revalidate: false }
 }
@@ -325,6 +346,14 @@ async function renderingComments(
         rendering.push({ ...comment, raiserNick: nick })
     }
     return rendering
+}
+
+async function renderingCollection(
+    id: ArticleID
+): Promise<RenderingCollection | undefined> {
+    return await getCollection(id).then((data) =>
+        data ? getRenderingCollection(data) : undefined
+    )
 }
 
 export const getStaticPaths: GetStaticPaths = async () => {

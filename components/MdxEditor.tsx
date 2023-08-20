@@ -15,10 +15,12 @@ import { fetchApi } from '../lib/utility'
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3'
 import { useSnackbar } from 'notistack'
 import HelperCard from './HelperCard'
+import { RenderingCollection } from '../lib/renderingCollection'
 
 type EditorProps = {
     value: string | undefined
     preload: LocalImage
+    collection?: RenderingCollection
     onChange: (value: string) => void
     onUploadImage: (key: string, image: File) => void
 }
@@ -26,6 +28,7 @@ type EditorProps = {
 export default function MdxEditor({
     value,
     preload,
+    collection,
     onChange,
     onUploadImage,
 }: EditorProps): JSX.Element {
@@ -83,6 +86,7 @@ export default function MdxEditor({
                             preload={preload}
                             imageCache={imageCache}
                             newCache={handleNewCache}
+                            collection={collection}
                         >
                             {value || ''}
                         </Preview>

@@ -20,6 +20,7 @@ export function ArticleDescription({data}: { data: RenderingArticle }) {
             case TagKey.Hidden:
             case TagKey.Private:
             case TagKey.PrFrom:
+            case TagKey.Collection:
                 append(TagKeyUtil.getDisplayName(key as TagKey));
                 break;
             case TagKey.Language:

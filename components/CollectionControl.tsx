@@ -107,6 +107,7 @@ function CollectionList({ items, onItemsChanged }: ListProps) {
             <List sx={{minWidth: 200}}>
                 {Object.entries(items).map(([key, value]) => (
                     <ListItem
+                        key={key}
                         secondaryAction={
                             <Checkbox
                                 edge="end"

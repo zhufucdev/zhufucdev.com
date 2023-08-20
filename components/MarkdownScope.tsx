@@ -40,6 +40,13 @@ import CopyIcon from '@mui/icons-material/ContentCopyOutlined'
 import HelperCard from './HelperCard'
 import Details from './Details'
 import Repo from './Repo'
+import dynamic from 'next/dynamic'
+import LoadingScreen from './LoadingScreen'
+import { RenderingCollection } from '../lib/renderingCollection'
+
+const CollectionView = dynamic(() => import('./CollectionView'), {
+    loading: () => <LoadingScreen />,
+})
 
 export type LocalImage = { [key: string]: File }
 export type LocalCache = { [key: string]: string }
@@ -63,8 +70,9 @@ type ImageProps = {
 }
 
 export interface MarkdownScopeProps extends ImageProps {
-    children: MDXRemoteSerializeResult
     lazy?: boolean
+    collection?: RenderingCollection
+    children: MDXRemoteSerializeResult
 }
 
 const components = {
@@ -126,7 +134,7 @@ export function MarkdownScope(props: MarkdownScopeProps): JSX.Element {
                 table({ children }) {
                     return (
                         <TableContainer component={Paper}>
-                            <Table sx={{minWidth: 650}}>{children}</Table>
+                            <Table sx={{ minWidth: 650 }}>{children}</Table>
                         </TableContainer>
                     )
                 },
@@ -158,6 +166,9 @@ export function MarkdownScope(props: MarkdownScopeProps): JSX.Element {
                 },
                 tbody({ children }) {
                     return <TableBody>{children}</TableBody>
+                },
+                CollectionView() {
+                    return <CollectionView collection={props.collection} />
                 },
                 ...components,
             }}
