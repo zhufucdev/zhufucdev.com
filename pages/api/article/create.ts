@@ -55,7 +55,7 @@ export default routeWithIronSession(async (req, res) => {
     if (meta) {
         res.revalidate('/')
         if (collections) {
-            for (const involved in await updateArticleInCollection(ref, collections)) {
+            for (const involved of await updateArticleInCollection(ref, collections)) {
                 res.revalidate(getArticleUri(involved))
             }
         }
