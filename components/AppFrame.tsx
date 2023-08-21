@@ -148,10 +148,10 @@ export default function AppFrame({
                                             sx={{
                                                 flexGrow: 1,
                                                 p: 3,
-                                                width: '100%',
-                                                [theme.breakpoints.up('sm')]: {
-                                                    width: `calc(100% - ${drawerWidth}px)`
-                                                }
+                                                width: {
+                                                    xs: '100%',
+                                                    sm: `calc(100% - ${drawerWidth}px)`,
+                                                },
                                             }}
                                         >
                                             <Toolbar />

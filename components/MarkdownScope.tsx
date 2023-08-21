@@ -95,13 +95,18 @@ const StyledCodeBlock = styled('code')(
 `
 )
 
-export function MarkdownScope(props: MarkdownScopeProps): JSX.Element {
-    const { preload, imageCache, newCache } = props
-
+export function MarkdownScope({
+    preload,
+    imageCache,
+    newCache,
+    lazy,
+    collection,
+    children,
+}: MarkdownScopeProps): JSX.Element {
     return (
         <MDXRemote
-            {...props.children}
-            lazy={props.lazy}
+            {...children}
+            lazy={lazy}
             components={{
                 a({ href, children }) {
                     return <Link href={href ?? ''}>{children}</Link>
@@ -168,7 +173,7 @@ export function MarkdownScope(props: MarkdownScopeProps): JSX.Element {
                     return <TableBody>{children}</TableBody>
                 },
                 CollectionView() {
-                    return <CollectionView collection={props.collection} />
+                    return <CollectionView collection={collection} />
                 },
                 ...components,
             }}
@@ -181,6 +186,7 @@ function MdImage({
     preload,
     imageCache,
     newCache,
+    alt
 }: ComponentPropsWithoutRef<'img'> & ImageProps): JSX.Element {
     const [content, setContent] = useState(src)
     const [viewer, setViewer] = useState(false)
@@ -219,7 +225,7 @@ function MdImage({
         <>
             <LazyImage
                 src={content}
-                alt=""
+                alt={alt ?? 'no description'}
                 style={{
                     maxHeight: '200px',
                     maxWidth: 'calc(100% - 50px)',

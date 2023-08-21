@@ -12,9 +12,7 @@ import { serializedMdx } from '../../lib/mdxUtility'
 import { Copyright } from '../../components/Copyright'
 import { getUser } from '../../lib/db/user'
 import Typography from '@mui/material/Typography'
-import Box from '@mui/material/Box'
-import { ReactNode, useEffect, useMemo, useRef, useState } from 'react'
-import { useMediaQuery, useTheme } from '@mui/material'
+import { ReactNode, useEffect, useMemo, useState } from 'react'
 import { useTitle } from '../../lib/useTitle'
 import { RenderingArticle } from '../../components/ArticleCard'
 import { LanguageOption, useLanguage } from '../../lib/useLanguage'
@@ -36,26 +34,26 @@ import {
 } from '../../lib/renderingCollection'
 
 const loadingView = () => <LoadingScreen />
+const ArticleBody = dynamic(() => import('../../components/ArticleBody'), {
+    loading: loadingView,
+})
 const ArticleHeader = dynamic(
     () =>
         import('../../components/ArticleHeader').then(
             (mod) => mod.ArticleHeader
         ),
-    { loading: loadingView }
+    {
+        loading: loadingView,
+    }
 )
 const ArticleDescription = dynamic(
     () =>
         import('../../components/ArticleDescription').then(
             (mod) => mod.ArticleDescription
         ),
-    { loading: loadingView }
-)
-const MarkdownScope = dynamic(
-    () =>
-        import('../../components/MarkdownScope').then(
-            (mod) => mod.MarkdownScope
-        ),
-    { loading: loadingView }
+    {
+        loading: loadingView,
+    }
 )
 const PlaceHolder = dynamic(() => import('../../components/PlaceHolder'), {
     loading: loadingView,
@@ -134,8 +132,10 @@ const ArticleApp: NextPage<PageProps> = ({
         if (body) {
             content = (
                 <>
+                    <ArticleHeader meta={meta!} />
+                    <ArticleDescription data={meta!} />
                     <ArticleBody
-                        meta={meta}
+                        id={meta._id}
                         body={body}
                         collection={collection}
                     />
@@ -179,31 +179,6 @@ const ArticleApp: NextPage<PageProps> = ({
     } else {
         return <PlaceHolder icon={NoArticleIcon} title="文章未找到" />
     }
-}
-
-function ArticleBody({
-    meta,
-    body,
-    collection,
-}: Omit<PageProps, 'reCaptchaKey'>) {
-    const theme = useTheme()
-    const onLargeScreen = useMediaQuery(theme.breakpoints.up('md'))
-    const articleRef = useRef<HTMLDivElement>(null)
-
-    return (
-        <>
-            <ArticleHeader meta={meta!} article={articleRef} />
-            <ArticleDescription data={meta!} />
-            <Box
-                ref={articleRef}
-                sx={{ width: onLargeScreen ? 'calc(100% - 240px)' : '100%' }}
-            >
-                <MarkdownScope lazy collection={collection}>
-                    {body!}
-                </MarkdownScope>
-            </Box>
-        </>
-    )
 }
 
 export const getStaticProps: GetStaticProps<PageProps> = async (context) => {

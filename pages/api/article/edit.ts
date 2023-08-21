@@ -119,20 +119,21 @@ export default routeWithIronSession(async (req, res) => {
         if (acknowledged) {
             res.revalidate('/')
             res.revalidate(`/article/${ref}`)
-            let involved: ArticleID[] = [ref]
+            let target: ArticleID
+            let involved: ArticleID[] = []
             if (update._id) {
-                involved.push(update._id)
-                involved = involved.concat(
-                    await updateArticleInCollection(update._id, collections)
-                )
+                target = update._id
+                involved.push(target)
             } else {
-                involved = involved.concat(
-                    await updateArticleInCollection(ref, collections)
-                )
+                target = ref
             }
+            involved = involved.concat(
+                await updateArticleInCollection(target, collections)
+            )
             if (tagStruct['t-from']) {
                 involved.push(tagStruct['t-from'] as string)
             }
+
             for (const id of involved) {
                 res.revalidate(`/article/${id}`)
             }
