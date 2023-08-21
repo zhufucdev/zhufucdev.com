@@ -30,13 +30,10 @@ export default function ArticleBody({ id, body, collection }: Props) {
         return () => setContents(undefined)
     }, [container, id])
     return (
-        <>
+        <Box display="flex">
             <Box
-                width="100%"
                 sx={{
-                    [theme.breakpoints.up('md')]: {
-                        width: 'calc(100% - 240px)',
-                    },
+                    width: { md: 'calc(100% - 240px)' },
                 }}
                 ref={container}
             >
@@ -48,14 +45,14 @@ export default function ArticleBody({ id, body, collection }: Props) {
                 <List
                     sx={{
                         '.MuiListItemButton-root': { borderRadius: 4 },
-                        width: '240',
+                        width: '240px',
                     }}
                     dense
                 >
                     <ContentsNodeComponent node={contents} />
                 </List>
             )}
-        </>
+        </Box>
     )
 }
 
