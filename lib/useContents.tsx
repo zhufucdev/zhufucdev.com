@@ -65,15 +65,8 @@ export function ContentsProvider(props: { children: React.ReactNode }) {
     return <ContentsInstance.Provider {...props} value={contents}/>
 }
 
-export function useContents(nodes?: Contents): ContentsContext {
-    const [root, setContents] = useContext(ContentsInstance);
-    useEffect(() => {
-        if (nodes) setContents(nodes);
-        return () => {
-            setContents(undefined)
-        }
-    }, [nodes]);
-    return [root, setContents];
+export function useContents(): ContentsContext {
+    return useContext(ContentsInstance);
 }
 
 function generateStateFor(contents: ContentsNode[], root: ContentsRootNode, parent?: ContentsNodeState): ContentsNodeState[] {

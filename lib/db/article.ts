@@ -314,9 +314,9 @@ function collectionTransformer(base: Article, doc?: CollectionStore) {
                 }
             }
             if (updateRequired) {
-                db.collection(collectionCollId).findOneAndUpdate(
+                db.collection(collectionCollId).findOneAndReplace(
                     { _id: base._id },
-                    { articles: doc.articles }
+                    doc
                 )
             }
         },
