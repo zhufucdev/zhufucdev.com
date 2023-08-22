@@ -77,7 +77,7 @@ function Content(props: { articles: RenderingArticle[] }): JSX.Element {
 
     useEffect(() => {
         if (proceeding || !user) return
-        if (scrolling.height <= 0) return
+        if (Number.isNaN(scrolling.top)) return
         if (
             window.innerHeight <= scrolling.height &&
             scrolling.height - scrolling.top - window.innerHeight > 10

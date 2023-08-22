@@ -1,49 +1,59 @@
-import {EventHandler, useEffect, useState} from "react";
+import { useEffect, useState } from 'react'
 
 interface ScrollPos {
-    top: number;
-    left: number;
-    height: number;
-    width: number;
+    top: number
+    left: number
+    height: number
+    width: number
 }
 
+/**
+ * A event hool for scroll
+ * @param target defaults to Window
+ * @returns a bounding box of the target element, or NaN if unknown
+ */
 export default function useScroll(target?: HTMLElement) {
-    const [scroll, setScroll] = useState<ScrollPos>({top: 0, left: 0, height: 0, width: 0});
+    const [scroll, setScroll] = useState<ScrollPos>({
+        top: NaN,
+        left: NaN,
+        height: NaN,
+        width: NaN,
+    })
 
     useEffect(() => {
-        let element: Element | Window | undefined = undefined;
-        let scrollerHandler: (() => void) | undefined;
-        if (target) {
-            element = target;
+        let scrollTarget: Window | undefined = undefined
+        let scrollerHandler: (() => void) | undefined
+        if (typeof window !== 'undefined') {
+            scrollTarget = window
             scrollerHandler = () => {
-                setScroll({
-                    top: target.scrollTop,
-                    left: target.scrollLeft,
-                    height: target.scrollHeight,
-                    width: target.scrollWidth
-                })
-            }
-        } else if (typeof window !== 'undefined') {
-            element = window;
-            scrollerHandler = () => {
-                setScroll({
-                    top: window.scrollY,
-                    left: window.scrollX,
-                    height: document.body.scrollHeight,
-                    width: document.body.scrollWidth
-                })
+                if (target) {
+                    const bounds = target.getBoundingClientRect()
+                    setScroll({
+                        top: bounds.top,
+                        left: bounds.left,
+                        height: bounds.height,
+                        width: bounds.width
+                    })
+                } else {
+                    setScroll({
+                        top: window.scrollY,
+                        left: window.scrollX,
+                        height: document.body.scrollHeight,
+                        width: document.body.scrollWidth,
+                    })
+                }
             }
         }
 
         if (scrollerHandler) {
-            scrollerHandler();
-            element?.addEventListener('scroll', scrollerHandler);
+            scrollerHandler()
+            scrollTarget?.addEventListener('scroll', scrollerHandler)
 
             return () => {
-                element?.removeEventListener('scroll', scrollerHandler!)
+                scrollTarget?.removeEventListener('scroll', scrollerHandler!)
             }
         }
     }, [target])
 
-    return scroll;
+    return scroll
 }

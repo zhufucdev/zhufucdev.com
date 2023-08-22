@@ -1,11 +1,12 @@
 import { Box, useMediaQuery, useTheme } from '@mui/material'
 import { MDXRemoteSerializeResult } from 'next-mdx-remote'
-import { useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { RenderingCollection } from '../lib/renderingCollection'
 import { MarkdownScope } from './MarkdownScope'
 import List from '@mui/material/List'
 import { ContentsNodeComponent } from './ContentsNodeComponent'
 import { Contents, ContentsNode, useContents } from '../lib/useContents'
+import useScroll from '../lib/useScroll'
 
 interface Props {
     id: ArticleID
@@ -16,8 +17,24 @@ interface Props {
 export default function ArticleBody({ id, body, collection }: Props) {
     const theme = useTheme()
     const container = useRef<HTMLDivElement>(null)
+    const contentsRef = useRef<HTMLUListElement>(null)
     const [contents, setContents] = useContents()
+    const scroll = useScroll(contentsRef.current ?? undefined)
+    const windowScroll = useScroll()
+    const [ultimateTop, setUltimateTop] = useState<number>(-1)
+    const [fixed, setFixed] = useState(false)
     const onWideScreen = useMediaQuery(theme.breakpoints.up('md'))
+    useEffect(() => {
+        let fixed = !Number.isNaN(scroll.top) && scroll.top <= 64
+        if (fixed) {
+            if (ultimateTop < 0) {
+                setUltimateTop(windowScroll.top)
+            } else {
+                fixed = windowScroll.top > ultimateTop
+            }
+        }
+        setFixed(fixed)
+    }, [windowScroll, scroll])
 
     useEffect(() => {
         if (!container.current || container.current.childElementCount <= 0) {
@@ -25,10 +42,11 @@ export default function ArticleBody({ id, body, collection }: Props) {
             return
         }
 
-        const gen = generateNodeTree(container.current.children[0])
+        const gen = generateNodeTree(container.current)
         setContents(gen)
         return () => setContents(undefined)
     }, [container, id])
+
     return (
         <Box display="flex">
             <Box
@@ -37,16 +55,21 @@ export default function ArticleBody({ id, body, collection }: Props) {
                 }}
                 ref={container}
             >
-                <MarkdownScope lazy collection={collection}>
-                    {body}
-                </MarkdownScope>
+                <MarkdownScope collection={collection}>{body}</MarkdownScope>
             </Box>
             {contents && onWideScreen && (
                 <List
                     sx={{
                         '.MuiListItemButton-root': { borderRadius: 4 },
-                        width: '240px',
+                        width: '220px',
+                        ml: 2,
+                        ...(fixed && {
+                            position: 'fixed',
+                            top: 64,
+                            right: 28,
+                        }),
                     }}
+                    ref={contentsRef}
                     dense
                 >
                     <ContentsNodeComponent node={contents} />
