@@ -1,6 +1,6 @@
 import { Box, useMediaQuery, useTheme } from '@mui/material'
 import { MDXRemoteSerializeResult } from 'next-mdx-remote'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { RefObject, useEffect, useRef, useState } from 'react'
 import { RenderingCollection } from '../lib/renderingCollection'
 import { MarkdownScope } from './MarkdownScope'
 import List from '@mui/material/List'
@@ -17,13 +17,47 @@ interface Props {
 export default function ArticleBody({ id, body, collection }: Props) {
     const theme = useTheme()
     const container = useRef<HTMLDivElement>(null)
-    const contentsRef = useRef<HTMLUListElement>(null)
+    const onWideScreen = useMediaQuery(theme.breakpoints.up('md'))
+
+    return (
+        <Box display="flex">
+            <Box
+                sx={{
+                    width: { xs: '100%', md: 'calc(100% - 240px)' },
+                }}
+                ref={container}
+            >
+                <MarkdownScope collection={collection}>{body}</MarkdownScope>
+            </Box>
+            {onWideScreen && <ContentsView containerRef={container} id={id} />}
+        </Box>
+    )
+}
+
+interface ContentProps {
+    containerRef: RefObject<HTMLDivElement>
+    id: string
+}
+
+function ContentsView({ containerRef: container, id }: ContentProps) {
     const [contents, setContents] = useContents()
+    const [fixed, setFixed] = useState(false)
+    const contentsRef = useRef<HTMLUListElement>(null)
     const scroll = useScroll(contentsRef.current ?? undefined)
     const windowScroll = useScroll()
     const [ultimateTop, setUltimateTop] = useState<number>(-1)
-    const [fixed, setFixed] = useState(false)
-    const onWideScreen = useMediaQuery(theme.breakpoints.up('md'))
+
+    useEffect(() => {
+        if (!container.current) {
+            setContents(undefined)
+            return
+        }
+
+        const gen = generateNodeTree(container.current)
+        setContents(gen)
+        return () => setContents(undefined)
+    }, [container, id])
+
     useEffect(() => {
         let fixed = !Number.isNaN(scroll.top) && scroll.top <= 64
         if (fixed) {
@@ -36,28 +70,9 @@ export default function ArticleBody({ id, body, collection }: Props) {
         setFixed(fixed)
     }, [windowScroll, scroll])
 
-    useEffect(() => {
-        if (!container.current || container.current.childElementCount <= 0) {
-            setContents(undefined)
-            return
-        }
-
-        const gen = generateNodeTree(container.current)
-        setContents(gen)
-        return () => setContents(undefined)
-    }, [container, id])
-
     return (
-        <Box display="flex">
-            <Box
-                sx={{
-                    width: { md: 'calc(100% - 240px)' },
-                }}
-                ref={container}
-            >
-                <MarkdownScope collection={collection}>{body}</MarkdownScope>
-            </Box>
-            {contents && onWideScreen && (
+        <>
+            {contents && (
                 <List
                     sx={{
                         '.MuiListItemButton-root': { borderRadius: 4 },
@@ -75,7 +90,7 @@ export default function ArticleBody({ id, body, collection }: Props) {
                     <ContentsNodeComponent node={contents} />
                 </List>
             )}
-        </Box>
+        </>
     )
 }
 
