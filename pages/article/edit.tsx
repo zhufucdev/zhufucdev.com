@@ -2,7 +2,7 @@ import { GetServerSideProps, NextPage } from 'next'
 import dynamic from 'next/dynamic'
 import { ArticleMeta, getArticle, getCollection } from '../../lib/db/article'
 import { useTitle } from '../../lib/useTitle'
-import { useEffect, useMemo, useState } from 'react'
+import { Dispatch, useEffect, useMemo, useState } from 'react'
 
 import { LocalImage } from '../../components/MarkdownScope'
 import { ImagesPopover } from '../../components/ImagesPopover'
@@ -47,6 +47,8 @@ import {
     RenderingCollection,
 } from '../../lib/renderingCollection'
 import { SpecificCollection } from '../api/article/collections/[id]'
+import { stat } from 'fs'
+import CollectionArragement from '../../components/CollectionArrangement'
 
 const MdxEditor = dynamic(() => import('../../components/MdxEditor'), {
     loading: () => <LoadingScreen />,
@@ -335,6 +337,25 @@ function PageContent(props: ContentProps): JSX.Element {
         return { state, setState, loading, spColl }
     }
 
+    function useArticles(): [string[] | undefined, Dispatch<string[]>] {
+        let init: ArticleID[] | undefined = undefined
+        if (props.collection) {
+            init = props.collection.articles.map((m) => m._id)
+            const storageId = `${storageIdentifier}.articles`
+            if (typeof localStorage === 'object') {
+                const read = localStorage.getItem(storageId)
+                if (read) {
+                    init = JSON.parse(read)
+                }
+            }
+        }
+
+        const [state, setState] = useState<ArticleID[] | undefined>(init)
+        useEffect(() => saveAs('articles', JSON.stringify(state)), [state])
+
+        return [state, setState]
+    }
+
     const [title, setTitle] = useSaved('title', article?.title ?? '')
     const [forward, setForward] = useSaved('forward', article?.forward ?? '')
     const [cover, setCover] = useSaved<File | ImageID>(
@@ -350,6 +371,7 @@ function PageContent(props: ContentProps): JSX.Element {
         loading: collLoading,
         spColl,
     } = useCollections()
+    const [articles, setArticles] = useArticles()
 
     function saveAs(type: string, content: string) {
         const id = storageIdentifier
@@ -397,6 +419,9 @@ function PageContent(props: ContentProps): JSX.Element {
             collections,
         }
         let res: Response
+        if (articles) {
+            body.articles = articles
+        }
         if (article) {
             const original = article
             body.id = original._id
@@ -542,6 +567,16 @@ function PageContent(props: ContentProps): JSX.Element {
                         内容
                     </StepLabel>
                     <StepContent>
+                        {articles && (
+                            <CollectionArragement
+                                articles={articles.map((id) =>
+                                    props.collection!.articles.find(
+                                        (v) => v._id == id
+                                    )!
+                                )}
+                                onArrange={setArticles}
+                            />
+                        )}
                         <MdxEditor
                             value={value}
                             onChange={setValue}

@@ -351,7 +351,7 @@ export async function listCollections(): Promise<
     return result
 }
 
-export async function updateCollection(
+export async function modifyCollection(
     id: ArticleID,
     article: ArticleID,
     remove?: boolean
@@ -365,12 +365,25 @@ export async function updateCollection(
             : { $push: { articles: article } }
     )
     if (!update.value) {
-        await dbColl.insertOne({ _id: id, articles: remove ? [] : [article] })
+        const res = await dbColl.insertOne({
+            _id: id,
+            articles: remove ? [] : [article],
+        })
+        return res.acknowledged
     }
+    return true
+}
+
+export async function updateCollection(id: ArticleID, articles: ArticleID[]) {
+    requireDatabase()
+    const res = await db
+        .collection<CollectionStore>(collectionCollId)
+        .findOneAndUpdate({ _id: id }, { $set: { articles } })
+    return res.ok === 1
 }
 
 /**
- * Update the containers (articles which happen to be a collection)
+ * Update the containers (articles which happen to be collections)
  * of a contained article
  * @returns id of containers involved
  */
@@ -389,12 +402,12 @@ export async function updateArticleInCollection(
     for (const entry of diff) {
         if (entry.added) {
             for (const entryId of entry.value) {
-                updateCollection(entryId, id)
+                modifyCollection(entryId, id)
                 involved.push(entryId)
             }
         } else if (entry.removed) {
             for (const entryId of entry.value) {
-                updateCollection(entryId, id, true)
+                modifyCollection(entryId, id, true)
                 involved.push(entryId)
             }
         }

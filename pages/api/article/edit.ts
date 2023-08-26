@@ -11,6 +11,7 @@ import {
     getArticle,
     updateArticle,
     updateArticleInCollection,
+    updateCollection,
 } from '../../../lib/db/article'
 import { notifyTargetDuplicated } from '../../../lib/db/image'
 import { nanoid } from 'nanoid'
@@ -30,7 +31,7 @@ export default routeWithIronSession(async (req, res) => {
         res.status(401).send('user removed')
         return
     }
-    let { token, title, forward, body, cover, tags, collections } = req.body
+    let { token, title, forward, body, cover, tags, collections, articles } = req.body
     let ref = req.body.ref
 
     if (!(await verifyReCaptcha(token))) {
@@ -75,6 +76,10 @@ export default routeWithIronSession(async (req, res) => {
         res.status(400).send('tag is invalid')
         return
     }
+    if (!tagStruct.collection && articles) {
+        res.status(400).send('article is not a collection')
+        return
+    }
 
     if (canEdit) {
         const prFrom = tagStruct['pr-from']
@@ -117,8 +122,6 @@ export default routeWithIronSession(async (req, res) => {
 
         const acknowledged = await updateArticle(ref, update)
         if (acknowledged) {
-            res.revalidate('/')
-            res.revalidate(`/article/${ref}`)
             let target: ArticleID
             let involved: ArticleID[] = []
             if (update._id) {
@@ -133,10 +136,19 @@ export default routeWithIronSession(async (req, res) => {
             if (tagStruct['t-from']) {
                 involved.push(tagStruct['t-from'] as string)
             }
+            if (articles) {
+                const updateColl = await updateCollection(target, articles)
+                if (!updateColl) {
+                    res.status(500).send('collection not arranged')
+                    return
+                }
+            }
 
             for (const id of involved) {
                 res.revalidate(`/article/${id}`)
             }
+            res.revalidate('/')
+            res.revalidate(`/article/${ref}`)
             await res.revalidate('/article')
             res.send('success')
         } else {
