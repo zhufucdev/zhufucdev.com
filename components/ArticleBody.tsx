@@ -18,18 +18,19 @@ export default function ArticleBody({ id, body, collection }: Props) {
     const theme = useTheme()
     const container = useRef<HTMLDivElement>(null)
     const onWideScreen = useMediaQuery(theme.breakpoints.up('md'))
+    const [hasContents, setHasContents] = useState(true)
 
     return (
         <Box display="flex">
             <Box
                 sx={{
-                    width: { xs: '100%', md: 'calc(100% - 240px)' },
+                    width: hasContents && onWideScreen ? 'calc(100% - 240px)' : '100%',
                 }}
                 ref={container}
             >
                 <MarkdownScope collection={collection}>{body}</MarkdownScope>
             </Box>
-            {onWideScreen && <ContentsView containerRef={container} id={id} />}
+            {onWideScreen && <ContentsView containerRef={container} id={id} setHasContents={setHasContents} />}
         </Box>
     )
 }
@@ -37,9 +38,10 @@ export default function ArticleBody({ id, body, collection }: Props) {
 interface ContentProps {
     containerRef: RefObject<HTMLDivElement>
     id: string
+    setHasContents: (newValue: boolean) => void
 }
 
-function ContentsView({ containerRef: container, id }: ContentProps) {
+function ContentsView({ containerRef: container, id, setHasContents }: ContentProps) {
     const [contents, setContents] = useContents()
     const [fixed, setFixed] = useState(false)
     const contentsRef = useRef<HTMLUListElement>(null)
@@ -49,12 +51,18 @@ function ContentsView({ containerRef: container, id }: ContentProps) {
 
     useEffect(() => {
         if (!container.current) {
+            setHasContents(false)
             setContents(undefined)
             return
         }
 
         const gen = generateNodeTree(container.current)
-        setContents(gen)
+        if (gen.nodes.length > 0) {
+            setContents(gen)
+            setHasContents(true)
+        } else {
+            setHasContents(false)
+        }
         return () => setContents(undefined)
     }, [container, id])
 
