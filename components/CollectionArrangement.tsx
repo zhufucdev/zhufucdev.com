@@ -1,15 +1,7 @@
 import { List, ListItem, ListItemIcon, ListItemText } from '@mui/material'
 import { SafeArticle } from '../lib/safeArticle'
 
-import React, {
-    Dispatch,
-    Ref,
-    RefObject,
-    useCallback,
-    useEffect,
-    useRef,
-    useState,
-} from 'react'
+import React, { Dispatch, useEffect, useRef, useState } from 'react'
 import MenuIcon from '@mui/icons-material/Menu'
 import ArticleIcon from '@mui/icons-material/Article'
 
@@ -23,7 +15,7 @@ export default function CollectionArragement({ articles, onArrange }: Props) {
     const [dragDoc, setDragDoc] = useState<SafeArticle>()
     const [dragTarget, setDragTarget] = useState<DOMRect>()
     const [height, setHeight] = useState(-1)
-    const [doms, setDoms] = useState<{[key: ArticleID]: HTMLDivElement}>({})
+    const [doms, setDoms] = useState<{ [key: ArticleID]: HTMLDivElement }>({})
 
     useEffect(() => {
         if (height < 0 || !dragging) {
@@ -38,7 +30,10 @@ export default function CollectionArragement({ articles, onArrange }: Props) {
         }
 
         const id = articles.map((meta) => meta._id)
-        if (targetIndex > 0 && doms[id[0]].getBoundingClientRect().top > height) {
+        if (
+            targetIndex > 0 &&
+            doms[id[0]].getBoundingClientRect().top > height
+        ) {
             onArrange(
                 [id[targetIndex]]
                     .concat(id.slice(0, targetIndex))
@@ -49,7 +44,10 @@ export default function CollectionArragement({ articles, onArrange }: Props) {
         for (let index = 1; index < id.length; index++) {
             const current = doms[id[index]].getBoundingClientRect(),
                 prev = doms[id[index - 1]].getBoundingClientRect()
-            if (current.top + current.height / 2 > height && prev.top + prev.height / 2 < height) {
+            if (
+                current.top + current.height / 2 > height &&
+                prev.top + prev.height / 2 < height
+            ) {
                 if (index < targetIndex) {
                     onArrange(
                         id
@@ -89,7 +87,9 @@ export default function CollectionArragement({ articles, onArrange }: Props) {
                         }}
                         onDraggingEnded={() => setDragging(false)}
                         onHeightChanged={setHeight}
-                        setDom={(ele) => setDoms((pre) => ({...pre, [meta._id]: ele}))}
+                        setDom={(ele) =>
+                            setDoms((pre) => ({ ...pre, [meta._id]: ele }))
+                        }
                     />
                 ))}
             </List>
