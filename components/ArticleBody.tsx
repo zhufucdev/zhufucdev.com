@@ -1,11 +1,17 @@
 import { Box, useMediaQuery, useTheme } from '@mui/material'
 import { MDXRemoteSerializeResult } from 'next-mdx-remote'
-import { RefObject, useEffect, useRef, useState } from 'react'
+import { RefObject, useEffect, useMemo, useRef, useState } from 'react'
 import { RenderingCollection } from '../lib/renderingCollection'
 import { MarkdownScope } from './MarkdownScope'
 import List from '@mui/material/List'
 import { ContentsNodeComponent } from './ContentsNodeComponent'
-import { Contents, ContentsNode, useContents } from '../lib/useContents'
+import {
+    Contents,
+    ContentsContext,
+    ContentsNode,
+    ContentsNodeState,
+    useContents,
+} from '../lib/useContents'
 import useScroll from '../lib/useScroll'
 
 interface Props {
@@ -18,40 +24,14 @@ export default function ArticleBody({ id, body, collection }: Props) {
     const theme = useTheme()
     const container = useRef<HTMLDivElement>(null)
     const onWideScreen = useMediaQuery(theme.breakpoints.up('md'))
-    const [hasContents, setHasContents] = useState(true)
 
-    return (
-        <Box display="flex">
-            <Box
-                sx={{
-                    width: hasContents && onWideScreen ? 'calc(100% - 240px)' : '100%',
-                }}
-                ref={container}
-            >
-                <MarkdownScope collection={collection}>{body}</MarkdownScope>
-            </Box>
-            {onWideScreen && <ContentsView containerRef={container} id={id} setHasContents={setHasContents} />}
-        </Box>
-    )
-}
-
-interface ContentProps {
-    containerRef: RefObject<HTMLDivElement>
-    id: string
-    setHasContents: (newValue: boolean) => void
-}
-
-function ContentsView({ containerRef: container, id, setHasContents }: ContentProps) {
     const [contents, setContents] = useContents()
-    const [fixed, setFixed] = useState(false)
-    const contentsRef = useRef<HTMLUListElement>(null)
-    const scroll = useScroll(contentsRef.current ?? undefined)
-    const windowScroll = useScroll()
-    const [ultimateTop, setUltimateTop] = useState<number>(-1)
-
+    const hasContents = useMemo(
+        () => contents && contents.children.length > 0,
+        [contents]
+    )
     useEffect(() => {
         if (!container.current) {
-            setHasContents(false)
             setContents(undefined)
             return
         }
@@ -59,12 +39,38 @@ function ContentsView({ containerRef: container, id, setHasContents }: ContentPr
         const gen = generateNodeTree(container.current)
         if (gen.nodes.length > 0) {
             setContents(gen)
-            setHasContents(true)
-        } else {
-            setHasContents(false)
         }
         return () => setContents(undefined)
     }, [container, id])
+
+    return (
+        <Box display="flex">
+            <Box
+                sx={{
+                    width:
+                        hasContents && onWideScreen
+                            ? 'calc(100% - 240px)'
+                            : '100%',
+                }}
+                ref={container}
+            >
+                <MarkdownScope collection={collection}>{body}</MarkdownScope>
+            </Box>
+            {onWideScreen && <ContentsView contents={contents} />}
+        </Box>
+    )
+}
+
+interface ContentProps {
+    contents?: ContentsNodeState
+}
+
+function ContentsView({ contents }: ContentProps) {
+    const [fixed, setFixed] = useState(false)
+    const contentsRef = useRef<HTMLUListElement>(null)
+    const scroll = useScroll(contentsRef.current ?? undefined)
+    const windowScroll = useScroll()
+    const [ultimateTop, setUltimateTop] = useState<number>(-1)
 
     useEffect(() => {
         let fixed = !Number.isNaN(scroll.top) && scroll.top <= 64
