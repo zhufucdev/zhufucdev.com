@@ -7,6 +7,7 @@ import {
     MarkdownScopeProps,
 } from './MarkdownScope'
 import MDEditor, { ICommand } from '@uiw/react-md-editor'
+import { ErrorBoundary } from 'react-error-boundary'
 import * as commands from '@uiw/react-md-editor/lib/commands'
 
 import UploadIcon from '@mui/icons-material/UploadOutlined'
@@ -82,14 +83,16 @@ export default function MdxEditor({
                 onChange={(v) => onChange(v ?? '')}
                 components={{
                     preview: () => (
-                        <Preview
-                            preload={preload}
-                            imageCache={imageCache}
-                            newCache={handleNewCache}
-                            collection={collection}
-                        >
-                            {value || ''}
-                        </Preview>
+                        <ErrorBoundary FallbackComponent={Fallback}>
+                            <Preview
+                                preload={preload}
+                                imageCache={imageCache}
+                                newCache={handleNewCache}
+                                collection={collection}
+                            >
+                                {value || ''}
+                            </Preview>
+                        </ErrorBoundary>
                     ),
                 }}
                 commands={commands.getCommands()}
@@ -115,40 +118,50 @@ function Preview({ children, ...props }: PreviewProps) {
     useEffect(() => {
         content.current = children
         const captured = content.current
-        setTimeout(() => {
-            if (captured === content.current) {
-                if (executeRecaptcha) {
-                    executeRecaptcha().then((token) =>
-                        render(children, token).then((rendered) => {
-                            if (typeof rendered !== 'string') {
-                                setRendered(rendered)
-                                setError(undefined)
-                            } else {
-                                setError(rendered)
-                            }
+        setTimeout(
+            () => {
+                if (captured === content.current) {
+                    if (executeRecaptcha) {
+                        executeRecaptcha().then((token) =>
+                            render(children, token).then((rendered) => {
+                                if (typeof rendered !== 'string') {
+                                    setRendered(rendered)
+                                    setError(undefined)
+                                } else {
+                                    setError(rendered)
+                                }
+                            })
+                        )
+                    } else {
+                        enqueueSnackbar('bug：reCaptcha未就绪', {
+                            variant: 'error',
                         })
-                    )
-                } else {
-                    enqueueSnackbar('bug：reCaptcha未就绪', {
-                        variant: 'error',
-                    })
+                    }
                 }
-            }
-        }, rendered ? 1500 : 0)
+            },
+            rendered ? 1500 : 0
+        )
     }, [children])
     return (
         <>
-            {error && (
-                <HelperCard
-                    variant="error"
-                    title="服务器未能完成渲染"
-                    sx={{ position: 'absolute', width: '70%', left: '14%' }}
-                >
-                    {error}
-                </HelperCard>
-            )}
+            {error && <Fallback error={error} />}
             {rendered && <MarkdownScope {...props}>{rendered}</MarkdownScope>}
         </>
+    )
+}
+
+interface FallbackProps {
+    error: Error | string
+}
+function Fallback({ error }: FallbackProps) {
+    return (
+        <HelperCard
+            variant="error"
+            title="服务器未能完成渲染"
+            sx={{ position: 'absolute', width: '70%', left: '14%' }}
+        >
+            {typeof error === 'string' ? error : error.message}
+        </HelperCard>
     )
 }
 
