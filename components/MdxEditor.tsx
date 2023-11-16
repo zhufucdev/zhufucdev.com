@@ -6,9 +6,8 @@ import {
     MarkdownScope,
     MarkdownScopeProps,
 } from './MarkdownScope'
-import MDEditor, { ICommand } from '@uiw/react-md-editor'
+import MDEditor, { ICommand, commands } from '@uiw/react-md-editor'
 import { ErrorBoundary } from 'react-error-boundary'
-import * as commands from '@uiw/react-md-editor/lib/commands'
 
 import UploadIcon from '@mui/icons-material/UploadOutlined'
 import { MDXRemoteSerializeResult } from 'next-mdx-remote'
