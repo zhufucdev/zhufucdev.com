@@ -47,8 +47,7 @@ import {
     RenderingCollection,
 } from '../../lib/renderingCollection'
 import { SpecificCollection } from '../api/article/collections/[id]'
-import { stat } from 'fs'
-import CollectionArragement from '../../components/CollectionArrangement'
+import CollectionArrangement from '../../components/CollectionArrangement'
 
 const MdxEditor = dynamic(() => import('../../components/MdxEditor'), {
     loading: () => <LoadingScreen />,
@@ -225,9 +224,49 @@ function MetadataStepContent(props: MetadataProps): JSX.Element {
     )
 }
 
+interface ConfirmationProps {
+    titleModded: boolean
+    forwardModded: boolean
+    tagsModded: boolean
+    collectionsModded: boolean
+    coverModded: boolean
+    bodyModded: boolean
+}
+
+function ConfirmationStepContent(props: ConfirmationProps) {
+    const matrix = [
+        props.titleModded,
+        props.forwardModded,
+        props.tagsModded,
+        props.collectionsModded,
+        props.coverModded,
+        props.bodyModded,
+    ]
+    const names = ['标题', '导读', '标签', '合集', '封面', '正文']
+    const moddedNames = names.filter((_, i) => matrix[i])
+
+    return (
+        <Typography>
+            更改：{moddedNames.length > 0 ? moddedNames.join(' ') : '无'}
+        </Typography>
+    )
+}
+
 interface ContentProps extends PageProps {
     permission: Permission
 }
+
+const StorageTypes = [
+    'cover',
+    'title',
+    'ref',
+    'body',
+    'tags',
+    'forward',
+    'collections',
+    'articles',
+] as const
+type StorageType = (typeof StorageTypes)[number]
 
 function PageContent(props: ContentProps): JSX.Element {
     const router = useRouter()
@@ -236,19 +275,23 @@ function PageContent(props: ContentProps): JSX.Element {
     const storageIdentifier = props.article ? props.article._id : 'new_article'
     let article: SafeArticle | undefined = props.article
 
-    function useSaved<T>(type: string, or: T) {
+    function useSaved<T>(type: StorageType, or: T): [T, Dispatch<T>, boolean] {
         const draft =
             typeof localStorage === 'object'
-                ? (localStorage.getItem(`${storageIdentifier}.${type}`) as T)
+                ? (localStorage.getItem(getStorageId(type)) as T)
                 : undefined
-        const state = useState<T>(draft ?? or)
+        const init = draft ?? or
+        const [state, setState] = useState<T>(init)
+        const [modified, setModified] = useState(Boolean(draft))
         useEffect(() => {
-            const newValue = state[0]
-            if (typeof newValue === 'string') {
-                saveAs(type, newValue)
+            if (typeof state === 'string') {
+                saveAs(type, state)
+                setModified(state != init)
+            } else {
+                throw 'Unsupported storage value: ' + typeof state
             }
-        }, [state[0]])
-        return state
+        }, [state])
+        return [state, setState, modified]
     }
 
     const hardcodedTags = useMemo(() => {
@@ -271,46 +314,41 @@ function PageContent(props: ContentProps): JSX.Element {
         }
     }, [props.permission, article])
 
-    function useTags() {
+    function useTags(): [Tag[], Dispatch<Tag[]>, boolean] {
         let draft: Tag[] | undefined = undefined
         if (typeof localStorage === 'object') {
-            const read = localStorage.getItem(`${storageIdentifier}.tags`)
+            const read = localStorage.getItem(getStorageId('tags'))
             if (read) {
                 draft = (JSON.parse(read) as string[]).map(Tag.readTag)
             } else if (article) {
-                draft = []
-                for (const key in article.tags) {
-                    draft.push(
-                        new Tag(
-                            key as TagKey,
-                            (article.tags as any)[key] as any
-                        )
-                    )
-                }
+                draft = Object.entries(article.tags).map(
+                    ([key, value]) => new Tag(key as TagKey, String(value))
+                )
             }
         }
-        const state = useState(draft ?? [])
-        useEffect(
-            () =>
-                saveAs(
-                    'tags',
-                    JSON.stringify(state[0].map((v) => v.toString()))
-                ),
-            [state[0]]
-        )
-        return state
+        const init = draft ?? []
+        const [tags, setTags] = useState(init)
+        const [modified, setModified] = useState(typeof draft !== 'undefined')
+        useEffect(() => {
+            saveAs('tags', JSON.stringify(tags.map((v) => v.toString())))
+            setModified(tags != init)
+        }, [tags])
+        return [tags, setTags, modified]
     }
 
-    function useCollections() {
-        const storageId = `${storageIdentifier}.collections`
+    function useAvailableCollections() {
+        const storageId = getStorageId('collections')
         let selected: string[] = []
+        let locallyStored = false
         if (typeof localStorage === 'object') {
             const read = localStorage.getItem(storageId)
             if (read) {
                 selected = JSON.parse(read)
+                locallyStored = true
             }
         }
 
+        const [modified, setModified] = useState(locallyStored)
         const [state, setState] = useState(selected)
         const [spColl, setSpColl] = useState<SpecificCollection>()
         const [loading, setLoading] = useState(false)
@@ -320,28 +358,38 @@ function PageContent(props: ContentProps): JSX.Element {
             fetch(`/api/article/collections${article ? '/' + article._id : ''}`)
                 .then((res) => res.json() as Promise<SpecificCollection>)
                 .then((data) => {
-                    setSpColl(data)
-                    if (!state) {
+                    if (!locallyStored) {
                         setState(
                             Object.entries(data)
                                 .filter(([_, { containing }]) => containing)
                                 .map(([id, _]) => id)
                         )
+                    } else {
+                        for (const id in data) {
+                            data[id].containing = selected.includes(id)
+                        }
                     }
+                    setSpColl(data)
                 })
                 .finally(() => setLoading(false))
-        }, [])
+        }, [setLoading])
         useEffect(() => {
             saveAs('collections', JSON.stringify(state))
+            setModified(state != selected)
         }, [state])
-        return { state, setState, loading, spColl }
+        return { state, setState, loading, spColl, modified }
     }
 
-    function useArticles(): [string[] | undefined, Dispatch<string[]>] {
+    function useContainedArticles(): [
+        string[] | undefined,
+        Dispatch<string[]>,
+        boolean,
+    ] {
         let init: ArticleID[] | undefined = undefined
+
         if (props.collection) {
             init = props.collection.articles.map((m) => m._id)
-            const storageId = `${storageIdentifier}.articles`
+            const storageId = getStorageId('articles')
             if (typeof localStorage === 'object') {
                 const read = localStorage.getItem(storageId)
                 if (read) {
@@ -351,31 +399,50 @@ function PageContent(props: ContentProps): JSX.Element {
         }
 
         const [state, setState] = useState<ArticleID[] | undefined>(init)
-        useEffect(() => saveAs('articles', JSON.stringify(state)), [state])
+        const [modified, setModified] = useState(typeof init !== 'undefined')
 
-        return [state, setState]
+        useEffect(() => {
+            saveAs('articles', JSON.stringify(state))
+            setModified(state != init)
+        }, [state])
+
+        return [state, setState, modified]
     }
 
-    const [title, setTitle] = useSaved('title', article?.title ?? '')
-    const [forward, setForward] = useSaved('forward', article?.forward ?? '')
-    const [cover, setCover] = useSaved<File | ImageID>(
+    const [title, setTitle, titleModded] = useSaved(
+        'title',
+        article?.title ?? ''
+    )
+    const [forward, setForward, forwardModded] = useSaved(
+        'forward',
+        article?.forward ?? ''
+    )
+    const [cover, setCover, coverModded] = useSaved<File | ImageID>(
         'cover',
         article?.cover ?? ''
     )
-    const [value, setValue] = useSaved('body', props.body ?? '')
+    const [value, setValue, valueModded] = useSaved('body', props.body ?? '')
     const [preload, setPreload] = useState<LocalImage>({})
-    const [tags, setTags] = useTags()
+    const [tags, setTags, tagsModded] = useTags()
     const {
         state: collections,
         setState: setCollections,
         loading: collLoading,
         spColl,
-    } = useCollections()
-    const [articles, setArticles] = useArticles()
+        modified: collectionsModded,
+    } = useAvailableCollections()
+    const [articles, setArticles, articlesModded] = useContainedArticles()
 
-    function saveAs(type: string, content: string) {
-        const id = storageIdentifier
-        localStorage.setItem(`${id}.${type}`, content)
+    function getStorageId(type: StorageType) {
+        return `${storageIdentifier}.${type}`
+    }
+
+    function saveAs(type: StorageType, content: string) {
+        localStorage.setItem(getStorageId(type), content)
+    }
+
+    function clear(type: StorageType) {
+        localStorage.removeItem(getStorageId(type))
     }
 
     const [activeStep, setActiveStep] = useState(0)
@@ -385,9 +452,7 @@ function PageContent(props: ContentProps): JSX.Element {
     const [progress, setProgress] = useState(-1)
     const handleResult = useRequestResult(
         () => {
-            ;['cover', 'title', 'ref', 'body', 'tags'].forEach((v) =>
-                localStorage.removeItem(`${storageIdentifier}.${v}`)
-            )
+            StorageTypes.forEach(clear)
             router.push('/article')
         },
         () => {
@@ -568,11 +633,12 @@ function PageContent(props: ContentProps): JSX.Element {
                     </StepLabel>
                     <StepContent>
                         {articles && (
-                            <CollectionArragement
-                                articles={articles.map((id) =>
-                                    props.collection!.articles.find(
-                                        (v) => v._id == id
-                                    )!
+                            <CollectionArrangement
+                                articles={articles.map(
+                                    (id) =>
+                                        props.collection!.articles.find(
+                                            (v) => v._id == id
+                                        )!
                                 )}
                                 onArrange={setArticles}
                             />
@@ -603,7 +669,15 @@ function PageContent(props: ContentProps): JSX.Element {
                         确认
                     </StepLabel>
                     <StepContent>
-                        <Box mb={2}>
+                        <ConfirmationStepContent
+                            titleModded={titleModded}
+                            forwardModded={forwardModded}
+                            tagsModded={tagsModded}
+                            collectionsModded={collectionsModded}
+                            coverModded={coverModded}
+                            bodyModded={valueModded}
+                        />
+                        <Box mb={2} mt={2}>
                             <BackButton setter={stepIncrease} />
                             <ContinueButton setter={stepIncrease}>
                                 提交

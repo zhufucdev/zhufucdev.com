@@ -10,7 +10,7 @@ interface Props {
     onArrange: (newValue: ArticleID[]) => void
 }
 
-export default function CollectionArragement({ articles, onArrange }: Props) {
+export default function CollectionArrangement({ articles, onArrange }: Props) {
     const [dragging, setDragging] = useState(false)
     const [dragDoc, setDragDoc] = useState<SafeArticle>()
     const [dragTarget, setDragTarget] = useState<DOMRect>()
