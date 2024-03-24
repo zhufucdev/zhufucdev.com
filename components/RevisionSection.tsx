@@ -1,12 +1,12 @@
-import { Grid, Stack, SxProps, useTheme } from "@mui/material"
-import { AnimatePresence, motion } from "framer-motion"
-import { useState } from "react"
-import { useProfileContext } from "../lib/useUser"
-import { RenderingArticle } from "./ArticleCard"
-import ArticleComment from "./ArticleComment"
-import ArticlePr from "./ArticlePr"
-import { CommentCard, RenderingComment } from "./CommentCard"
-import LoginPopover from "./LoginPopover"
+import { Grid, Stack, SxProps, useTheme } from '@mui/material'
+import { AnimatePresence, motion } from 'framer-motion'
+import { useEffect, useState } from 'react'
+import { useProfileContext } from '../lib/useUser'
+import { RenderingArticle } from './ArticleCard'
+import ArticleComment from './ArticleComment'
+import ArticlePr from './ArticlePr'
+import { CommentCard, RenderingComment } from './CommentCard'
+import LoginPopover from './LoginPopover'
 
 interface RevisionProps {
     meta: RenderingArticle
@@ -14,12 +14,18 @@ interface RevisionProps {
     comments: RenderingComment[]
 }
 
-export default function RevisionSection({ meta, sx, comments: _comments }: RevisionProps) {
+export default function RevisionSection({
+    meta,
+    sx,
+    comments: _comments,
+}: RevisionProps) {
     const theme = useTheme()
     const { user } = useProfileContext()
     const [comments, setComments] = useState(_comments)
     const [reviewing, setReviewing] = useState<HTMLElement>()
     const [commenting, setCommenting] = useState(false)
+
+    useEffect(() => setComments(_comments), [_comments])
 
     async function handleDelete(target: RenderingComment) {
         const index = comments.findIndex((v) => v._id === target._id)
