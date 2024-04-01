@@ -1,4 +1,4 @@
-> This project is currently under active development
+> This project is renamed to 二次元猫娘的博客
 
 # Getting Started
 
