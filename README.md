@@ -1,5 +1,3 @@
-> This project is renamed to 二次元猫娘的博客
-
 # Getting Started
 
 This site is powered by Next.js and MUI, plus MongoDB as database
