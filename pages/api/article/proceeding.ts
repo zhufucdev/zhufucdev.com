@@ -5,7 +5,7 @@ import {getUser} from "../../../lib/db/user";
 import {getSafeArticle} from "../../../lib/safeArticle";
 
 export default routeWithIronSession(async (req, res) => {
-    if (!await validUser(req)) {
+    if (!(await validUser(req))) {
         res.status(401).send('unauthorized');
         return
     }

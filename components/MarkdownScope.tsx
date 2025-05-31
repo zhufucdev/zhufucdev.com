@@ -178,7 +178,7 @@ export function MarkdownScope({
                 ...components,
             }}
         />
-    )
+    );
 }
 
 function MdImage({

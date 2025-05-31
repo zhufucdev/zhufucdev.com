@@ -10,11 +10,12 @@ import Toolbar from '@mui/material/Toolbar'
 import { ThemeOptions, useMediaQuery } from '@mui/material'
 import { createTheme, ThemeProvider } from '@mui/material/styles'
 import { Analytics } from '@vercel/analytics/react'
-import Head from 'next/head'
+// import Head from 'next/head'; // REMOVED
 import createEmotionCache from '../lib/emotionCache'
 import { CacheProvider } from '@emotion/react'
 import { SelfProfileProvider, useProfile } from '../lib/useUser'
-import { getTitle, TitleProvider, useTitle } from '../lib/useTitle'
+// import { getTitle, TitleProvider, useTitle } from '../lib/useTitle'; // useTitle and getTitle are related to MyHead
+import { TitleProvider } from '../lib/useTitle'; // Keep TitleProvider for now, but its usage for <title> is superseded
 import { ContentsProvider } from '../lib/useContents'
 import { LanguageProvider } from '../lib/useLanguage'
 import { MyAppProps } from '../pages/_app'
@@ -41,15 +42,7 @@ const SnackbarProvider = dynamic(() =>
     import('notistack').then((mod) => mod.SnackbarProvider)
 )
 
-function MyHead() {
-    const [_title] = useTitle()
-    const title = useMemo(() => getTitle(_title, true), [_title])
-    return (
-        <Head>
-            <title>{title}</title>
-        </Head>
-    )
-}
+// MyHead function REMOVED
 
 export default function AppFrame({
     Component,
@@ -79,7 +72,7 @@ export default function AppFrame({
                     }
                 >
                     <ContentsProvider>
-                        <MyHead />
+                        {/* <MyHead /> REMOVED */}
                         <MyBackdrop />
                         <SnackbarProvider>
                             <SelfProfileProvider {...selfProfile}>

@@ -8,7 +8,7 @@ import {addRecent} from "../../../lib/db/recent";
 import {validRef} from "../begin/[type]";
 
 async function messageRoute(req: NextApiRequest, res: NextApiResponse) {
-    if (!req.session.userID || !await validUser(req)) {
+    if (!req.session.userID || !(await validUser(req))) {
         res.status(401).send('unauthorized');
         return;
     }
@@ -43,7 +43,7 @@ async function messageRoute(req: NextApiRequest, res: NextApiResponse) {
     let succeeded: boolean;
     switch (type) {
         case "inspiration":
-            if (!await permitted("raise_inspiration")) return;
+            if (!(await permitted("raise_inspiration"))) return;
             succeeded = await addInspiration(ref, req.session.userID, body);
             break;
         case "recent":
@@ -52,7 +52,7 @@ async function messageRoute(req: NextApiRequest, res: NextApiResponse) {
                 res.status(400).send('bad request');
                 return;
             }
-            if (!await permitted("raise_recent")) return;
+            if (!(await permitted("raise_recent"))) return;
             succeeded = await addRecent(ref, title, body, image);
             break;
         default:

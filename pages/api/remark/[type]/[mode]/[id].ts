@@ -15,17 +15,17 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         res.status(400).send('bad request');
         return;
     }
-    if (!req.session.userID || !await validUser(req)) {
+    if (!req.session.userID || !(await validUser(req))) {
         res.status(401).send('not logged in');
         return;
     }
 
-    if (!await getAndCheckUserPermission(req.session.userID, "remark")) {
+    if (!(await getAndCheckUserPermission(req.session.userID, "remark"))) {
         res.status(403).send('not permitted to remark');
         return;
     }
 
-    if (!await verifyReCaptcha(token)) {
+    if (!(await verifyReCaptcha(token))) {
         res.status(403).send('invalid reCAPTCHA');
         return;
     }

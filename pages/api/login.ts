@@ -10,7 +10,7 @@ async function loginRouter(req: NextApiRequest, res: NextApiResponse) {
         if (logout) {
             const token = req.session.accessToken!
             req.session.destroy();
-            if (!await invalidToken(token)) {
+            if (!(await invalidToken(token))) {
                 res.status(500).send('database not acknowledging');
                 return;
             }

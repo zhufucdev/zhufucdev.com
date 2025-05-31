@@ -20,13 +20,13 @@ function MyApp(props: MyAppProps) {
                 {routes
                     .filter((e) => !e.hidden)
                     .map((e) => (
-                        <Link key={e.name} href={e.route}>
+                        <Link key={e.name} href={e.route} legacyBehavior>
                             {e.title}
                         </Link>
                     ))}
             </Box>
         </>
-    )
+    );
 }
 
 export async function getServerSideProps() {

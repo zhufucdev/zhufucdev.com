@@ -157,7 +157,7 @@ type PageProps = {
 
 async function getProps(id: string | undefined): Promise<PageProps> {
     const reCaptchaKey = process.env.RECAPTCHA_KEY_FRONTEND as string;
-    const owner = id && await getUser(id);
+    const owner = id && (await getUser(id));
     let inspirations: RenderingInspiration[] | undefined;
     if (owner) {
         const user = getSafeUser(owner);

@@ -15,12 +15,12 @@ export default routeWithIronSession(async (req, res) => {
         return
     }
 
-    if (!await verifyReCaptcha(token)) {
+    if (!(await verifyReCaptcha(token))) {
         res.status(403).send('invalid reCAPTCHA');
         return
     }
 
-    if (!await validUser(req)) {
+    if (!(await validUser(req))) {
         res.status(403).send('not logged in');
         return
     }

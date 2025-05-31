@@ -10,7 +10,7 @@ import {nanoid} from "nanoid";
 import {checkTagsIntegrity, readTags, stringifyTags} from "../../../lib/tagging";
 
 export default routeWithIronSession(async (req, res) => {
-    if (!await validUser(req)) {
+    if (!(await validUser(req))) {
         res.status(401).send('unauthorized');
         return
     }
@@ -26,7 +26,7 @@ export default routeWithIronSession(async (req, res) => {
         res.status(403).send('ref forbidden');
         return
     }
-    if (!await verifyReCaptcha(token)) {
+    if (!(await verifyReCaptcha(token))) {
         res.status(400).send('invalid reCaptcha');
         return
     }
